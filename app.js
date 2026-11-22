@@ -17,15 +17,17 @@ function download(blob, name) { const a = document.createElement("a"); a.href = 
 const safeName = () => ($("#docName").value.trim() || "document").replace(/[\\/:*?"<>|]+/g, "-").replace(/\.pdf$/i, "");
 
 /* ============ Anonymous counters (no cookies, no personal data) ============ */
-const COUNTER = { on: true, ns: "folio-pdf-editor", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
+const COUNTER = { on: true, ns: "ifleavesweave", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", board_visits: "Boards: visits", board_created: "Boards: boards made", whiteboard_visits: "Canvas: visits", whiteboard_created: "Canvas: whiteboards made", mindmap_visits: "Maps: visits", mindmap_created: "Maps: maps made", sociogram_visits: "Sociogram: visits", sociogram_created: "Sociogram: sociograms made", genogram_visits: "Genogram: visits", genogram_created: "Genogram: genograms made", prototype_visits: "Prototype: visits", prototype_created: "Prototype: prototypes made", send_to_pdf: "Sent to If Leaves Weave PDF from other tools", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
 const canCount = COUNTER.on && !navigator.globalPrivacyControl && navigator.doNotTrack !== "1" && /^https?:/.test(location.protocol);
-const noCount = () => { try { return localStorage.getItem("folio-nocount") === "1"; } catch { return false; } };
+const noCount = () => { try { return localStorage.getItem("ifleavesweave-nocount") === "1"; } catch { return false; } };
 function count(key) { if (noCount()) return; if (!canCount) return; try { fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER.ns}/${key}`, { keepalive: true }).catch(() => {}); } catch {} }
-try { if (location.hash !== "#stats" && !sessionStorage.getItem("folio-visit")) { sessionStorage.setItem("folio-visit", "1"); count("visits"); } } catch {}
+try { if (location.hash !== "#stats" && !sessionStorage.getItem("ifleavesweave-visit")) { sessionStorage.setItem("ifleavesweave-visit", "1"); count("visits"); } } catch {}
 async function showStats() {
   const d = $("#statsDlg"), list = $("#statsList"); d.showModal();
   if (!/^https?:/.test(location.protocol)) { list.textContent = "Counts work once the site is online."; return; }
-  const rows = await Promise.all(Object.entries(COUNTER.keys).map(async ([k, l]) => { try { const r = await fetch(`https://abacus.jasoncameron.dev/get/${COUNTER.ns}/${k}`); return [l, r.ok ? (await r.json()).value : 0]; } catch { return [l, "–"]; } }));
+  // totals include counts recorded under the old name (folio-pdf-editor), so history carries on
+  const get = async (ns, k) => { try { const r = await fetch(`https://abacus.jasoncameron.dev/get/${ns}/${k}`); return r.ok ? (await r.json()).value || 0 : 0; } catch { return null; } };
+  const rows = await Promise.all(Object.entries(COUNTER.keys).map(async ([k, l]) => { const [a, b] = await Promise.all([get(COUNTER.ns, k), get("folio-pdf-editor", k)]); return [l, a == null && b == null ? "–" : (a || 0) + (b || 0)]; }));
   list.innerHTML = rows.map(([l, v]) => `<div><span>${l}</span><b>${typeof v === "number" ? v.toLocaleString() : v}</b></div>`).join("");
 }
 $("#statsClose").onclick = () => { $("#statsDlg").close(); history.replaceState(null, "", location.pathname); };
@@ -86,7 +88,7 @@ async function loadPdf(f) {
   const inf = [];
   for (let i = 1; i <= pdf.numPages; i++) { const pg = await pdf.getPage(i), v = pg.view; inf.push({ w: v[2] - v[0], h: v[3] - v[1], rot: pg.rotate || 0 }); }
   let req = null;
-  try { const att = await pdf.getAttachments(); const hit = att && Object.values(att).find(a => a.filename === REQ_FILE); if (hit) { req = JSON.parse(new TextDecoder().decode(hit.content)); if (req.app !== "folio" || req.type !== "signature-request") req = null; } } catch { req = null; }
+  try { const att = await pdf.getAttachments(); const hit = att && Object.values(att).find(a => a.filename === REQ_FILE); if (hit) { req = JSON.parse(new TextDecoder().decode(hit.content)); if (!["ifleavesweave", "folio"].includes(req.app) || req.type !== "signature-request") req = null; } } catch { req = null; }
   const fields = await readFormFields(bytes);
   const src = sources.push({ kind: "pdf", name: f.name, bytes, pdf, info: inf, req, fields, formValues: {} }) - 1;
   if (fields.length) toast(`This PDF has ${fields.length} fillable field${fields.length > 1 ? "s" : ""}. Open Fill form to complete them.`, 4200);
@@ -518,7 +520,7 @@ function placeImage(url, wFrac, msg) {
 }
 
 /* ============ Signatures ============ */
-const SIG_KEY = "folio.signatures";
+const SIG_KEY = "ifleavesweave.signatures";
 const loadSigs = () => { try { return JSON.parse(localStorage.getItem(SIG_KEY)) || []; } catch { return []; } };
 const saveSigs = s => { try { localStorage.setItem(SIG_KEY, JSON.stringify(s.slice(0, 6))); } catch {} };
 function renderSigs() { const s = loadSigs(); $("#sigs").innerHTML = s.map((u, i) => `<button data-sig="${i}" title="Add this signature"><img src="${u}" alt="Saved signature ${i + 1}"><span class="del" data-sdel="${i}" role="button" aria-label="Remove signature">×</span></button>`).join(""); $("#newSig").textContent = s.length ? "Create another signature" : "Create a signature"; }
@@ -636,7 +638,7 @@ async function buildPdf(list = pages, { decorate = true, onProgress } = {}) {
     if (i % 5 === 4) await tick();
   }
   const meta = k => ($("#m" + k)?.value || "").trim();
-  out.setTitle(meta("Title") || safeName()); out.setProducer("Folio"); out.setCreator("Folio");
+  out.setTitle(meta("Title") || safeName()); out.setProducer("If Leaves Weave"); out.setCreator("If Leaves Weave");
   if (meta("Author")) out.setAuthor(meta("Author")); if (meta("Subject")) out.setSubject(meta("Subject"));
   if (meta("Keywords")) out.setKeywords(meta("Keywords").split(",").map(k => k.trim()).filter(Boolean));
   let bytes = await out.save();
@@ -703,7 +705,7 @@ $("#cmpGo").onclick = async () => {
     busy("Compressing", 0); const bytes = await buildPdf(); nowSize = bytes.length; $("#cmpNow").textContent = kb(nowSize);
     const out = await PDFDocument.create(), n = pages.length;
     await renderBuilt(bytes, [...Array(n).keys()], L[0], "image/jpeg", L[1], async (blob, k, w, h) => { const im = await out.embedJpg(new Uint8Array(await blob.arrayBuffer())); out.addPage([w, h]).drawImage(im, { x: 0, y: 0, width: w, height: h }); busy(`Compressing page ${k + 1} of ${n}`, (k + 1) / n * 100); });
-    out.setTitle(safeName()); out.setProducer("Folio"); const res = await out.save(); busy(false);
+    out.setTitle(safeName()); out.setProducer("If Leaves Weave"); const res = await out.save(); busy(false);
     $("#cmpAfterRow").hidden = false; $("#cmpAfter").textContent = `${kb(res.length)} (${Math.round((1 - res.length / nowSize) * 100)}% smaller)`;
     if (res.length >= nowSize) { $("#cmpAfter").textContent = kb(res.length); return toast("This PDF is already compact. Compressing would make it bigger, so nothing was downloaded.", 5000); }
     download(new Blob([res], { type: "application/pdf" }), `${safeName()}-compressed.pdf`); count("compress"); toast(`Saved ${kb(nowSize - res.length)}`);
@@ -764,7 +766,7 @@ addEventListener("keydown", e => {
 addEventListener("keyup", e => { if (e.key.startsWith("Arrow")) typingCommitted = false; });
 
 /* ============ Signature requests ============ */
-const REQ_FILE = "folio-signing.json";
+const REQ_FILE = "ifleavesweave-signing.json";
 const SIGNER_COLORS = ["#2453D6", "#C2410C", "#0F766E", "#7C3AED", "#BE185D"];
 const FIELD_LABEL = { sign: "Signature", initials: "Initials", date: "Date signed", name: "Full name", text: "Text" };
 const FIELD_SIZE = { sign: [170, 46], initials: [64, 38], date: [110, 22], name: [170, 22], text: [170, 22] };
@@ -824,12 +826,12 @@ $("#reqCreate").onclick = async () => {
     busy("Preparing the signing file", 10);
     const base = await buildPdf(pages, { onProgress: f => busy("Preparing the signing file", 10 + f * 70) }), hash = await sha256(base);
     const sender = { name: $("#meName").value.trim(), email: $("#meEmail").value.trim() };
-    const req = { app: "folio", type: "signature-request", v: 1, id: (crypto.randomUUID ? crypto.randomUUID() : uid("doc") + Date.now()), title: safeName(), created: new Date().toISOString(), sender, message: $("#reqMsg").value.trim(), baseCount: pages.length, hash,
+    const req = { app: "ifleavesweave", type: "signature-request", v: 1, id: (crypto.randomUUID ? crypto.randomUUID() : uid("doc") + Date.now()), title: safeName(), created: new Date().toISOString(), sender, message: $("#reqMsg").value.trim(), baseCount: pages.length, hash,
       signers: REQ.signers.map(({ id, name, email, color }) => ({ id, name, email, color })),
       fields: allFields().map(({ a, i }) => ({ id: a.id, page: i, kind: a.kind, signer: a.signer, x: a.x, y: a.y, w: a.w, h: a.h })), values: {},
       events: [{ type: "created", by: sender.name || "Sender", email: sender.email, at: new Date().toISOString() }] };
     const doc = await PDFDocument.load(base);
-    await doc.attach(new TextEncoder().encode(JSON.stringify(req)), REQ_FILE, { mimeType: "application/json", description: "Folio signature request", creationDate: new Date(), modificationDate: new Date() });
+    await doc.attach(new TextEncoder().encode(JSON.stringify(req)), REQ_FILE, { mimeType: "application/json", description: "If Leaves Weave signature request", creationDate: new Date(), modificationDate: new Date() });
     const out = await doc.save(); busy(false);
     const fname = `${safeName()}-for-signing.pdf`; download(new Blob([out], { type: "application/pdf" }), fname); count("requests");
     const site = location.origin + location.pathname, to = req.signers.filter(g => g.email).map(g => g.email).join(",");
@@ -937,9 +939,9 @@ $("#finishSign").onclick = async () => {
       if (y < 140) break;
     }
     y = 110;
-    ["Signatures were added with Folio in each signer’s own web browser. The file never passed through a server.", "Folio records the names and email addresses that signers chose; it does not verify identity.", "Keep this page with the document as a record of who signed and when."].forEach(t => line(t, { size: 8.5, color: rgb(.4, .43, .47), gap: 12 }));
-    await out.attach(new TextEncoder().encode(JSON.stringify(req)), REQ_FILE, { mimeType: "application/json", description: "Folio signature request", creationDate: new Date(req.created), modificationDate: at });
-    out.setTitle(req.title); out.setProducer("Folio");
+    ["Signatures were added with If Leaves Weave in each signer’s own web browser. The file never passed through a server.", "If Leaves Weave records the names and email addresses that signers chose; it does not verify identity.", "Keep this page with the document as a record of who signed and when."].forEach(t => line(t, { size: 8.5, color: rgb(.4, .43, .47), gap: 12 }));
+    await out.attach(new TextEncoder().encode(JSON.stringify(req)), REQ_FILE, { mimeType: "application/json", description: "If Leaves Weave signature request", creationDate: new Date(req.created), modificationDate: at });
+    out.setTitle(req.title); out.setProducer("If Leaves Weave");
     const bytes = await out.save(); busy(false);
     const fname = `${req.title}-signed${left.length ? `-by-${me.name.split(/\s+/)[0].toLowerCase()}` : ""}.pdf`;
     download(new Blob([bytes], { type: "application/pdf" }), fname); count("signed");
@@ -1021,7 +1023,7 @@ async function flattenRedacted(bytes, idxs) {
   }
   doc.destroy();
   ["Title", "Author", "Subject"].forEach(k => { try { const v = src["get" + k](); if (v) out["set" + k](v); } catch {} });
-  out.setProducer("Folio"); count("redact");
+  out.setProducer("If Leaves Weave"); count("redact");
   return out.save();
 }
 
@@ -1079,14 +1081,14 @@ async function exportDocx() {
   doc.destroy();
   if (docxMode === "text" && !textFound) { busy(false); return toast("No text found. This looks like a scanned PDF, so choose “Exact look” instead.", 5000); }
   busy("Writing the Word file", 95);
-  const blob = await D.Packer.toBlob(new D.Document({ creator: "Folio", title: safeName(), styles: { default: { document: { run: { font: "Calibri", size: 22 } } } }, sections }));
+  const blob = await D.Packer.toBlob(new D.Document({ creator: "If Leaves Weave", title: safeName(), styles: { default: { document: { run: { font: "Calibri", size: 22 } } } }, sections }));
   busy(false); download(blob, `${safeName()}.docx`); count("convert"); toast("Word document downloaded");
 }
 async function exportPptx() {
   await loadScript(new URL("./vendor/pptxgen.bundle.js", import.meta.url).href);
   const idxs = convIdxs(), bytes = await buildPdf(), doc = await pdfjsLib.getDocument({ data: bytes }).promise, pptx = new window.PptxGenJS();
   const first = (await doc.getPage(idxs[0] + 1)).getViewport({ scale: 1 }), W = first.width / 72, H = first.height / 72;
-  pptx.defineLayout({ name: "PDF", width: W, height: H }); pptx.layout = "PDF"; pptx.title = safeName(); pptx.company = "Folio";
+  pptx.defineLayout({ name: "PDF", width: W, height: H }); pptx.layout = "PDF"; pptx.title = safeName(); pptx.company = "If Leaves Weave";
   for (let k = 0; k < idxs.length; k++) {
     busy(`Making slide ${k + 1} of ${idxs.length}`, k / idxs.length * 100);
     const pg = await doc.getPage(idxs[k] + 1), vp = pg.getViewport({ scale: 1 }), url = await renderPageJpeg(pg, 150), slide = pptx.addSlide();
@@ -1107,5 +1109,16 @@ $("#cvGo").onclick = async () => {
 
 
 /* ============ Shared with extras.js (compare, Bates, flipbook, text recognition) ============ */
-window.Folio = { pdfjsLib, PDFDocument, StandardFonts, rgb, degrees, buildPdf, renderBuilt, busy, toast, download, count, safeName, kb, esc, tick, addFiles, hasDoc: () => pages.length > 0, insertIndex: () => sel.size ? Math.max(...pages.map((p, i) => (sel.has(p.id) ? i : -1))) + 1 : pages.length };
-window.dispatchEvent(new Event("folio-ready"));
+window.IfLeavesWeave = { pdfjsLib, PDFDocument, StandardFonts, rgb, degrees, buildPdf, renderBuilt, busy, toast, download, count, safeName, kb, esc, tick, addFiles, hasDoc: () => pages.length > 0, insertIndex: () => sel.size ? Math.max(...pages.map((p, i) => (sel.has(p.id) ? i : -1))) + 1 : pages.length };
+window.dispatchEvent(new Event("ifleavesweave-ready"));
+
+
+/* ---------- Pictures sent from other If Leaves Weave tools (kept on this device) ---------- */
+(async () => {
+  if (location.hash !== "#handoff") return;
+  const got = await new Promise(res => { try { const r = indexedDB.open("ifleavesweave-handoff", 1); r.onupgradeneeded = () => r.result.createObjectStore("files"); r.onsuccess = () => { const db = r.result, t = db.transaction("files", "readwrite"), st = t.objectStore("files"), g = st.get("latest"); g.onsuccess = () => { const v = g.result; st.delete("latest"); res(v || null); }; g.onerror = () => res(null); }; r.onerror = () => res(null); } catch { res(null); } });
+  history.replaceState(null, "", location.pathname);
+  if (!got?.blob) return;
+  await addFiles([new File([got.blob], got.name || "drawing.png", { type: got.blob.type || "image/png" })]);
+  if (typeof toast === "function") toast("Opened from another If Leaves Weave tool. Add notes, sign it or protect it, then download the PDF.", 6000);
+})();

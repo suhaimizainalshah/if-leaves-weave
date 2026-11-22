@@ -1,4 +1,4 @@
-/* Compact mode, shared by Booth and Folio.
+/* Compact mode, shared by Booth and If Leaves Weave.
    The side panel becomes a drawer that slides in over the work, so the canvas or document gets the full width.
    Open it from the header button, the "Tools" tab on the right edge, or by choosing a tool in the rail.
    Close it with Esc, the close button or a click outside. The choice is remembered per app. */

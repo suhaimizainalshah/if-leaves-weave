@@ -1,11 +1,15 @@
-# Folio: free PDF editor that runs in your browser
+# If Leaves Weave
+
+**If Leaves Weave** is a family of free, private tools that run entirely in your browser, like leaves of paper woven into one book: **If Leaves Weave PDF**, **Boards**, **Canvas**, **Maps**, **Sociogram**, **Genogram** and **Prototype**. There are no accounts, nothing is uploaded, and everything works offline once loaded. See *The If Leaves Weave family* below for all seven tools.
+
+## If Leaves Weave PDF: free PDF editor that runs in your browser
 
 Merge, split, reorder, rotate, sign, fill in, annotate, number, watermark, compress and convert PDFs. No account, no limits, no watermarks. Files are processed on the visitor's own device and never uploaded.
 
 ## Features
 **Pages:** merge any number of PDFs and images, drag to reorder (or Move earlier/later on phones), rotate, duplicate, delete, insert blank pages, download selected pages as a new PDF.
 **Edit and sign:** type text anywhere (Helvetica, Times or Courier, any size and colour, bold, italic), signatures (draw, type in a script font, or upload a photo with automatic background removal, saved on your device for next time), images, ticks and crosses for forms, highlighter, whiteout, freehand drawing, today's date. Move, resize, duplicate and delete anything; arrow keys nudge.
-**Get it signed:** add up to five signers, mark where each one signs (signature, initials, date signed, full name or text), then download a signing file and email it. Signers open it in Folio, are guided field by field, agree to sign electronically and download the signed PDF, which ends with a signing record page (document ID, original file fingerprint, who signed and when). With several signers the file passes from one to the next by email. No server is involved.
+**Get it signed:** add up to five signers, mark where each one signs (signature, initials, date signed, full name or text), then download a signing file and email it. Signers open it in If Leaves Weave, are guided field by field, agree to sign electronically and download the signed PDF, which ends with a signing record page (document ID, original file fingerprint, who signed and when). With several signers the file passes from one to the next by email. No server is involved.
 **Split:** every page, every N pages, or custom ranges like `1-3, 5, 7-9`. Several files download as one ZIP.
 **Page numbers:** four styles, three positions, start number, skip cover pages.
 **Watermark:** diagonal or straight text with adjustable strength.
@@ -13,18 +17,18 @@ Merge, split, reorder, rotate, sign, fill in, annotate, number, watermark, compr
 **Fill form:** finds the PDF's own fillable fields (text boxes, tick boxes, drop-downs and option buttons), lets you complete them, and can lock the answers so they can't be changed.
 **Redact:** in Edit and sign, drag a black box over anything sensitive. On download, every redacted page is rebuilt as an image, so the hidden text is permanently removed, not just covered.
 **Document properties:** set the title, author, subject and keywords saved inside the PDF (in the Pages panel).
-**Compress:** three levels for scanned or photo-heavy PDFs. Folio refuses to download a "compressed" file that came out bigger.
+**Compress:** three levels for scanned or photo-heavy PDFs. If Leaves Weave refuses to download a "compressed" file that came out bigger.
 **To images:** JPG or PNG at screen, standard or print quality, for all or selected pages.
 Undo/redo for everything (Ctrl+Z / Ctrl+Shift+Z), Ctrl+S to download.
 
 ## Visitor and download counts
-Folio counts visits, downloads and signings anonymously with the free Abacus counter: no cookies, no names, nothing for browsers that send *Do Not Track* or *Global Privacy Control*. See your totals at `https://<you>.github.io/folio/#stats`. Change `COUNTER.ns` in `app.js` to your own name, or set `COUNTER.on` to `false`.
+If Leaves Weave counts visits, downloads and signings anonymously with the free Abacus counter: no cookies, no names, nothing for browsers that send *Do Not Track* or *Global Privacy Control*. See your totals at `https://<you>.github.io/folio/#stats`. Change `COUNTER.ns` in `app.js` to your own name, or set `COUNTER.on` to `false`.
 
-Click the Folio logo to go back to the start screen.
+Click the If Leaves Weave logo to go back to the start screen.
 
 ## Limits worth knowing
-- Signatures are *simple electronic signatures*: Folio records the name and email each signer chose but does not verify identity. That is enough for many everyday agreements, but some documents (for example property deeds, wills or regulated contracts) need a qualified or witnessed signature. Check what applies to yours.
-- Folio adds new content on top of pages. It doesn't rewrite text that is already in a PDF; cover it with Whiteout and type over it.
+- Signatures are *simple electronic signatures*: If Leaves Weave records the name and email each signer chose but does not verify identity. That is enough for many everyday agreements, but some documents (for example property deeds, wills or regulated contracts) need a qualified or witnessed signature. Check what applies to yours.
+- If Leaves Weave adds new content on top of pages. It doesn't rewrite text that is already in a PDF; cover it with Whiteout and type over it.
 - Password-protected PDFs need their password removed first.
 - Text with characters outside Western European alphabets (for example Chinese, Arabic or emoji) is saved as a crisp image of the text, so it still displays correctly.
 - Word conversion rebuilds text, headings and lists, not exact layouts such as columns, tables or images. Use "Exact look" when appearance matters more than editing. Scanned PDFs contain no text to extract.
@@ -49,3 +53,22 @@ The **Compact** button in the header (or Ctrl+\ on Windows, Cmd+\ on a Mac) hide
 - **How it’s sent:** each count is a small web request to the free Abacus counting service. Like any website, that service can see the visitor’s IP address and browser type while handling the request; the app itself stores no personal data and sets no cookies. Only `sessionStorage` is used, to avoid counting the same visit twice in one session.
 - **Opting out:** nothing is counted for browsers that send *Do Not Track* or *Global Privacy Control*. The owner can also stop counting their own visits with the switch on the `#stats` page.
 - **For site owners:** mention the counter in your site’s privacy notice. To keep counts entirely on infrastructure you control, replace the Abacus address with your own counter, or switch counting off with `COUNTER.on = false`.
+
+## The If Leaves Weave family
+If Leaves Weave is a family of free, private tools that run entirely in the browser. Nothing is uploaded, there are no accounts, and everything works offline once loaded. Switch between them with **Tools** in If Leaves Weave PDF, or **All If Leaves Weave tools** in the others.
+
+| Tool | Page | What it does |
+| --- | --- | --- |
+| **If Leaves Weave PDF** | `index.html` | Edit, sign, fill, convert, compare, redact and protect PDFs (everything described above). |
+| **If Leaves Weave Boards** | `boards.html` | One set of cards in **Kanban**, **Table** and **Timeline** views, with labels, owners, start and due dates, priorities, checklists, filters and CSV export. |
+| **If Leaves Weave Canvas** | `canvas.html` | An endless whiteboard: sticky notes, text, shapes, frames, images, a pen, and connectors with labels and arrows. Templates for retrospectives and SWOT analyses. |
+| **If Leaves Weave Maps** | `maps.html` | **Mind maps** built with the keyboard, and **concept maps** with linking phrases and labelled cross-links. Notes, tags and links on every idea, three layouts, an outline view, and Markdown export. |
+| **If Leaves Weave Sociogram** | `sociogram.html` | Enter who chose whom and see the group as a network, target or circle. Plain-English insights and accurate measures for each person: betweenness, harmonic closeness, eigenvector centrality, PageRank, clustering, Louvain communities, cliques, and sociometric status (Coie, Dodge and Coppotelli, 1982). Checked against the NetworkX library. |
+| **If Leaves Weave Genogram** | `genogram.html` | Genograms using widely used conventions (McGoldrick, Gerson and Petry): symbols, couple and child lines, twins, relationship lines, health shading, households (including non-family members such as a domestic helper), auto-layout, an automatic key and a privacy mode showing initials only. |
+| **If Leaves Weave Prototype** | `prototype.html` | Phone screens from 14 parts, links between screens, Play mode, a “describe a screen” starter that works offline, and export as a working clickable HTML prototype. |
+
+**Working together:** from Canvas, Maps, Sociogram, Genogram and Prototype, **Send to If Leaves Weave PDF** opens the drawing in If Leaves Weave PDF as a page, ready to annotate, sign, redact or protect with a password. The hand-off stays on the device.
+
+**Saving:** the six tools save automatically in the browser (IndexedDB), with undo and redo. **Back up** saves every document from all six tools to one file, and **Open file** restores it on any device. Sensitive work such as genograms and sociograms should be backed up and handled according to your organisation’s consent and data protection guidance (for example the PDPA in Singapore or UK GDPR).
+
+**Files:** the six tools share the `studio/` folder (`studio.css` and `studio/js/`), with one page each at the top level.

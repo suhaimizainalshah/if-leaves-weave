@@ -1,8 +1,8 @@
-/* Folio extras: compare two versions, Bates numbering and stamps, flipbook, and text recognition (OCR).
+/* If Leaves Weave extras: compare two versions, Bates numbering and stamps, flipbook, and text recognition (OCR).
    Everything runs in the browser. Text recognition downloads its engine and language data the first time. */
-const ready = window.Folio ? Promise.resolve() : new Promise(r => addEventListener("folio-ready", r, { once: true }));
+const ready = window.IfLeavesWeave ? Promise.resolve() : new Promise(r => addEventListener("ifleavesweave-ready", r, { once: true }));
 await ready;
-const F = window.Folio, { pdfjsLib, PDFDocument, StandardFonts, rgb, degrees, busy, toast, download, count, esc } = F;
+const F = window.IfLeavesWeave, { pdfjsLib, PDFDocument, StandardFonts, rgb, degrees, busy, toast, download, count, esc } = F;
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const chips = (id, attr, cb) => $(id).addEventListener("click", e => { const b = e.target.closest(`[data-${attr}]`); if (!b) return; $$(`${id} [data-${attr}]`).forEach(x => x.setAttribute("aria-pressed", x === b)); cb(b.dataset[attr]); });
 const readFile = f => f.arrayBuffer().then(b => new Uint8Array(b));
