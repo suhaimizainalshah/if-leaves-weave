@@ -42,3 +42,10 @@ pdf.js 4.10.38 (Apache-2.0), pdf-lib 1.17.1 (MIT), JSZip 3.10.1 (MIT), docx 9.0.
 
 ## Compact mode
 The **Compact** button in the header (or Ctrl+\ on Windows, Cmd+\ on a Mac) hides the side panel so the work area gets the full width, which helps in narrow windows. The panel then slides in as a drawer: open it from the header button, the **Tools** tab on the right edge, or by choosing a tool in the left rail, and close it with Esc, ✕ or a click outside. The choice is remembered in the browser. The code is in `compact.js`.
+
+## What the counters record (and don’t)
+- **Recorded:** anonymous totals only. Each visit (once per browser session) or action, such as a download, share, copy or export, adds 1 to a named total like “Photo booth: strips shared”. Nothing else is sent: no file names, no file contents, no text you type, no page addresses, and no identifiers.
+- **Never recorded:** your files, photos, documents or answers. Lessons and flipbooks you share with others contain no counters at all, so students and readers are never counted.
+- **How it’s sent:** each count is a small web request to the free Abacus counting service. Like any website, that service can see the visitor’s IP address and browser type while handling the request; the app itself stores no personal data and sets no cookies. Only `sessionStorage` is used, to avoid counting the same visit twice in one session.
+- **Opting out:** nothing is counted for browsers that send *Do Not Track* or *Global Privacy Control*. The owner can also stop counting their own visits with the switch on the `#stats` page.
+- **For site owners:** mention the counter in your site’s privacy notice. To keep counts entirely on infrastructure you control, replace the Abacus address with your own counter, or switch counting off with `COUNTER.on = false`.

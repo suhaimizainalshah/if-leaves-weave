@@ -303,7 +303,7 @@ a.brand:hover{background:var(--soft)}
             <p class="note">Or drop files anywhere on this page. Got a file to sign from someone? Open it here.</p>
           </div>
           <div class="tasks" id="tasks"></div>
-          <p class="privacy">Folio counts visits and downloads anonymously, without cookies or personal data.</p>
+          <p class="privacy">Folio counts visits and downloads as anonymous totals: no cookies, no names and nothing about your documents. Turn on Do Not Track or Global Privacy Control in your browser to opt out.</p>
         </div>
       </section>
 
@@ -617,6 +617,9 @@ a.brand:hover{background:var(--soft)}
     <header><h2 id="statsTitle">Usage counts</h2><button class="ib" id="statsClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
     <p class="note">Anonymous totals. Only you know this page exists.</p>
     <div class="stats" id="statsList">Loading…</div>
+    <label class="check" style="margin-top:.8rem"><input type="checkbox" id="noCountMe"> Don’t count my own visits on this browser</label>
+    <p class="note" style="margin-top:.3rem">Counts are visits and actions, not unique people: each browser session counts once as a visit. People who turn on “Do Not Track” or Global Privacy Control are never counted, so real use is a little higher.</p>
+    <script>(() => { const c = document.getElementById("noCountMe"); try { c.checked = localStorage.getItem("folio-nocount") === "1"; } catch {} c.onchange = () => { try { c.checked ? localStorage.setItem("folio-nocount", "1") : localStorage.removeItem("folio-nocount"); } catch {} }; })();</script>
   </div>
 </dialog>
 <dialog id="sigDlg" aria-labelledby="sigTitle">

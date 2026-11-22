@@ -17,9 +17,10 @@ function download(blob, name) { const a = document.createElement("a"); a.href = 
 const safeName = () => ($("#docName").value.trim() || "document").replace(/[\\/:*?"<>|]+/g, "-").replace(/\.pdf$/i, "");
 
 /* ============ Anonymous counters (no cookies, no personal data) ============ */
-const COUNTER = { on: true, ns: "folio-pdf-editor", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed" } };
+const COUNTER = { on: true, ns: "folio-pdf-editor", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
 const canCount = COUNTER.on && !navigator.globalPrivacyControl && navigator.doNotTrack !== "1" && /^https?:/.test(location.protocol);
-function count(key) { if (!canCount) return; try { fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER.ns}/${key}`, { keepalive: true }).catch(() => {}); } catch {} }
+const noCount = () => { try { return localStorage.getItem("folio-nocount") === "1"; } catch { return false; } };
+function count(key) { if (noCount()) return; if (!canCount) return; try { fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER.ns}/${key}`, { keepalive: true }).catch(() => {}); } catch {} }
 try { if (location.hash !== "#stats" && !sessionStorage.getItem("folio-visit")) { sessionStorage.setItem("folio-visit", "1"); count("visits"); } } catch {}
 async function showStats() {
   const d = $("#statsDlg"), list = $("#statsList"); d.showModal();
