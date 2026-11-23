@@ -17,7 +17,7 @@ function download(blob, name) { const a = document.createElement("a"); a.href = 
 const safeName = () => ($("#docName").value.trim() || "document").replace(/[\\/:*?"<>|]+/g, "-").replace(/\.pdf$/i, "");
 
 /* ============ Anonymous counters (no cookies, no personal data) ============ */
-const COUNTER = { on: true, ns: "ifleavesweave", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", board_visits: "Boards: visits", board_created: "Boards: boards made", whiteboard_visits: "Canvas: visits", whiteboard_created: "Canvas: whiteboards made", mindmap_visits: "Maps: visits", mindmap_created: "Maps: maps made", sociogram_visits: "Sociogram: visits", sociogram_created: "Sociogram: sociograms made", genogram_visits: "Genogram: visits", genogram_created: "Genogram: genograms made", prototype_visits: "Prototype: visits", prototype_created: "Prototype: prototypes made", send_to_pdf: "Sent to If Leaves Weave PDF from other tools", home_visits: "Home page: visits", autoredact: "Find and redact: used", redaction_report: "Redaction reports made", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
+const COUNTER = { on: true, ns: "ifleavesweave", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", board_visits: "Boards: visits", board_created: "Boards: boards made", whiteboard_visits: "Canvas: visits", whiteboard_created: "Canvas: whiteboards made", mindmap_visits: "Maps: visits", mindmap_created: "Maps: maps made", sociogram_visits: "Sociogram: visits", sociogram_created: "Sociogram: sociograms made", genogram_visits: "Genogram: visits", genogram_created: "Genogram: genograms made", prototype_visits: "Prototype: visits", prototype_created: "Prototype: prototypes made", send_to_pdf: "Sent to If Leaves Weave PDF from other tools", home_visits: "Home page: visits", autoredact: "Find and redact: used", redaction_report: "Redaction reports made", flipbook_entry: "Arrived at the flipbook maker from a link", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
 const canCount = COUNTER.on && !navigator.globalPrivacyControl && navigator.doNotTrack !== "1" && /^https?:/.test(location.protocol);
 const noCount = () => { try { return localStorage.getItem("ifleavesweave-nocount") === "1"; } catch { return false; } };
 function count(key) { if (noCount()) return; if (!canCount) return; try { fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER.ns}/${key}`, { keepalive: true }).catch(() => {}); } catch {} }
@@ -282,7 +282,7 @@ $("#selActs").onclick = async e => {
 };
 $("#selAll").onclick = () => { if (sel.size === pages.length) sel.clear(); else pages.forEach(p => sel.add(p.id)); refresh(); };
 $("#addBlank").onclick = () => { commit(); const at = sel.size ? Math.max(...pages.map((p, i) => (sel.has(p.id) ? i : -1))) + 1 : pages.length; pages.splice(at, 0, blankPage()); refresh(); toast("Blank page added"); };
-$("#addMore").onclick = () => pick(); $("#addBtn").onclick = () => pick(); $("#openBtn").onclick = () => pick();
+$("#addMore").onclick = () => pick(); $("#addBtn").onclick = () => pick(); $("#openBtn").onclick = () => FLIP_MODE ? pick("application/pdf", "flip") : pick();
 $("#thumbSize").onclick = e => { const b = e.target.closest("[data-ts]"); if (!b) return; thumbW = +b.dataset.ts; grid.style.setProperty("--thumb", thumbW + "px"); $$("#thumbSize .chip").forEach(c => c.setAttribute("aria-pressed", c === b)); scheduleGrid(); };
 
 /* ============ Editor ============ */
@@ -1028,6 +1028,20 @@ async function flattenRedacted(bytes, idxs) {
   return out.save();
 }
 
+
+
+/* ============ Arriving at #flipbook (for example from a flipbook made with If Leaves Weave): go straight to the flipbook maker ============ */
+const FLIP_MODE = location.hash === "#flipbook";
+if (FLIP_MODE) {
+  pendingTool = "flip"; // also when a PDF is dropped onto the page
+  const h = document.querySelector("#tray h1"), p = h?.nextElementSibling;
+  if (h) h.textContent = "Make a flipbook from a PDF";
+  if (p) p.textContent = "Choose a PDF and it becomes a page-turning flipbook you can preview, then download as one file to open anywhere. It’s made on this device: nothing is uploaded.";
+  const b = document.getElementById("openBtn"); if (b) { b.lastChild.textContent = " Choose a PDF"; setTimeout(() => b.focus(), 50); }
+  document.title = "Make a flipbook from a PDF | If Leaves Weave";
+  setTimeout(() => document.querySelector('[data-task="' + TASKS.findIndex(t => t[1] === "flip") + '"]')?.classList.add("task-hl"), 0);
+  try { if (!sessionStorage.getItem("ifleavesweave-flipentry")) { sessionStorage.setItem("ifleavesweave-flipentry", "1"); count("flipbook_entry"); } } catch {}
+}
 
 /* ============ Find and redact: personal details found in the page text ============ */
 const AR_PATTERNS = {

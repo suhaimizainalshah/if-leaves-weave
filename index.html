@@ -588,7 +588,7 @@ a.brand:hover{background:var(--soft)}
         <label class="check"><input type="checkbox" id="fbPdf">Let readers download the PDF too (makes the file bigger)</label>
         <label class="check"><input type="checkbox" id="fbSite">Make a website folder (best for GitHub Pages and sharing on LinkedIn)</label>
         <div class="field" id="fbUrlWrap"><label for="fbUrl">Where it will live (web address, for link previews)</label><input type="url" id="fbUrl" placeholder="https://yourname.github.io/my-flipbook/"></div>
-        <button class="btn primary" id="fbGo">Make flipbook</button>
+        <button class="btn primary" id="fbGo">Make flipbook</button><button class="btn" id="fbPrev" title="See the flipbook in a new tab before saving it">Preview first</button>
         <p class="note">Readers turn pages by clicking, swiping or using the arrow keys, can search the text and jump to any page, and can link to a page (for example …#page-12). To share it as a link, put the file on a website.</p>
       </section>
 
@@ -684,6 +684,7 @@ a.brand:hover{background:var(--soft)}
 .fam-pop{position:fixed;z-index:90;min-width:270px;padding:.35rem;border-radius:12px;border:1px solid var(--line);background:var(--panel);box-shadow:0 18px 40px -18px rgba(0,0,0,.45)}
 .fam-pop a{display:flex;gap:.6rem;align-items:center;padding:.5rem .65rem;border-radius:8px;text-decoration:none;color:var(--ink);font-size:.9rem;font-weight:600}
 .fam-pop a:hover,.fam-pop a:focus-visible{background:var(--soft);outline:none}.fam-pop a[aria-current=page]{background:color-mix(in srgb,var(--blue) 14%,transparent)}
+.task.task-hl{outline:3px solid var(--blue);outline-offset:2px}
 .opt-tools{margin-top:1rem;border-top:1px solid var(--line);padding-top:.6rem}.opt-tools summary{cursor:pointer;font-weight:600;font-size:.88rem;color:var(--muted)}
 .fam-pop small{display:block;font-weight:500;color:var(--muted);font-size:.78rem}.fam-pop b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--soft);color:var(--blue);font-size:.95rem;flex-shrink:0}
 </style>

@@ -136,7 +136,7 @@ $("#batesIn").onchange = async () => {
 let fbWidth = 1300;
 chips("#fbQ", "fq", v => fbWidth = +v);
 const canWebp = (() => { try { const c = document.createElement("canvas"); c.width = c.height = 2; return c.toDataURL("image/webp").startsWith("data:image/webp"); } catch { return false; } })();
-$("#fbGo").onclick = async () => {
+async function makeFlip(preview = false) {
   if (!F.hasDoc()) return toast("Open a PDF first.");
   try {
     busy("Preparing pages", 0); const bytes = await F.buildPdf(), doc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise, imgs = [], texts = [];
@@ -149,7 +149,7 @@ $("#fbGo").onclick = async () => {
     }
     doc.destroy(); const title = ($("#fbTitle").value || F.safeName()).trim();
     const pdf = $("#fbPdf").checked && $("#fbSite").checked ? "file" : $("#fbPdf").checked ? "data:application/pdf;base64," + await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result.split(",")[1]); fr.readAsDataURL(new Blob([bytes], { type: "application/pdf" })); }) : null;
-    if ($("#fbSite").checked) {
+    if ($("#fbSite").checked && !preview) {
       // a website folder: small index.html, one image per page, a 1200×630 preview card for link sharing
       busy("Building the website folder", 95); const zip = new JSZip(), ext = canWebp ? "webp" : "jpg", files = imgs.map((im, i) => ({ ...im, path: `pages/${String(i + 1).padStart(3, "0")}.${ext}` }));
       files.forEach(f => zip.file(f.path, f.src.split(",")[1], { base64: true }));
@@ -161,10 +161,14 @@ $("#fbGo").onclick = async () => {
       toast($("#fbUrl").value.trim() ? "Website folder saved. Put its contents at that address, and link previews will show your cover." : "Website folder saved. Add the web address next time so LinkedIn and others can show a preview image.", 7000); count("flipbook_site"); return;
     }
     const html = flipHtml(title, imgs, texts, $("#fbBg").value, $("#fbCover").checked, pdf, `${F.safeName()}.pdf`), mb = html.length / 1048576;
+    if (preview) { busy(false); const u = URL.createObjectURL(new Blob([html], { type: "text/html" })), w = window.open(u, "_blank"); setTimeout(() => URL.revokeObjectURL(u), 60000); if (!w) toast("Allow pop-ups to see the preview, or choose Make flipbook to save it."); else toast("Preview opened in a new tab. Nothing was uploaded."); return; }
     download(new Blob([html], { type: "text/html" }), `${F.safeName()}-flipbook.html`); busy(false);
     toast(`Flipbook saved (${mb.toFixed(1)} MB).${mb > 16 ? " That’s large for phones: try “Balanced” or “Smaller file”." : " Open it in any browser, or put it on a website."}`, 6000); count("flipbook");
   } catch (err) { console.error(err); busy(false); toast("Couldn’t make a flipbook from this PDF."); }
-};
+}
+$("#fbGo").onclick = () => makeFlip(false);
+$("#fbPrev").onclick = () => makeFlip(true);
+
 // A 1200×630 preview card for link sharing (LinkedIn, WhatsApp, Slack and others)
 async function previewCard(coverSrc, title, bg) {
   const c = document.createElement("canvas"); c.width = 1200; c.height = 630; const x = c.getContext("2d"), ink = inkFor(bg);

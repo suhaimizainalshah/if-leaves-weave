@@ -95,3 +95,6 @@ All fonts are bundled in `fonts/` (SIL Open Font License, via Fontsource), so pa
 **Saving:** the six tools save automatically in the browser (IndexedDB), with undo and redo. **Back up** saves every document from all six tools to one file, and **Open file** restores it on any device. Sensitive work such as genograms and sociograms should be backed up and handled according to your organisation’s consent and data protection guidance (for example the PDPA in Singapore or UK GDPR).
 
 **Files:** the six tools share the `studio/` folder (`studio.css` and `studio/js/`), with one page each at the top level.
+
+### Flipbook preview (If Leaves Weave PDF)
+Links to `index.html#flipbook` open the PDF tool ready to make a flipbook: the start screen says so, and the Flipbook tool opens as soon as a PDF is chosen or dropped. In **Flipbook**, **Preview first** opens the finished flipbook in a new tab before you save it. It is built in your browser, so nothing is uploaded.
