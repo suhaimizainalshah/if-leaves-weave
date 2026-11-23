@@ -99,6 +99,11 @@ const COUNT_NS = "ifleavesweave";
 function count(key) { try { if (!/^https?:$/.test(location.protocol) || navigator.doNotTrack === "1" || navigator.globalPrivacyControl || localStorage.getItem("ifleavesweave-nocount") === "1") return; fetch(`https://abacus.jasoncameron.dev/hit/${COUNT_NS}/${key}`, { keepalive: true }).catch(() => {}); } catch {} }
 
 /* ---------- UI helpers ---------- */
+/* A message with one action, such as Undo after deleting. The action stays available for ms milliseconds. */
+function toastAction(msg, label, fn, ms = 8000) {
+  const t = $("#toast"); t.innerHTML = ""; const span = document.createElement("span"); span.textContent = msg; const b = document.createElement("button"); b.type = "button"; b.className = "toast-act"; b.textContent = label;
+  b.onclick = () => { clearTimeout(toast.t); t.classList.remove("show"); fn(); }; t.append(span, b); t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), ms); setTimeout(() => b.focus({ preventScroll: true }), 50);
+}
 function toast(msg, ms = 3200) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), ms); }
 function dialog({ title, body, actions = [{ label: "Close" }], wide = false }) {
   return new Promise(res => {
@@ -116,6 +121,8 @@ const INKS = ["#1E2A2F", "#0E7C7B", "#2F6DB5", "#7A4FC2", "#C2413A", "#B86E00", 
 // Inline icons (simple strokes, currentColor)
 const IC = (d, extra = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${d}</svg>`;
 const ICONS = {
+  edit: IC('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>'),
+  copy: IC('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>'),
   board: IC('<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/>'),
   whiteboard: IC('<path d="M4 18c3-6 6-9 9-9s3 4 7 2"/><rect x="3" y="3" width="18" height="18" rx="3"/>'),
   mindmap: IC('<circle cx="12" cy="12" r="3"/><circle cx="4.5" cy="6" r="2"/><circle cx="19.5" cy="6" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="18.5" r="2"/><path d="M9.6 10.4 6.2 7.3M14.4 10.4l3.4-3.1M9.8 14 6.6 17.6M14.3 13.9l3.2 3.2"/>'),

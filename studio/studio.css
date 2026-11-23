@@ -197,3 +197,22 @@ a.famcard:hover{border-color:var(--accent)}a.famcard svg{width:20px;height:20px;
 .pp-tbl th,.pp-tbl td{border-bottom:1px solid var(--line);padding:.3rem .45rem;text-align:left;white-space:nowrap}.pp-tbl th select{font:inherit;font-size:.78rem;padding:.15rem .25rem;border:1px solid var(--line);border-radius:5px;background:var(--panel)}
 .pp-tbl th small{display:block;color:var(--muted);font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis}.pp-un{align-items:center;margin:.3rem 0}.pp-un select{padding:.3rem;border:1px solid var(--line);border-radius:6px;background:var(--ground)}
 .note.warn{color:#8F2A23}
+
+/* ---------- Document actions ---------- */
+.docrow { position: relative; display: flex; align-items: center; border-radius: var(--r1); }
+.docrow > button:first-child { flex: 1; min-width: 0; padding-right: 2.2rem; }
+.docmenu { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
+.docmenu svg { width: 18px; height: 18px; }
+.docmenu:hover, .docmenu:focus-visible { background: var(--soft); color: var(--ink); }
+.docrow .docmenu { position: absolute; right: 4px; opacity: 0; }
+.docrow:hover .docmenu, .docrow:focus-within .docmenu, .docrow.on .docmenu { opacity: 1; }
+@media (hover: none) { .docrow .docmenu { opacity: 1; } } /* touch screens have no hover, so always show it */
+.recentrow { position: relative; display: flex; } .recentrow > button:first-child { flex: 1; min-width: 0; padding-right: 2.6rem; }
+.recentrow .docmenu { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+/* the top bar's Document actions button never scrolls out of sight */
+.topbar .docactions { position: sticky; right: 0; flex: none; background: var(--panel); box-shadow: -10px 0 10px -6px var(--panel); z-index: 2; }
+/* the name box looks editable */
+.topbar .title { border: 1px solid transparent; border-radius: 8px; padding: .25rem .5rem; background: transparent no-repeat right .4rem center / 14px; }
+.topbar .title:hover, .topbar .title:focus { border-color: var(--line); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2357616C' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 20h4L19 9l-4-4L4 16z'/%3E%3C/svg%3E"); padding-right: 1.6rem; }
+.toast-act { margin-left: .8rem; border: 0; background: none; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; padding: .2rem .3rem; }
+.toast .toast-act { pointer-events: auto; position: relative; z-index: 1; } .toast:has(.toast-act) { pointer-events: auto; z-index: 1000; }

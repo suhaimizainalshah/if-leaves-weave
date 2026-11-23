@@ -1287,5 +1287,5 @@ window.dispatchEvent(new Event("ifleavesweave-ready"));
   history.replaceState(null, "", location.pathname);
   if (!got?.blob) return;
   await addFiles([new File([got.blob], got.name || "drawing.png", { type: got.blob.type || "image/png" })]);
-  if (typeof toast === "function") toast("Opened from another If Leaves Weave tool. Add notes, sign it or protect it, then download the PDF.", 6000);
+  if (typeof toast === "function") toast("Opened from another If Leaves Weave tool. Add notes, sign it or redact it, then download the PDF.", 6000);
 })();
