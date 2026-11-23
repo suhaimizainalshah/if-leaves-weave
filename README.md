@@ -81,6 +81,12 @@ Copy the rows from a Google Form’s response spreadsheet (or any spreadsheet) a
 ### Ecomap (If Leaves Weave Genogram)
 Each genogram has an **Ecomap** view (Genogram or Ecomap at the top). The household, or the index person’s close family, sits in the centre with their genogram symbols, surrounded by the systems around them. Add systems in one tap, with choices that suit Singapore casework (School, Childcare, Work, Extended family, Friends, Neighbours, Polyclinic or hospital, Mental health support, Faith community, Family Service Centre, Financial assistance (ComCare), Housing (HDB), Community (RC or CC), Recreation, Legal or court, and Social media), or add your own. For each, set the link as strong, moderate, tenuous or stressful, show which way support flows, link it to the whole family or one person, and add notes. Line styles follow Hartman’s ecomap conventions (1978), with a key; drag systems to rearrange. Ecomaps export and send to If Leaves Weave PDF like genograms.
 
+### Redaction report (If Leaves Weave PDF)
+In **Find and redact**, **Download redaction report** saves a plain-text record of what was removed: the document, when the redacted PDF was downloaded, its **SHA-256 fingerprint** (so anyone can confirm a file is the one described), the pages flattened, the number of boxes placed automatically and by hand, and the kinds of detail found on each page. It never includes the removed details themselves, so it can be kept on file or shared. Add an optional name and reason, such as a PDPA access request.
+
+### Fonts and accessibility
+All fonts are bundled in `fonts/` (SIL Open Font License, via Fontsource), so pages make no requests to Google. Every page passes the automated WCAG 2.x A and AA checks in axe-core, in light and dark mode.
+
 ### Home page and navigation
 `home.html` lists all seven tools and your recent work from the six document tools. The logo in every tool goes there; each tool’s **Home** button returns to that tool’s own start screen, with its templates and recent documents; and **Tools** or **All If Leaves Weave tools** switches directly between them.
 

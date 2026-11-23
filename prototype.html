@@ -7,14 +7,13 @@
 <title>If Leaves Weave Prototype</title>
 <meta name="description" content="Build clickable app prototypes from a description, play them and export them as HTML. Free, private and offline.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232453D6'/><path d='M7 25C7 14 14 7 25 7c0 11-7 18-18 18z' fill='white'/><path d='M9.5 22.5 22.5 9.5' stroke='%232453D6' stroke-width='1.8' stroke-linecap='round'/></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="studio/studio.css">
 </head>
 <body>
 <div class="app" id="app">
   <aside class="rail" aria-label="Your documents">
-    <button class="brand" id="homeBtn" aria-label="If Leaves Weave Prototype home"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 27C5 14 13 6 27 5c0 14-8 22-22 22z" fill="var(--blue)"/><path d="M8 24 24 8" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M11 15c3 1.5 5.5 4.5 7 9M16 10.5c2.5 2 4 5 4.3 9" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".85"/></svg><span>If Leaves Weave<small id="brandName"></small></span></button>
+    <button class="brand" id="homeBtn" title="All If Leaves Weave tools"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 27C5 14 13 6 27 5c0 14-8 22-22 22z" fill="var(--blue)"/><path d="M8 24 24 8" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M11 15c3 1.5 5.5 4.5 7 9M16 10.5c2.5 2 4 5 4.3 9" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".85"/></svg><span>If Leaves Weave <small id="brandName"></small></span></button>
     <button class="fam" id="famBtn" aria-haspopup="true">All If Leaves Weave tools <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
     <button class="btn primary new" id="newBtn"><span aria-hidden="true">＋</span> New</button>
     <label class="search"><span class="sr" hidden>Search documents</span><span id="searchIc"></span><input type="search" id="search" placeholder="Search" aria-label="Search documents"></label>

@@ -17,7 +17,7 @@ function download(blob, name) { const a = document.createElement("a"); a.href = 
 const safeName = () => ($("#docName").value.trim() || "document").replace(/[\\/:*?"<>|]+/g, "-").replace(/\.pdf$/i, "");
 
 /* ============ Anonymous counters (no cookies, no personal data) ============ */
-const COUNTER = { on: true, ns: "ifleavesweave", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", board_visits: "Boards: visits", board_created: "Boards: boards made", whiteboard_visits: "Canvas: visits", whiteboard_created: "Canvas: whiteboards made", mindmap_visits: "Maps: visits", mindmap_created: "Maps: maps made", sociogram_visits: "Sociogram: visits", sociogram_created: "Sociogram: sociograms made", genogram_visits: "Genogram: visits", genogram_created: "Genogram: genograms made", prototype_visits: "Prototype: visits", prototype_created: "Prototype: prototypes made", send_to_pdf: "Sent to If Leaves Weave PDF from other tools", home_visits: "Home page: visits", autoredact: "Find and redact: used", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
+const COUNTER = { on: true, ns: "ifleavesweave", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", board_visits: "Boards: visits", board_created: "Boards: boards made", whiteboard_visits: "Canvas: visits", whiteboard_created: "Canvas: whiteboards made", mindmap_visits: "Maps: visits", mindmap_created: "Maps: maps made", sociogram_visits: "Sociogram: visits", sociogram_created: "Sociogram: sociograms made", genogram_visits: "Genogram: visits", genogram_created: "Genogram: genograms made", prototype_visits: "Prototype: visits", prototype_created: "Prototype: prototypes made", send_to_pdf: "Sent to If Leaves Weave PDF from other tools", home_visits: "Home page: visits", autoredact: "Find and redact: used", redaction_report: "Redaction reports made", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
 const canCount = COUNTER.on && !navigator.globalPrivacyControl && navigator.doNotTrack !== "1" && /^https?:/.test(location.protocol);
 const noCount = () => { try { return localStorage.getItem("ifleavesweave-nocount") === "1"; } catch { return false; } };
 function count(key) { if (noCount()) return; if (!canCount) return; try { fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER.ns}/${key}`, { keepalive: true }).catch(() => {}); } catch {} }
@@ -655,7 +655,8 @@ function rasterText(a) {
 
 async function exportPdf(list = pages, name = `${safeName()}.pdf`) {
   if (E.editing) endEdit();
-  try { busy("Preparing your PDF", 0); const bytes = await buildPdf(list, { onProgress: f => busy("Preparing your PDF", f * 100) }); busy(false); download(new Blob([bytes], { type: "application/pdf" }), name); count("downloads"); toast(`Downloaded ${name} (${kb(bytes.length)})`); }
+  try { busy("Preparing your PDF", 0); const bytes = await buildPdf(list, { onProgress: f => busy("Preparing your PDF", f * 100) }); busy(false); download(new Blob([bytes], { type: "application/pdf" }), name); count("downloads");
+    if (list.some(p => p.annots.some(a => a.kind === "rd"))) { const h = await crypto.subtle.digest("SHA-256", bytes); lastRedaction = { name, at: new Date(), size: bytes.length, hash: [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, "0")).join(""), pages: list.map((p, i) => p.annots.some(a => a.kind === "rd") ? i + 1 : 0).filter(Boolean), total: list.length }; syncReport(); } toast(`Downloaded ${name} (${kb(bytes.length)})`); }
   catch (err) { console.error(err); busy(false); toast("Couldn’t build the PDF. One of the files may be damaged or protected.", 4500); }
 }
 $("#dlBtn").onclick = () => exportPdf();
@@ -1087,10 +1088,36 @@ function arRender(textChars) {
   out.querySelectorAll("[data-arf]").forEach(c => c.onchange = () => { arFound[+c.dataset.arf].on = c.checked; document.getElementById("arMark").textContent = `Mark ${arFound.filter(f => f.on).length} for redaction`; });
   out.querySelectorAll("[data-arshow]").forEach(b => b.onclick = () => { const f = arFound[+b.dataset.arshow]; openEditor(f.page); toast(`Page ${f.page + 1}: ${f.kind}`); });
   document.getElementById("arMark").onclick = () => { const chosen = arFound.filter(f => f.on); if (!chosen.length) return toast("Nothing is ticked."); commit(); let n = 0;
-    chosen.forEach(f => f.boxes.forEach(bx => { pages[f.page].annots.push({ id: uid("a"), type: "rect", kind: "rd", x: +bx.x.toFixed(5), y: +bx.y.toFixed(5), w: +bx.w.toFixed(5), h: +bx.h.toFixed(5), color: "#000000" }); n++; }));
+    chosen.forEach(f => f.boxes.forEach(bx => { pages[f.page].annots.push({ id: uid("a"), type: "rect", kind: "rd", x: +bx.x.toFixed(5), y: +bx.y.toFixed(5), w: +bx.w.toFixed(5), h: +bx.h.toFixed(5), color: "#000000", src: "auto", what: f.kind, item: f.id }); n++; }));
     renderGrid(); try { renderLayer(); } catch {} count("autoredact"); toast(`${chosen.length} item${chosen.length > 1 ? "s" : ""} marked. Check each page, then download to remove them permanently.`, 6000); out.innerHTML = `<p class="note">Marked ${chosen.length} item${chosen.length > 1 ? "s" : ""} (${n} box${n > 1 ? "es" : ""}). Undo removes them. Run Find again after changes.</p>`; };
 }
 document.getElementById("arFind")?.addEventListener("click", arFind);
+
+
+/* ============ Redaction report: what was removed, where and when, without the removed values ============ */
+let lastRedaction = null;
+function syncReport() { const st = document.getElementById("rrState"); if (!st) return; st.textContent = lastRedaction ? `Ready: covers ${lastRedaction.name}, downloaded ${lastRedaction.at.toLocaleString()}.` : "Download the redacted PDF first, so the report can include its fingerprint."; }
+function redactionReport() {
+  const boxes = pages.flatMap((p, i) => p.annots.filter(a => a.type === "rect" && a.kind === "rd").map(a => ({ ...a, page: i + 1 })));
+  if (!boxes.length) return toast("There are no redactions in this document yet.");
+  const auto = boxes.filter(b => b.src === "auto"), manual = boxes.length - auto.length, byKind = {};
+  // count each found item once (a detail across two text pieces has two boxes)
+  const seen = new Set(); auto.forEach(b => { const k = `${b.what}|${b.item}|${b.page}`; if (seen.has(k)) return; seen.add(k); (byKind[b.what] ||= {})[b.page] = ((byKind[b.what] ||= {})[b.page] || 0) + 1; });
+  const by = (document.getElementById("rrBy")?.value || "").trim(), why = (document.getElementById("rrWhy")?.value || "").trim(), L = lastRedaction, now = new Date();
+  const lines = ["REDACTION REPORT", "=".repeat(16), "",
+    `Document: ${L?.name || `${safeName()}.pdf (not downloaded yet)`}`, `Report made: ${now.toLocaleString()}`, by ? `Redacted by: ${by}` : "", why ? `Reason: ${why}` : "", "",
+    L ? `Redacted PDF downloaded: ${L.at.toLocaleString()} (${kb(L.size)})` : "Redacted PDF: not downloaded yet, so no fingerprint is recorded.",
+    L ? `SHA-256 fingerprint of the redacted PDF: ${L.hash}` : "",
+    L ? `Pages flattened, so their text was permanently removed: ${L.pages.join(", ")} of ${L.total}` : "", "",
+    `Redaction boxes: ${boxes.length} (${auto.length} placed by Find and redact, ${manual} drawn by hand)`,
+    ...(Object.keys(byKind).length ? ["", "Found by Find and redact:", ...Object.entries(byKind).map(([k, pg]) => `  ${k}: ${Object.values(pg).reduce((a, b) => a + b, 0)} (page ${Object.keys(pg).join(", ")})`)] : []),
+    "", "Not recorded: the redacted values themselves. This report can be kept or shared without revealing them.",
+    "To check a file against this report: calculate its SHA-256 fingerprint (for example, certutil -hashfile file.pdf SHA256 on Windows, or shasum -a 256 file.pdf on Mac). It must match exactly.",
+    "Automatic searches can miss details, such as names in images, so each page should also be checked by a person.",
+    "", "Made with If Leaves Weave PDF, entirely on this device. A record to support your process, not legal advice."].filter((l, i, a) => l !== "" || a[i - 1] !== "");
+  download(new Blob([lines.join("\n") + "\n"], { type: "text/plain" }), `${(L?.name || safeName()).replace(/\.pdf$/i, "")}-redaction-report.txt`); count("redaction_report"); toast("Redaction report saved");
+}
+document.getElementById("rrDl")?.addEventListener("click", redactionReport);
 
 /* ============ Convert to Word and PowerPoint ============ */
 const loaded = {};

@@ -9,9 +9,7 @@
 <meta name="theme-color" content="#E7EBEE" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#161A1F" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232453D6'/><path d='M7 25C7 14 14 7 25 7c0 11-7 18-18 18z' fill='white'/><path d='M9.5 22.5 22.5 9.5' stroke='%232453D6' stroke-width='1.8' stroke-linecap='round'/></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Caveat:wght@600&family=Dancing+Script:wght@600&family=Great+Vibes&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 :root{
   --desk:#E7EBEE; --panel:#FFFFFF; --sheet:#FFFFFF; --ink:#18202A; --muted:#57616C; --line:#D6DCE1; --soft:#EEF1F4;
@@ -557,6 +555,13 @@ a.brand:hover{background:var(--soft)}
         <div class="field"><label for="arWords">Also find these words or names (one per line or separated by commas)</label><textarea id="arWords" rows="3" placeholder="Tan Wei Ming&#10;Blk 123 Ang Mo Kio"></textarea></div>
         <button class="btn primary" id="arFind">Find</button>
         <div id="arOut" aria-live="polite"></div>
+        <div class="group" style="margin-top:1rem;border-top:1px solid var(--line);padding-top:.8rem"><span class="lbl">Redaction report</span>
+          <p class="note">A record of what was removed, on which pages and when, with a fingerprint of the redacted PDF. It never includes the removed details.</p>
+          <div class="field"><label for="rrBy">Redacted by (optional)</label><input type="text" id="rrBy" placeholder="Your name or role"></div>
+          <div class="field"><label for="rrWhy">Reason (optional)</label><input type="text" id="rrWhy" placeholder="For example: sharing with the school, PDPA access request"></div>
+          <p class="note" id="rrState">Download the redacted PDF first, so the report can include its fingerprint.</p>
+          <button class="btn" id="rrDl">Download redaction report</button>
+        </div>
       </section>
 
       <section class="pane" data-pane="bates" hidden>
