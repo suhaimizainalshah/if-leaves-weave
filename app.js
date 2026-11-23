@@ -17,7 +17,7 @@ function download(blob, name) { const a = document.createElement("a"); a.href = 
 const safeName = () => ($("#docName").value.trim() || "document").replace(/[\\/:*?"<>|]+/g, "-").replace(/\.pdf$/i, "");
 
 /* ============ Anonymous counters (no cookies, no personal data) ============ */
-const COUNTER = { on: true, ns: "ifleavesweave", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", board_visits: "Boards: visits", board_created: "Boards: boards made", whiteboard_visits: "Canvas: visits", whiteboard_created: "Canvas: whiteboards made", mindmap_visits: "Maps: visits", mindmap_created: "Maps: maps made", sociogram_visits: "Sociogram: visits", sociogram_created: "Sociogram: sociograms made", genogram_visits: "Genogram: visits", genogram_created: "Genogram: genograms made", prototype_visits: "Prototype: visits", prototype_created: "Prototype: prototypes made", send_to_pdf: "Sent to If Leaves Weave PDF from other tools", home_visits: "Home page: visits", autoredact: "Find and redact: used", redaction_report: "Redaction reports made", flipbook_entry: "Arrived at the flipbook maker from a link", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
+const COUNTER = { on: true, ns: "ifleavesweave", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", board_visits: "Boards: visits", board_created: "Boards: boards made", whiteboard_visits: "Canvas: visits", whiteboard_created: "Canvas: whiteboards made", mindmap_visits: "Maps: visits", mindmap_created: "Maps: maps made", sociogram_visits: "Sociogram: visits", sociogram_created: "Sociogram: sociograms made", genogram_visits: "Genogram: visits", genogram_created: "Genogram: genograms made", prototype_visits: "Prototype: visits", prototype_created: "Prototype: prototypes made", send_to_pdf: "Sent to If Leaves Weave PDF from other tools", home_visits: "Home page: visits", autoredact: "Find and redact: used", redaction_report: "Redaction reports made", word_to_pdf: "Word files converted to PDF", flipbook_entry: "Arrived at the flipbook maker from a link", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
 const canCount = COUNTER.on && !navigator.globalPrivacyControl && navigator.doNotTrack !== "1" && /^https?:/.test(location.protocol);
 const noCount = () => { try { return localStorage.getItem("ifleavesweave-nocount") === "1"; } catch { return false; } };
 function count(key) { if (noCount()) return; if (!canCount) return; try { fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER.ns}/${key}`, { keepalive: true }).catch(() => {}); } catch {} }
@@ -53,16 +53,76 @@ function dims(p) { const i = info(p), R = ((i.rot + p.rot) % 360 + 360) % 360; r
 
 /* ============ Loading ============ */
 const fileIn = $("#fileIn");
-function pick(accept = "application/pdf,image/*", then = null) { pendingTool = then; fileIn.accept = accept; fileIn.value = ""; fileIn.click(); }
+function pick(accept = "application/pdf,image/*,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document", then = null) { pendingTool = then; fileIn.accept = accept; fileIn.value = ""; fileIn.click(); }
 fileIn.onchange = () => addFiles([...fileIn.files]);
+
+/* ============ What is this file really? Signature check on open ============
+   Reads the first bytes of each file to find its real format, whatever its name says, and refuses programs
+   disguised as documents (for example invoice.pdf.exe renamed to invoice.pdf). A lightweight alternative to an
+   AI file-type model: for the formats this app opens, these signatures are exact. */
+async function sniff(f) {
+  const u = new Uint8Array(await f.slice(0, 65536).arrayBuffer()), t = new TextDecoder("latin1").decode(u.subarray(0, 65536)), at = (o, ...b) => b.every((x, i) => u[o + i] === x);
+  if (t.slice(0, 1024).includes("%PDF-")) return "pdf";
+  if (at(0, 0xFF, 0xD8, 0xFF)) return "jpeg";
+  if (at(0, 0x89, 0x50, 0x4E, 0x47)) return "png";
+  if (t.startsWith("GIF8")) return "gif";
+  if (t.startsWith("RIFF") && t.slice(8, 12) === "WEBP") return "webp";
+  if (t.startsWith("BM")) return "bmp";
+  if (t.slice(4, 8) === "ftyp") return /^(heic|heix|mif1|msf1|hevc)/.test(t.slice(8, 12)) ? "heic" : /^avif/.test(t.slice(8, 12)) ? "avif" : "video";
+  if (at(0, 0x50, 0x4B, 0x03, 0x04)) return t.includes("word/") ? "docx" : t.includes("xl/") ? "xlsx" : t.includes("ppt/") ? "pptx" : "zip";
+  if (at(0, 0xD0, 0xCF, 0x11, 0xE0)) return "ole"; // old .doc, .xls, .ppt
+  if (t.startsWith("MZ") || at(0, 0x7F, 0x45, 0x4C, 0x46) || at(0, 0xCF, 0xFA, 0xED, 0xFE) || at(0, 0xCA, 0xFE, 0xBA, 0xBE)) return "program";
+  if (/^\s*(<!doctype html|<html|<script|<svg)/i.test(t.slice(0, 512))) return /^\s*<svg/i.test(t.slice(0, 512)) ? "svg" : "html";
+  if (t.startsWith("#!")) return "program";
+  return "unknown";
+}
+const IMAGE_KINDS = new Set(["jpeg", "png", "gif", "webp", "bmp", "avif"]);
+
+/* ============ Word to PDF, on this device ============
+   mammoth (BSD-2-Clause) reads the .docx; jsPDF (MIT) with html2canvas (MIT) lays it out on A4 as real, selectable
+   text. Loaded only when a Word file is opened. Layout is simplified: text, headings, lists, tables and images come
+   through; text boxes, columns, headers and footers do not. Standard PDF fonts cover Latin scripts only. */
+const W2P_LIBS = ["vendor/mammoth.browser.min.js", "vendor/html2canvas.min.js", "vendor/jspdf.umd.min.js"];
+const loadVendor = src => new Promise((res, rej) => { if (document.querySelector(`script[data-src="${src}"]`)) return res(); const sc = document.createElement("script"); sc.src = src; sc.dataset.src = src; sc.onload = res; sc.onerror = () => rej(new Error("load " + src)); document.head.append(sc); });
+async function wordToPdf(f) {
+  for (const s2 of W2P_LIBS) await loadVendor(s2);
+  const result = await window.mammoth.convertToHtml({ arrayBuffer: await f.arrayBuffer() }, { styleMap: ["p[style-name='Title'] => h1.title:fresh", "p[style-name='Subtitle'] => p.subtitle:fresh"], convertImage: window.mammoth.images.imgElement(img => img.read("base64").then(d => ({ src: `data:${img.contentType};base64,${d}` }))) });
+  // laid out in view but beneath the app (html2canvas captures nothing positioned off screen)
+  const box = document.createElement("div"); box.className = "w2p"; box.setAttribute("aria-hidden", "true"); box.innerHTML = result.value;
+  box.querySelectorAll("a[href]").forEach(a => { if (!/^(https?:|mailto:|#)/i.test(a.getAttribute("href"))) a.removeAttribute("href"); }); // no javascript: links
+  box.querySelectorAll("script, iframe, object, embed").forEach(n => n.remove());
+  document.body.append(box);
+  const nonLatin = /[^\u0000-\u024F\u1E00-\u1EFF\u2000-\u206F\u20AC\u2122\s]/.test(box.textContent);
+  try {
+    const doc = new window.jspdf.jsPDF({ unit: "pt", format: "a4" });
+    await doc.html(box, { margin: [56, 56, 56, 56], autoPaging: "text", width: 483, windowWidth: 680, html2canvas: { scale: 0.71, useCORS: false, logging: false } });
+    doc.setProperties({ title: f.name.replace(/\.docx$/i, ""), creator: "If Leaves Weave" });
+    return { bytes: new Uint8Array(doc.output("arraybuffer")), warnings: result.messages.filter(m => m.type === "warning").length, nonLatin };
+  } finally { box.remove(); }
+}
+
 async function addFiles(files, insertAt = null) {
-  files = files.filter(f => f.type === "application/pdf" || /\.pdf$/i.test(f.name) || f.type.startsWith("image/"));
-  if (!files.length) return toast("Choose PDF files or images (JPG, PNG, WebP).");
+  // check what each file really is, whatever its name says
+  const checked = [], notes = [];
+  for (const f of files) {
+    const kind = await sniff(f).catch(() => "unknown");
+    if (kind === "program" || kind === "html") { toast(`“${f.name}” isn’t a document: it looks like ${kind === "program" ? "a program" : "a web page"}, so it wasn’t opened. Files that hide what they are can be harmful.`, 6500); continue; }
+    if (kind === "pdf" || IMAGE_KINDS.has(kind) || kind === "docx") { if ((kind === "pdf") !== /\.pdf$/i.test(f.name) && !(IMAGE_KINDS.has(kind) && /\.(jpe?g|png|gif|webp|bmp|avif)$/i.test(f.name)) && !(kind === "docx" && /\.docx$/i.test(f.name))) notes.push(`“${f.name}” is really a ${kind === "docx" ? "Word document" : kind.toUpperCase() + (kind === "pdf" ? "" : " image")}, so it was opened as one.`); checked.push({ f, kind }); continue; }
+    if (kind === "ole") { toast(`“${f.name}” is an older Word, Excel or PowerPoint file. Save it as .docx in Word, then open it here.`, 6000); continue; }
+    if (kind === "heic") { toast(`“${f.name}” is a HEIC photo, which this browser may not open. Export it as JPEG first.`, 5000); continue; }
+    toast(`“${f.name}” isn’t a PDF, Word document or image, so it wasn’t opened.`, 4500);
+  }
+  if (!checked.length) return;
   const added = [];
-  for (let i = 0; i < files.length; i++) {
-    const f = files[i]; busy(`Opening ${f.name}`, (i / files.length) * 100); await tick();
+  for (let i = 0; i < checked.length; i++) {
+    const { f, kind } = checked[i]; busy(`Opening ${f.name}`, (i / checked.length) * 100); await tick();
     try {
-      if (f.type.startsWith("image/")) added.push(...await loadImage(f));
+      if (IMAGE_KINDS.has(kind)) added.push(...await loadImage(f.type.startsWith("image/") ? f : new File([f], f.name, { type: "image/" + kind })));
+      else if (kind === "docx") {
+        busy(`Turning ${f.name} into PDF pages`, (i / checked.length) * 100); const w = await wordToPdf(f);
+        added.push(...await loadPdf(new File([w.bytes], f.name.replace(/\.docx$/i, "") + ".pdf", { type: "application/pdf" }))); count("word_to_pdf");
+        notes.push(w.nonLatin ? `“${f.name}” was converted, but some characters (such as Arabic or Chinese) may not display: for those, save as PDF from Word instead.` : `“${f.name}” was converted from Word with a simplified layout${w.warnings ? "; some formatting, such as text boxes or columns, may differ" : ""}. Check the pages before sharing.`);
+      }
       else added.push(...await loadPdf(f));
     } catch (err) {
       console.error(err);
@@ -79,7 +139,7 @@ async function addFiles(files, insertAt = null) {
   const reqSrc = wasEmpty ? sources[added[0].src] : null;
   if (reqSrc && reqSrc.req) { hist = []; syncHist(); startSigning(added[0].src); return; }
   refresh();
-  toast(`${added.length} page${added.length > 1 ? "s" : ""} added`);
+  toast([`${added.length} page${added.length > 1 ? "s" : ""} added.`, ...notes].join(" "), notes.length ? 7000 : 2800);
   if (pendingTool) { const t = pendingTool; pendingTool = null; selectTool(t.tool || t); if (t.sign) startSign(); }
 }
 async function loadPdf(f) {
@@ -727,6 +787,7 @@ async function exportImages() {
 /* ============ Empty state tasks ============ */
 const TASKS = [
   ["Merge PDFs", "pages", "M8 3h8l4 4v8M4 9h8l4 4v8H4z", true],
+  ["Word to PDF", "pages", "M7 3h8l5 5v13H7zM10 12l1.5 5 1.5-4 1.5 4 1.5-5", "docx"],
   ["Split a PDF", "split", "M6 3v18M18 3v18M6 12h12"],
   ["Sign a PDF", { tool: "edit", sign: true }, "M3 17c3-6 5-10 6-7s-2 8 1 8 4-6 6-6 1 4 3 4 2-1 2-1"],
   ["Fill in and edit", "edit", "M4 20h4L19 9l-4-4L4 16z"],
@@ -741,7 +802,7 @@ const TASKS = [
   ["Read aloud, paper and voice notes", "class", "M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2zM8 7h6M8 11h8"],
 ];
 $("#tasks").innerHTML = TASKS.map(([n, , d], i) => `<button class="task" data-task="${i}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>${n}</button>`).join("");
-$("#tasks").onclick = e => { const b = e.target.closest("[data-task]"); if (!b) return; const [, t, , extra] = TASKS[+b.dataset.task]; pick(extra === "image/*" ? "image/*" : "application/pdf,image/*", t); };
+$("#tasks").onclick = e => { const b = e.target.closest("[data-task]"); if (!b) return; const [, t, , extra] = TASKS[+b.dataset.task]; pick(extra === "image/*" ? "image/*" : extra === "docx" ? ".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "application/pdf,image/*,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document", t); };
 $("#tray").addEventListener("click", e => { if (e.target === e.currentTarget) pick(); });
 $("#numOn").addEventListener("change", () => { if ($("#numOn").checked) toast("Page numbers will be added when you download"); });
 

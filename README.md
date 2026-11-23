@@ -87,6 +87,10 @@ In **Find and redact**, **Download redaction report** saves a plain-text record 
 ### Fonts and accessibility
 All fonts are bundled in `fonts/` (SIL Open Font License, via Fontsource), so pages make no requests to Google. Every page passes the automated WCAG 2.x A and AA checks in axe-core, in light and dark mode.
 
+### Word to PDF, and checking what files really are
+- **Open a Word file** (`.docx`), or choose **Word to PDF** on the start screen, and it becomes PDF pages you can edit, sign, redact, compress or download. Text stays real and selectable; headings, lists, tables and images come through. The layout is simplified: text boxes, columns, headers and footers may differ, and standard PDF fonts cover Latin scripts only (the app warns when a document uses others). Uses mammoth (BSD-2-Clause), jsPDF (MIT) and html2canvas (MIT), bundled in `vendor/` and loaded only when a Word file is opened.
+- **Every file is checked when it opens:** its first bytes show its real format, whatever its name says. Programs or web pages disguised as documents (for example a Windows program renamed `invoice.pdf`) are refused; misnamed files open as what they really are, with a note; older `.doc` files and HEIC photos get advice on what to do.
+
 ### Home page and navigation
 `home.html` lists all seven tools and your recent work from the six document tools. The logo in every tool goes there; each tool’s **Home** button returns to that tool’s own start screen, with its templates and recent documents; and **Tools** or **All If Leaves Weave tools** switches directly between them.
 
