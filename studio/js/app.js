@@ -8,7 +8,7 @@ const App = (() => {
   document.title = T.family;
   try { if (!sessionStorage.getItem("ifleavesweave-visit-" + TOOL)) { sessionStorage.setItem("ifleavesweave-visit-" + TOOL, "1"); count(`${TOOL}_visits`); } } catch {}
   /* ---------- the If Leaves Weave family switcher ---------- */
-  const FAMILY = [["index.html", "If Leaves Weave PDF", "Edit, sign, convert and protect PDFs", IC('<path d="M7 3h8l5 5v13H7z"/><path d="M15 3v5h5"/><path d="M10 14h7M10 17h5"/>')], ...Object.entries(TYPES).map(([k, t]) => [t.page, t.family, t.blurb, ICONS[t.icon], k])];
+  const FAMILY = [["home.html", "All tools", "The If Leaves Weave home page", ICONS.home], ["index.html", "If Leaves Weave PDF", "Edit, sign, convert and protect PDFs", IC('<path d="M7 3h8l5 5v13H7z"/><path d="M15 3v5h5"/><path d="M10 14h7M10 17h5"/>')], ...Object.entries(TYPES).map(([k, t]) => [t.page, t.family, t.blurb, ICONS[t.icon], k])];
   $("#brandName").textContent = T.family.replace("If Leaves Weave ", ""); $("#famBtn").onclick = e => {
     $$(".pop").forEach(p => p.remove()); const p = h("div", { class: "pop", role: "menu", "aria-label": "If Leaves Weave tools" });
     FAMILY.forEach(([href, name, blurb, icon, k]) => { const a = h("a", { class: "famlink", href, role: "menuitem", "aria-current": k === TOOL ? "page" : null }); a.innerHTML = `${icon}<span>${esc(name)}<small>${esc(blurb)}</small></span>`; p.append(a); });
@@ -45,7 +45,8 @@ const App = (() => {
   function renderTop(doc) {
     topbar.innerHTML = "";
     const railT = h("button", { class: "icon rail-toggle", "aria-label": "Show documents", onclick: () => $("#app").classList.toggle("rail-open") }); railT.innerHTML = ICONS.menu; topbar.append(railT);
-    if (!doc) { topbar.append(h("strong", { style: "padding:0 .4rem" }, "Home")); return; }
+    if (!doc) { topbar.append(h("strong", { style: "padding:0 .4rem" }, `${T.family.replace("If Leaves Weave ", "")} home`), h("span", { class: "spacer" })); const all = h("a", { class: "btn", href: "home.html" }); all.innerHTML = ICONS.home + "All tools"; topbar.append(all); return; }
+    const homeB = h("button", { class: "btn tool-home", title: `${T.family.replace("If Leaves Weave ", "")} home: templates and recent work`, onclick: home }); homeB.innerHTML = ICONS.home + `<span class="hide-s">${esc(T.family.replace("If Leaves Weave ", ""))}</span>`; topbar.append(homeB);
     const ic = h("span", { class: "icon", style: "color:var(--accent)", "aria-hidden": "true" }); ic.innerHTML = ICONS[TYPES[doc.type].icon];
     const title = h("input", { class: "title", value: doc.title, "aria-label": "Document name", size: Math.max(8, doc.title.length) });
     title.addEventListener("input", () => { title.size = Math.max(8, title.value.length); }); title.addEventListener("change", () => { doc.title = title.value.trim() || doc.title; title.value = doc.title; persist(doc); }); title.addEventListener("keydown", e => { if (e.key === "Enter") title.blur(); });
@@ -103,7 +104,7 @@ const App = (() => {
       <p>${esc(HERO[TOOL][1])} It runs in your browser, works offline and keeps everything on this device.</p>
       <div class="row">${starts[0] ? `<button class="btn primary" data-start="${starts[0][4]}">${esc(starts[0][1])}</button>` : ""}<button class="btn" data-new="${TOOL}">Start blank</button><button class="btn" data-tour>How it works</button></div></section>
       <section class="section"><h2>Start with</h2><div class="starts"><button class="start" data-new="${TOOL}">${ICONS.plus}<b>Blank ${esc(T.name.toLowerCase())}</b><small>Start from nothing</small></button>${starts.map(([t, n, d, , i]) => `<button class="start" data-start="${i}">${ICONS[TYPES[t].icon]}<b>${esc(n)}</b><small>${esc(d)}</small></button>`).join("")}</div></section>
-      <section class="section"><h2>Other If Leaves Weave tools</h2><div class="recent">${FAMILY.filter(f => f[4] !== TOOL).map(([href, name, blurb, icon]) => `<a class="famcard" href="${href}">${icon}<span><b>${esc(name)}</b><small>${esc(blurb)}</small></span></a>`).join("")}</div></section>
+      <section class="section"><h2>Other If Leaves Weave tools</h2><div class="recent">${FAMILY.filter(f => f[4] !== TOOL && f[0] !== "home.html").map(([href, name, blurb, icon]) => `<a class="famcard" href="${href}">${icon}<span><b>${esc(name)}</b><small>${esc(blurb)}</small></span></a>`).join("")}</div></section>
       ${mine.length ? `<section class="section"><h2>Recent</h2><div class="recent">${mine.slice(0, 8).map(d => `<button data-open="${d.id}">${ICONS[TYPES[d.type].icon]}<span><b>${esc(d.title)}</b><small>${TYPES[d.type].name}, ${new Date(d.updated).toLocaleDateString(undefined, { day: "numeric", month: "short" })}</small></span></button>`).join("")}</div></section>` : ""}
       <p class="privacy">${ICONS.lock}<span>Private by design: no account, no server and no tracking. Your work is saved in this browser only. Use Back up to keep a copy, especially for sensitive work such as genograms.</span></p>`;
     el.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; if (b.dataset.start != null) { const [t, , , tpl] = STARTS[+b.dataset.start]; create(t, tpl ? Modules[t].templates?.[tpl] : null); } if (b.dataset.new) create(b.dataset.new); if (b.dataset.open) open(b.dataset.open); if (b.hasAttribute("data-tour")) tour(); });
@@ -115,7 +116,7 @@ const App = (() => {
 
   /* ---------- new, import, export, theme, keyboard ---------- */
   $("#newBtn").onclick = e => { const tpls = Object.entries(Modules[TOOL].templates || {}); if (!tpls.length) return create(TOOL); popMenu(e.currentTarget, [{ label: `Blank ${T.name.toLowerCase()}`, icon: "plus", run: () => create(TOOL) }, ...tpls.map(([, tp]) => ({ label: tp.title, icon: T.icon, run: () => create(TOOL, tp) }))]); };
-  $("#homeBtn").onclick = home; $("#search").addEventListener("input", renderRail);
+  $("#homeBtn").onclick = () => { if (current) persist(current); location.href = "home.html"; }; $("#search").addEventListener("input", renderRail);
   $("#exportAll").onclick = () => { download(new Blob([JSON.stringify({ kind: "ifleavesweave-backup", v: 1, saved: new Date().toISOString(), docs }, null, 1)], { type: "application/json" }), `ifleavesweave-backup-${new Date().toISOString().slice(0, 10)}.json`); toast("Backup saved. Keep it somewhere safe."); };
   $("#importBtn").onclick = () => $("#fileIn").click();
   $("#fileIn").onchange = async () => { const f = $("#fileIn").files[0]; $("#fileIn").value = ""; if (!f) return; try { const d = JSON.parse(await f.text()); const incoming = /backup$/.test(d.kind || "") ? d.docs : /-doc$/.test(d.kind || "") ? [d.doc] : null; if (!incoming) throw 0; let n = 0; for (const doc of incoming) { if (!Modules[doc.type]) continue; if (docs.some(x => x.id === doc.id)) doc.id = uid(); docs.push(doc); await Store.put(doc); n++; } renderRail(); toast(`Opened ${n} document${n === 1 ? "" : "s"}`); if (n === 1) open(incoming[0].id); } catch { toast("That isn’t a If Leaves Weave tools file."); } };
@@ -127,6 +128,20 @@ const App = (() => {
   });
   addEventListener("pagehide", () => { if (current) Store.put(current); });
   window.popMenu = popMenu;
-  (async () => { docs = await Store.all(); const id = location.hash.slice(1); if (id && docs.some(d => d.id === id)) open(id); else home(); })();
+  /* A document passed in a link, such as an action board from AI Benar: #import=<gzip, base64url>.
+     The "#" part never reaches a server. It is checked, saved here, then removed from the address bar. */
+  async function importFromLink() {
+    const m = /^#import=([A-Za-z0-9_-]{16,})$/.exec(location.hash); if (!m) return false; history.replaceState(null, "", location.pathname);
+    try {
+      if (m[1].length > 3e6) throw 0; let b64 = m[1].replace(/-/g, "+").replace(/_/g, "/"); b64 += "=".repeat((4 - b64.length % 4) % 4);
+      const bin = atob(b64), bytes = Uint8Array.from(bin, c => c.charCodeAt(0)), text = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).text(), d = JSON.parse(text);
+      const doc = d?.doc; if (!/-doc$/.test(d?.kind || "") || !doc || doc.type !== TOOL || !Modules[doc.type] || typeof doc.data !== "object") throw 0;
+      if (doc.type === "board" && (!Array.isArray(doc.data.columns) || !Array.isArray(doc.data.cards) || !doc.data.columns.length)) throw 0;
+      doc.id = uid(); doc.title = String(doc.title || "Imported").slice(0, 120); doc.created = doc.updated = Date.now(); docs.push(doc); await Store.put(doc); open(doc.id);
+      toast(d.from === "ai-benar" ? `Action board made from the AI Benar audit: ${doc.data.cards?.length || 0} actions` : "Document opened from the link", 5000); count(`${TOOL}_imported`); return true;
+    } catch { toast("That link didn’t contain a document this tool can open."); return false; }
+  }
+  addEventListener("hashchange", () => { if (location.hash.startsWith("#import=")) importFromLink(); });
+  (async () => { docs = await Store.all(); if (await importFromLink()) return; const id = location.hash.slice(1); if (id && docs.some(d => d.id === id)) open(id); else home(); })();
   return { open, home, create, changed, popMenu, get current() { return current; } };
 })();

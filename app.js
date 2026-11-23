@@ -17,7 +17,7 @@ function download(blob, name) { const a = document.createElement("a"); a.href = 
 const safeName = () => ($("#docName").value.trim() || "document").replace(/[\\/:*?"<>|]+/g, "-").replace(/\.pdf$/i, "");
 
 /* ============ Anonymous counters (no cookies, no personal data) ============ */
-const COUNTER = { on: true, ns: "ifleavesweave", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", board_visits: "Boards: visits", board_created: "Boards: boards made", whiteboard_visits: "Canvas: visits", whiteboard_created: "Canvas: whiteboards made", mindmap_visits: "Maps: visits", mindmap_created: "Maps: maps made", sociogram_visits: "Sociogram: visits", sociogram_created: "Sociogram: sociograms made", genogram_visits: "Genogram: visits", genogram_created: "Genogram: genograms made", prototype_visits: "Prototype: visits", prototype_created: "Prototype: prototypes made", send_to_pdf: "Sent to If Leaves Weave PDF from other tools", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
+const COUNTER = { on: true, ns: "ifleavesweave", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", board_visits: "Boards: visits", board_created: "Boards: boards made", whiteboard_visits: "Canvas: visits", whiteboard_created: "Canvas: whiteboards made", mindmap_visits: "Maps: visits", mindmap_created: "Maps: maps made", sociogram_visits: "Sociogram: visits", sociogram_created: "Sociogram: sociograms made", genogram_visits: "Genogram: visits", genogram_created: "Genogram: genograms made", prototype_visits: "Prototype: visits", prototype_created: "Prototype: prototypes made", send_to_pdf: "Sent to If Leaves Weave PDF from other tools", home_visits: "Home page: visits", autoredact: "Find and redact: used", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
 const canCount = COUNTER.on && !navigator.globalPrivacyControl && navigator.doNotTrack !== "1" && /^https?:/.test(location.protocol);
 const noCount = () => { try { return localStorage.getItem("ifleavesweave-nocount") === "1"; } catch { return false; } };
 function count(key) { if (noCount()) return; if (!canCount) return; try { fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER.ns}/${key}`, { keepalive: true }).catch(() => {}); } catch {} }
@@ -1026,6 +1026,71 @@ async function flattenRedacted(bytes, idxs) {
   out.setProducer("If Leaves Weave"); count("redact");
   return out.save();
 }
+
+
+/* ============ Find and redact: personal details found in the page text ============ */
+const AR_PATTERNS = {
+  nric: { label: "NRIC or FIN", re: /\b[STFGM][0-9X*•]{7}[A-Z]\b/gi },
+  mykad: { label: "MyKad", re: /\b\d{6}-\d{2}-\d{4}\b/g },
+  ukni: { label: "National Insurance", re: /\b(?!BG|GB|NK|KN|TN|NT|ZZ)[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z] ?\d{2} ?\d{2} ?\d{2} ?[A-D]\b/gi },
+  phone: { label: "Phone", re: /(?<!\d[\s-]?)(?:\+\d{1,3}[\s-]?)?(?:\(\d{1,4}\)[\s-]?)?\b(?:[3689]\d{3}[\s-]?\d{4}|0\d{2,4}[\s-]?\d{3,4}[\s-]?\d{3,4})\b(?![\s-]?\d)/g }, // not part of a longer run of digits
+  email: { label: "Email", re: /\b[\w.%+-]+@[\w-]+(?:\.[\w-]+)+\b/gi },
+  card: { label: "Card", re: /\b(?:\d[ -]?){12,18}\d\b/g, check: v => luhn(v.replace(/\D/g, "")) },
+  long: { label: "Long number", re: /\b\d(?:[\d-]{6,}\d)\b/g, check: v => v.replace(/\D/g, "").length >= 8 },
+  date: { label: "Date", re: /\b(?:\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]* \d{4})\b/gi },
+  postal: { label: "Postal code", re: /\b(?:Singapore|S)\s?\(?\d{6}\)?(?![\dA-Z])/gi }, // not the start of an NRIC such as S1234567D
+};
+function luhn(d) { if (d.length < 13 || d.length > 19) return false; let s = 0, alt = false; for (let i = d.length - 1; i >= 0; i--) { let n = +d[i]; if (alt) { n *= 2; if (n > 9) n -= 9; } s += n; alt = !alt; } return s % 10 === 0; }
+let arFound = []; const AR_CTX = document.createElement("canvas").getContext("2d");
+async function arFind() {
+  if (!pages.length) return toast("Open a PDF first.");
+  const kinds = [...document.querySelectorAll("[data-ar]")].filter(c => c.checked).map(c => c.dataset.ar), words = (document.getElementById("arWords").value || "").split(/[\n,]+/).map(w => w.trim()).filter(Boolean);
+  if (!kinds.length && !words.length) return toast("Choose at least one kind of detail, or type words to find.");
+  busy("Reading the text", 0); arFound = []; let textChars = 0;
+  try {
+    const bytes = await buildPdf(), doc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise;
+    const wordRes = words.map(w => ({ label: "Your words", re: new RegExp(`(?<![\\p{L}\\p{N}])${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+")}(?![\\p{L}\\p{N}])`, "giu") }));
+    for (let pi = 0; pi < doc.numPages; pi++) {
+      const pg = await doc.getPage(pi + 1), vp = pg.getViewport({ scale: 1 }), tc = await pg.getTextContent();
+      // group text pieces into lines, keeping where each character came from
+      const lines = []; let cur = null;
+      for (const it of tc.items) { if (!("str" in it)) continue; const y = it.transform[5]; if (!cur || Math.abs(y - cur.y) > Math.max(2, Math.hypot(it.transform[2], it.transform[3]) * .5)) { cur = { y, text: "", map: [] }; lines.push(cur); } else if (cur.text && !/\s$/.test(cur.text) && it.str && !/^\s/.test(it.str)) { const last = cur.items?.[cur.items.length - 1]; const gap = last ? it.transform[4] - (last.transform[4] + last.width) : 0; if (gap > 1) { cur.text += " "; cur.map.push(null); } }
+        (cur.items ||= []).push(it); for (let k = 0; k < it.str.length; k++) { cur.text += it.str[k]; cur.map.push([it, k]); } textChars += it.str.trim().length; if (it.hasEOL) cur = null; }
+      // where characters a..b sit inside a piece of text: measured with a font of the same style (letters differ in width), plus a safety margin so a box never falls short
+      const box = (it, a, b) => { const [A, B, C, Dd, E, F] = it.transform, len = Math.max(1, it.str.length), sc = Math.hypot(A, B) || 1, ux = A / sc, uy = B / sc, hgt = Math.hypot(C, Dd) || it.height || 10, vx = C / hgt, vy = Dd / hgt, w = it.width || 0;
+        const fam = tc.styles?.[it.fontName]?.fontFamily || "sans-serif"; AR_CTX.font = `40px ${fam}`; const full = AR_CTX.measureText(it.str).width || 1, at = i => w * AR_CTX.measureText(it.str.slice(0, i)).width / full, pad = Math.max(w / len * .7, hgt * .25);
+        const s0 = Math.max(0, at(a) - pad), s1 = Math.min(w + pad, at(b) + pad);
+        const pts = [[s0, -.25], [s1, -.25], [s0, 1.05], [s1, 1.05]].map(([s, t]) => vp.convertToViewportPoint(E + ux * s + vx * hgt * t, F + uy * s + vy * hgt * t)); const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+        const x0 = Math.min(...xs) - 1, y0 = Math.min(...ys) - 1, x1 = Math.max(...xs) + 1, y1 = Math.max(...ys) + 1; return { x: Math.max(0, x0 / vp.width), y: Math.max(0, y0 / vp.height), w: Math.min(1, (x1 - x0) / vp.width), h: Math.min(1, (y1 - y0) / vp.height) }; };
+      for (const ln of lines) {
+        const pats = [...kinds.map(k => ({ k, ...AR_PATTERNS[k] })), ...wordRes.map(r => ({ k: "words", ...r }))];
+        for (const p of pats) { p.re.lastIndex = 0; let m; while ((m = p.re.exec(ln.text))) { if (!m[0].trim() || (p.check && !p.check(m[0]))) { if (!m[0]) p.re.lastIndex++; continue; }
+          // one box per text piece the match runs across
+          const segs = new Map(); for (let ci = m.index; ci < m.index + m[0].length; ci++) { const at = ln.map[ci]; if (!at) continue; const [it, k] = at; const s = segs.get(it) || [k, k]; s[0] = Math.min(s[0], k); s[1] = Math.max(s[1], k); segs.set(it, s); }
+          const boxes = [...segs.entries()].map(([it, [a, b]]) => box(it, a, b + 1));
+          if (boxes.length && !arFound.some(f => f.page === pi && f.text === m[0] && Math.abs(f.boxes[0].x - boxes[0].x) < .002 && Math.abs(f.boxes[0].y - boxes[0].y) < .002)) arFound.push({ id: arFound.length, page: pi, kind: p.label, text: m[0], boxes, on: true }); } }
+      }
+      busy(`Page ${pi + 1} of ${doc.numPages}`, (pi + 1) / doc.numPages * 100);
+    }
+    doc.destroy();
+  } catch (e) { console.error(e); busy(false); return toast("Couldn’t read the text of this PDF."); }
+  busy(false); arRender(textChars);
+}
+const arMask = t => t.length <= 4 ? "••••" : t.slice(0, 2) + "•".repeat(Math.max(2, t.length - 4)) + t.slice(-2);
+function arRender(textChars) {
+  const out = document.getElementById("arOut");
+  if (!textChars) { out.innerHTML = `<p class="note warn">This PDF has no readable text: it may be a scan. Use <b>Read text</b> first to make it searchable, then try again.</p>`; return; }
+  if (!arFound.length) { out.innerHTML = `<p class="note">Nothing found for the details you chose. Check the pages yourself too: no automatic search catches everything.</p>`; return; }
+  const groups = {}; arFound.forEach(f => (groups[f.kind] ||= []).push(f));
+  out.innerHTML = `<p class="note"><b>${arFound.length}</b> found. Untick anything that should stay visible.</p><div class="ar-list">${Object.entries(groups).map(([k, l]) => `<h3>${esc(k)} (${l.length})</h3>${l.map(f => `<label class="check ar-item"><input type="checkbox" data-arf="${f.id}" ${f.on ? "checked" : ""}><span><b>${esc(arMask(f.text))}</b> <small>page ${f.page + 1}</small></span><button class="ghost" data-arshow="${f.id}" title="Show where it is" type="button">Show</button></label>`).join("")}`).join("")}</div>
+    <button class="btn primary" id="arMark">Mark ${arFound.filter(f => f.on).length} for redaction</button><p class="note">Text is shown partly hidden here for privacy. After marking, check every page, then download: marked pages are flattened so the text is gone for good.</p>`;
+  out.querySelectorAll("[data-arf]").forEach(c => c.onchange = () => { arFound[+c.dataset.arf].on = c.checked; document.getElementById("arMark").textContent = `Mark ${arFound.filter(f => f.on).length} for redaction`; });
+  out.querySelectorAll("[data-arshow]").forEach(b => b.onclick = () => { const f = arFound[+b.dataset.arshow]; openEditor(f.page); toast(`Page ${f.page + 1}: ${f.kind}`); });
+  document.getElementById("arMark").onclick = () => { const chosen = arFound.filter(f => f.on); if (!chosen.length) return toast("Nothing is ticked."); commit(); let n = 0;
+    chosen.forEach(f => f.boxes.forEach(bx => { pages[f.page].annots.push({ id: uid("a"), type: "rect", kind: "rd", x: +bx.x.toFixed(5), y: +bx.y.toFixed(5), w: +bx.w.toFixed(5), h: +bx.h.toFixed(5), color: "#000000" }); n++; }));
+    renderGrid(); try { renderLayer(); } catch {} count("autoredact"); toast(`${chosen.length} item${chosen.length > 1 ? "s" : ""} marked. Check each page, then download to remove them permanently.`, 6000); out.innerHTML = `<p class="note">Marked ${chosen.length} item${chosen.length > 1 ? "s" : ""} (${n} box${n > 1 ? "es" : ""}). Undo removes them. Run Find again after changes.</p>`; };
+}
+document.getElementById("arFind")?.addEventListener("click", arFind);
 
 /* ============ Convert to Word and PowerPoint ============ */
 const loaded = {};

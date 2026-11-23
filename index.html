@@ -264,7 +264,7 @@ a.brand:hover{background:var(--soft)}
 <a class="skip" href="#stage">Skip to the document</a>
 <div class="app">
   <header class="top">
-    <a class="brand" href="./" id="homeLink" aria-label="If Leaves Weave home"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 27C5 14 13 6 27 5c0 14-8 22-22 22z" fill="var(--blue)"/><path d="M8 24 24 8" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M11 15c3 1.5 5.5 4.5 7 9M16 10.5c2.5 2 4 5 4.3 9" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".85"/></svg><span>If Leaves Weave</span></a>
+    <a class="brand" href="home.html" id="homeLink" aria-label="All If Leaves Weave tools"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 27C5 14 13 6 27 5c0 14-8 22-22 22z" fill="var(--blue)"/><path d="M8 24 24 8" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M11 15c3 1.5 5.5 4.5 7 9M16 10.5c2.5 2 4 5 4.3 9" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".85"/></svg><span>If Leaves Weave</span></a>
     <button class="ib" id="famBtn" aria-haspopup="true" title="All If Leaves Weave tools"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg><span class="t">Tools</span></button>
     <button class="ib" id="addBtn" title="Add PDFs or images"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="t">Add files</span></button>
     <button class="ib" id="undoBtn" disabled title="Undo (Ctrl+Z)" aria-label="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
@@ -287,6 +287,7 @@ a.brand:hover{background:var(--soft)}
       <button class="tool" role="tab" data-tool="convert" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11l-3-3M20 17H9l3 3"/></svg>Convert</button>
       <button class="tool" role="tab" data-tool="form" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h5M8 16h3"/><path d="m14 16 1.5 1.5L18 15"/></svg>Fill form</button>
       <button class="tool" role="tab" data-tool="compare" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H4v18h4M16 3h4v18h-4M12 3v18"/></svg>Compare</button>
+      <button class="tool" role="tab" data-tool="autored" aria-selected="false" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/><rect x="7" y="9" width="7" height="3" rx=".5" fill="currentColor"/></svg>Find and redact</button>
       <button class="tool" role="tab" data-tool="bates" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h6M17 15l3 3-3 3"/></svg>Bates</button>
       <button class="tool" role="tab" data-tool="flip" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-3-2-6-2-9 0v13c3-2 6-2 9 0 3-2 6-2 9 0V6c-3-2-6-2-9 0zM12 6v13"/></svg>Flipbook</button>
       <button class="tool" role="tab" data-tool="ocr" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M8 12h8"/></svg>Read text</button>
@@ -305,6 +306,7 @@ a.brand:hover{background:var(--soft)}
             <p class="note">Or drop files anywhere on this page. Got a file to sign from someone? Open it here.</p>
           </div>
           <div class="tasks" id="tasks"></div>
+          <p class="note more-tools">More free tools: <a href="boards.html">Boards</a> · <a href="canvas.html">Canvas</a> · <a href="maps.html">Maps</a> · <a href="sociogram.html">Sociogram</a> · <a href="genogram.html">Genogram</a> · <a href="prototype.html">Prototype</a> · <a href="home.html">All tools</a></p>
           <p class="privacy">If Leaves Weave counts visits and downloads as anonymous totals: no cookies, no names and nothing about your documents. Turn on Do Not Track or Global Privacy Control in your browser to opt out.</p>
         </div>
       </section>
@@ -381,6 +383,10 @@ a.brand:hover{background:var(--soft)}
             <div class="field"><label for="mKeywords">Keywords</label><input type="text" id="mKeywords" placeholder="Separate with commas"></div>
             <p class="note">Saved inside the PDF when you download.</p>
           </div>
+        </details>
+              <details class="opt-tools"><summary>Optional tools</summary>
+          <label class="check"><input type="checkbox" id="optAutored"> Show <b>Find and redact</b>: searches the text for NRIC numbers, phone numbers and other personal details</label>
+          <p class="note">Your choice is remembered on this device.</p>
         </details>
       </section>
 
@@ -534,6 +540,25 @@ a.brand:hover{background:var(--soft)}
       </section>
 
       <!-- Bates numbering -->
+      <section class="pane" data-pane="autored" hidden>
+        <h2>Find and redact</h2>
+        <p class="hint">Finds personal details in the text and marks them for redaction. Check the list, then download: marked pages are flattened so the hidden text is permanently removed.</p>
+        <div class="group"><span class="lbl">Look for</span>
+          <label class="check"><input type="checkbox" data-ar="nric" checked> Singapore NRIC and FIN numbers</label>
+          <label class="check"><input type="checkbox" data-ar="mykad" checked> Malaysian MyKad numbers</label>
+          <label class="check"><input type="checkbox" data-ar="ukni" checked> UK National Insurance numbers</label>
+          <label class="check"><input type="checkbox" data-ar="phone" checked> Phone numbers</label>
+          <label class="check"><input type="checkbox" data-ar="email" checked> Email addresses</label>
+          <label class="check"><input type="checkbox" data-ar="card" checked> Card numbers</label>
+          <label class="check"><input type="checkbox" data-ar="long"> Long account or reference numbers (8 or more digits)</label>
+          <label class="check"><input type="checkbox" data-ar="date"> Dates, such as dates of birth</label>
+          <label class="check"><input type="checkbox" data-ar="postal"> Singapore postal codes</label>
+        </div>
+        <div class="field"><label for="arWords">Also find these words or names (one per line or separated by commas)</label><textarea id="arWords" rows="3" placeholder="Tan Wei Ming&#10;Blk 123 Ang Mo Kio"></textarea></div>
+        <button class="btn primary" id="arFind">Find</button>
+        <div id="arOut" aria-live="polite"></div>
+      </section>
+
       <section class="pane" data-pane="bates" hidden>
         <h2>Bates numbering and stamps</h2>
         <p class="hint">Gives every page a unique number, such as ABC000001, for legal, audit and compliance documents. Number one file or many in sequence.</p>
@@ -545,7 +570,7 @@ a.brand:hover{background:var(--soft)}
         <p class="note" id="btPreview"></p>
         <button class="btn primary" id="btOne">Number this document</button>
         <button class="btn" id="btMany">Number several PDFs in sequence</button>
-        <p class="note">For several files, Booth numbers them in name order and downloads a ZIP with an index of the number range in each file.</p>
+        <p class="note">For several files, If Leaves Weave numbers them in name order and downloads a ZIP with an index of the number range in each file.</p>
       </section>
 
       <!-- Flipbook -->
@@ -654,20 +679,22 @@ a.brand:hover{background:var(--soft)}
 .fam-pop{position:fixed;z-index:90;min-width:270px;padding:.35rem;border-radius:12px;border:1px solid var(--line);background:var(--panel);box-shadow:0 18px 40px -18px rgba(0,0,0,.45)}
 .fam-pop a{display:flex;gap:.6rem;align-items:center;padding:.5rem .65rem;border-radius:8px;text-decoration:none;color:var(--ink);font-size:.9rem;font-weight:600}
 .fam-pop a:hover,.fam-pop a:focus-visible{background:var(--soft);outline:none}.fam-pop a[aria-current=page]{background:color-mix(in srgb,var(--blue) 14%,transparent)}
+.opt-tools{margin-top:1rem;border-top:1px solid var(--line);padding-top:.6rem}.opt-tools summary{cursor:pointer;font-weight:600;font-size:.88rem;color:var(--muted)}
 .fam-pop small{display:block;font-weight:500;color:var(--muted);font-size:.78rem}.fam-pop b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--soft);color:var(--blue);font-size:.95rem;flex-shrink:0}
 </style>
 <script>
 /* If Leaves Weave family switcher */
 (() => {
-  const T = [["index.html", "If Leaves Weave PDF", "Edit, sign, convert and protect PDFs", "▤"], ["boards.html", "If Leaves Weave Boards", "Kanban, Table and Timeline", "▥"], ["canvas.html", "If Leaves Weave Canvas", "Whiteboard with notes and shapes", "✎"], ["maps.html", "If Leaves Weave Maps", "Mind and concept maps", "✳"], ["sociogram.html", "If Leaves Weave Sociogram", "Who connects with whom", "◎"], ["genogram.html", "If Leaves Weave Genogram", "Family maps for casework", "⌂"], ["prototype.html", "If Leaves Weave Prototype", "Clickable app screens", "▯"]];
+  const T = [["home.html", "All tools", "The If Leaves Weave home page", "⌂"], ["index.html", "If Leaves Weave PDF", "Edit, sign, convert and protect PDFs", "▤"], ["boards.html", "If Leaves Weave Boards", "Kanban, Table and Timeline", "▥"], ["canvas.html", "If Leaves Weave Canvas", "Whiteboard with notes and shapes", "✎"], ["maps.html", "If Leaves Weave Maps", "Mind and concept maps", "✳"], ["sociogram.html", "If Leaves Weave Sociogram", "Who connects with whom", "◎"], ["genogram.html", "If Leaves Weave Genogram", "Family maps for casework", "⌂"], ["prototype.html", "If Leaves Weave Prototype", "Clickable app screens", "▯"]];
   const btn = document.getElementById("famBtn"); if (!btn) return;
   btn.onclick = () => { document.querySelector(".fam-pop")?.remove(); const p = document.createElement("div"); p.className = "fam-pop"; p.setAttribute("role", "menu"); p.setAttribute("aria-label", "If Leaves Weave tools");
-    p.innerHTML = T.map(([href, n, d, ic], i) => `<a role="menuitem" href="${href}" ${i === 0 ? 'aria-current="page"' : ""}><b aria-hidden="true">${ic}</b><span>${n}<small>${d}</small></span></a>`).join("");
+    p.innerHTML = T.map(([href, n, d, ic], i) => `<a role="menuitem" href="${href}" ${href === "index.html" ? 'aria-current="page"' : ""}><b aria-hidden="true">${ic}</b><span>${n}<small>${d}</small></span></a>`).join("");
     document.body.append(p); const r = btn.getBoundingClientRect(); p.style.top = r.bottom + 6 + "px"; p.style.left = Math.max(8, Math.min(r.left, innerWidth - p.offsetWidth - 8)) + "px"; p.querySelector("a").focus();
     const off = e => { if (!p.contains(e.target) && e.target !== btn) { p.remove(); removeEventListener("pointerdown", off, true); } }; setTimeout(() => addEventListener("pointerdown", off, true));
     p.addEventListener("keydown", e => { const as = [...p.querySelectorAll("a")], i = as.indexOf(document.activeElement); if (e.key === "Escape") { p.remove(); btn.focus(); } if (e.key === "ArrowDown") { e.preventDefault(); as[(i + 1) % as.length].focus(); } if (e.key === "ArrowUp") { e.preventDefault(); as[(i - 1 + as.length) % as.length].focus(); } }); };
 })();
 </script>
+<script>/* optional tools: shown only when switched on */(() => { const KEY = "ifleavesweave-opt-autored", btn = document.querySelector('.tool[data-tool="autored"]'), box = document.getElementById("optAutored"); if (!btn || !box) return; let on = false; try { on = localStorage.getItem(KEY) === "1"; } catch {} const apply = () => { btn.hidden = !on; box.checked = on; if (!on && btn.getAttribute("aria-selected") === "true") document.querySelector('.tool[data-tool="pages"]')?.click(); }; box.onchange = () => { on = box.checked; try { on ? localStorage.setItem(KEY, "1") : localStorage.removeItem(KEY); } catch {} apply(); }; apply(); })();</script>
 <script src="compact.js" data-app="ifleavesweave"></script>
 <script src="vendor/pdf-lib.min.js"></script>
 <script src="vendor/jszip.min.js"></script>

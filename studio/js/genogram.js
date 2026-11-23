@@ -22,12 +22,15 @@
     return d; } } };
   function mount(ctx) {
     let D = ctx.doc.data, sel = null, multi = new Set(), selBond = null, selUnion = null, pos = {}, pending = null, drag = null;
-    D.view ||= { x: 0, y: 0, z: 1 };
+    if (typeof D.view !== "object" || !D.view) D.view = { x: 0, y: 0, z: 1 }; // also repairs zoom data an earlier test version overwrote
     const svg = svgEl("svg", { class: "canvas dotgrid", role: "img", "aria-label": "Genogram" }), world = svgEl("g", {}, svg); ctx.stage.append(svg);
     svgEl("defs", {}, svg).innerHTML = `<marker id="gnArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>`;
     const vp = Viewport(svg, world, D.view, v => { zl.textContent = Math.round(v.z * 100) + "%"; svg.style.backgroundSize = `${22 * v.z}px ${22 * v.z}px`; svg.style.backgroundPosition = `${v.x}px ${v.y}px`; });
     const zb = h("div", { class: "zoombar" }), zl = h("span", {}, "100%"); [["zout", .8, "Zoom out"], [null], ["zin", 1.25, "Zoom in"], ["fit", 0, "Fit to screen"]].forEach(([ic, f, lbl]) => { if (!ic) return zb.append(zl); const b = h("button", { class: "icon", "aria-label": lbl, title: lbl, onclick: () => f ? vp.zoomBy(f) : fit() }); b.innerHTML = ICONS[ic]; zb.append(b); });
     const hud = h("div", { class: "hud" }); ctx.stage.append(zb, hud);
+    D.eco ||= { systems: [] }; D.mode ||= "geno";
+    const vseg = h("div", { class: "seg", role: "group", "aria-label": "View" }); [["geno", "Genogram"], ["eco", "Ecomap"]].forEach(([v, n]) => vseg.append(h("button", { "aria-pressed": String(D.mode === v), onclick: () => { D.mode = v; sel = null; selSys = null; multi.clear(); vseg.querySelectorAll("button").forEach((b, i) => b.setAttribute("aria-pressed", String(["geno", "eco"][i] === v))); ctx.changed(); render(); setTimeout(fit, 0); } }, n))); ctx.setView(vseg);
+    let selSys = null, sdrag = null;
     const tools = h("div", { class: "row" }); const priv = h("button", { class: "btn", "aria-pressed": String(!!D.privacy), title: "Show initials only, for screen-sharing or printing" }); priv.innerHTML = ICONS.lock + `<span class="hide-s">Privacy</span>`; priv.onclick = () => { D.privacy = !D.privacy; priv.setAttribute("aria-pressed", String(D.privacy)); ctx.changed(); render(); toast(D.privacy ? "Privacy mode on: initials only" : "Privacy mode off"); }; tools.append(priv); ctx.setTools(tools);
     const person = id => D.persons.find(p => p.id === id), unionsOf = id => D.unions.filter(u => u.a === id || u.b === id), childLinks = uid2 => D.children.filter(c => c.union === uid2), parentLink = id => D.children.find(c => c.child === id);
     const yr = s => parseInt(s, 10), age = p => { const b = yr(p.birth); if (!b) return null; const e = p.deceased ? yr(p.death) : new Date().getFullYear(); return e ? e - b : null; };
@@ -87,7 +90,8 @@
       const a = age(p); if (D.showAges && a != null && !p.health && !p.substance && p.kind === "person") { const t = svgEl("text", { x, y: y + 5, "text-anchor": "middle", "font-size": 14, "font-weight": 700, fill: "#1E2A2F" }, g); t.textContent = a; }
       if (p.deceased || p.kind === "stillbirth") { line(g, x - half * 1.15, y - half * 1.15, x + half * 1.15, y + half * 1.15, { "stroke-width": 2 }); line(g, x - half * 1.15, y + half * 1.15, x + half * 1.15, y - half * 1.15, { "stroke-width": 2 }); }
     }
-    function render() {
+    function render() { if (D.mode === "eco") return renderEco(); return renderGeno(); }
+    function renderGeno() {
       positions(); world.innerHTML = ""; const L = { households: svgEl("g", {}, world), unions: svgEl("g", {}, world), bonds: svgEl("g", {}, world), people: svgEl("g", {}, world) }, used = new Set();
       // households
       for (const hh of D.households) {
@@ -162,7 +166,7 @@
       if (used.has("household")) items.push(sw('<rect x="4" y="4" width="32" height="16" rx="7" fill="none" stroke="#0E7C7B" stroke-width="1.8" stroke-dasharray="2 4" stroke-linecap="round"/>', "Household"));
       L.innerHTML = items.length ? `<b>Key</b>${items.join("")}` : ""; L.hidden = !items.length;
     }
-    function fit() { positions(); const b = bboxOf(Object.values(pos).map(p => ({ x: p.x - 70, y: p.y - 60, w: 140, h: 150 }))); if (b) vp.fit(b, 50); }
+    function fit() { if (D.mode === "eco") { const b = bboxOf(ecoLayout().all.map(q => ({ x: q.x - 90, y: q.y - 90, w: 180, h: 180 }))); if (b) vp.fit(b, 40); return; } positions(); const b = bboxOf(Object.values(pos).map(p => ({ x: p.x - 70, y: p.y - 60, w: 140, h: 150 }))); if (b) vp.fit(b, 50); }
     /* ---------- relatives ---------- */
     function addPartner(id, type = "married") { const me = person(id), p = P("Partner", me.sex === "M" ? "F" : me.sex === "F" ? "M" : "U", ""); D.persons.push(p); D.unions.push({ id: uid(), a: me.sex === "F" ? p.id : id, b: me.sex === "F" ? id : p.id, type, start: "", end: "" }); sel = p.id; ctx.changed(); render(); toast("Partner added. Type their name in the panel."); }
     function addChild(id, unionId) { let u = unionId ? D.unions.find(x => x.id === unionId) : unionsOf(id)[0]; if (!u) { u = { id: uid(), a: id, b: null, type: "married", start: "", end: "" }; D.unions.push(u); } const c = P("Child", "U", ""); D.persons.push(c); D.children.push({ id: uid(), union: u.id, child: c.id, type: "bio", twin: null, identical: false }); sel = c.id; ctx.changed(); render(); }
@@ -180,7 +184,70 @@
     svg.addEventListener("pointermove", e => { if (!drag) return; const p = vp.toWorld(e.clientX, e.clientY); if (!drag.moved && Math.hypot(p.x - drag.sx, p.y - drag.sy) < 4) return; drag.moved = true; const pr = person(drag.id); pr.x = Math.round((drag.ox + p.x - drag.sx) / 10) * 10; pr.y = Math.round((drag.oy + p.y - drag.sy) / 10) * 10; render(); });
     svg.addEventListener("pointerup", () => { if (drag?.moved) ctx.changed(); drag = null; });
     /* ---------- inspector ---------- */
-    function renderInsp() {
+    /* ---------- Ecomap (after Hartman, 1978): the family in the centre, the systems around it ---------- */
+    const ECO_PRESETS = [["School", "education"], ["Childcare or kindergarten", "education"], ["Work", "work"], ["Extended family", "family"], ["Friends", "social"], ["Neighbours", "social"], ["Polyclinic or hospital", "health"], ["Mental health support", "health"], ["Faith community", "faith"], ["Family Service Centre", "services"], ["Financial assistance (ComCare)", "services"], ["Housing (HDB)", "services"], ["Community (RC or CC)", "community"], ["Recreation and sport", "community"], ["Legal or court", "services"], ["Social media and online", "social"]];
+    const ECO_COL = { education: "#2453D6", work: "#5E6B70", family: "#7A4FC2", social: "#0E7C7B", health: "#C2413A", faith: "#B86E00", services: "#2F7D4F", community: "#A23E7A", other: "#57616C" };
+    const STRENGTH = { strong: "Strong", moderate: "Moderate", tenuous: "Tenuous", stressful: "Stressful" }, FLOW = { none: "No arrow", toFamily: "Support flows to the family", fromFamily: "The family gives to it", both: "Both ways" };
+    function ecoMembers() { const hh = D.households[0]; if (hh?.members.length) return hh.members.map(person).filter(Boolean); const idx = D.persons.find(p => p.index) || D.persons[0]; if (!idx) return []; const set = new Set([idx.id]); unionsOf(idx.id).forEach(u => { [u.a, u.b].forEach(x => x && set.add(x)); childLinks(u.id).forEach(c => set.add(c.child)); }); const pl = parentLink(idx.id); if (pl) { const u = D.unions.find(x => x.id === pl.union); if (u) [u.a, u.b].forEach(x => x && set.add(x)); childLinks(pl.union).forEach(c => set.add(c.child)); } return [...set].map(person).filter(Boolean); }
+    function ecoLayout() {
+      const mem = ecoMembers(), cols = Math.ceil(Math.sqrt(mem.length || 1)), rows = Math.ceil((mem.length || 1) / cols), R = Math.max(130, Math.hypot(cols * 80, rows * 96) / 2 + 30);
+      const mpos = mem.map((p, i) => ({ p, x: ((i % cols) - (cols - 1) / 2) * 80, y: (Math.floor(i / cols) - (rows - 1) / 2) * 96 - 8 }));
+      const n = D.eco.systems.length, ring = R + 230, spos = D.eco.systems.map((sy, i) => ({ sy, x: sy.x ?? Math.cos(-Math.PI / 2 + i / Math.max(1, n) * Math.PI * 2) * ring, y: sy.y ?? Math.sin(-Math.PI / 2 + i / Math.max(1, n) * Math.PI * 2) * ring }));
+      return { R, mpos, spos, all: [{ x: 0, y: 0 }, ...spos, { x: -R, y: -R }, { x: R, y: R }] };
+    }
+    function renderEco() {
+      world.innerHTML = ""; const { R, mpos, spos } = ecoLayout(), linkG = svgEl("g", {}, world), famG = svgEl("g", {}, world), sysG = svgEl("g", {}, world), SR = 62;
+      svgEl("circle", { cx: 0, cy: 0, r: R, fill: "rgba(36,83,214,.05)", stroke: "#18202A", "stroke-width": 2 }, famG);
+      const ft = svgEl("text", { x: 0, y: -R - 12, "text-anchor": "middle", "font-size": 14, "font-weight": 700, fill: "#18202A", ...HALO }, famG); ft.textContent = D.households[0]?.name || "Family";
+      for (const m of mpos) { const g = svgEl("g", { transform: `translate(${m.x},${m.y}) scale(.62)` }, famG); symbol(g, m.p, 0, 0); const t = svgEl("text", { x: m.x, y: m.y + 26, "text-anchor": "middle", "font-size": 11.5, "font-weight": 700, fill: "#18202A", ...HALO }, famG); t.textContent = display(m.p).length > 14 ? display(m.p).slice(0, 13) + "…" : display(m.p); }
+      for (const { sy, x, y } of spos) {
+        const tgt = sy.to && sy.to !== "family" ? mpos.find(m => m.p.id === sy.to) : null, tx = tgt ? tgt.x : 0, ty = tgt ? tgt.y : 0, d = Math.hypot(x - tx, y - ty) || 1, ux = (tx - x) / d, uy = (ty - y) / d, x1 = x + ux * SR, y1 = y + uy * SR, endR = tgt ? 24 : R, x2 = tx - ux * endR, y2 = ty - uy * endR, nx = -uy, ny = ux;
+        const g = svgEl("g", { class: "eco-link", "data-sys": sy.id }, linkG), col = "#18202A", st = sy.strength || "moderate";
+        svgEl("line", { x1, y1, x2, y2, stroke: "transparent", "stroke-width": 16 }, g);
+        if (st === "strong") svgEl("line", { x1, y1, x2, y2, stroke: col, "stroke-width": 6 }, g);
+        else if (st === "tenuous") svgEl("line", { x1, y1, x2, y2, stroke: col, "stroke-width": 2, "stroke-dasharray": "8 7" }, g);
+        else { svgEl("line", { x1, y1, x2, y2, stroke: st === "stressful" ? "#C2413A" : col, "stroke-width": 2.2 }, g); if (st === "stressful") { const L = Math.hypot(x2 - x1, y2 - y1), k = Math.max(3, Math.floor(L / 16)); for (let i = 1; i < k; i++) { const t = i / k, cx = x1 + (x2 - x1) * t, cy = y1 + (y2 - y1) * t; svgEl("line", { x1: cx - nx * 7 - ux * 4, y1: cy - ny * 7 - uy * 4, x2: cx + nx * 7 + ux * 4, y2: cy + ny * 7 + uy * 4, stroke: "#C2413A", "stroke-width": 2 }, g); } } }
+        const arrow = (ax, ay, dx, dy) => svgEl("path", { d: `M${ax},${ay} l${-dx * 14 + -dy * 7},${-dy * 14 + dx * 7} l${dy * 14},${-dx * 14}Z`, fill: st === "stressful" ? "#C2413A" : col }, g);
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2; if (sy.flow === "toFamily" || sy.flow === "both") arrow(mx + ux * 16, my + uy * 16, ux, uy); if (sy.flow === "fromFamily" || sy.flow === "both") arrow(mx - ux * 16, my - uy * 16, -ux, -uy);
+        const sg = svgEl("g", { class: "eco-sys" + (selSys === sy.id ? " sel" : ""), "data-sys": sy.id }, sysG), c = ECO_COL[sy.kind] || ECO_COL.other;
+        if (selSys === sy.id) svgEl("circle", { cx: x, cy: y, r: SR + 6, fill: "none", stroke: "#E9A23B", "stroke-width": 3 }, sg);
+        svgEl("circle", { cx: x, cy: y, r: SR, fill: "#FFFFFF", stroke: c, "stroke-width": 3 }, sg); svgText(sg, sy.name || "System", x, y, { size: 13, weight: 700, maxW: SR * 1.6, fill: "#18202A", maxLines: 3 });
+      }
+      let L = $("#gnLegend", ctx.stage); if (!L) { L = h("div", { class: "gn-legend", id: "gnLegend" }); ctx.stage.append(L); }
+      const sw = (inner, label) => `<span><svg viewBox="0 0 40 24" aria-hidden="true">${inner}</svg>${label}</span>`;
+      L.hidden = !D.eco.systems.length; L.innerHTML = `<b>Key</b>${sw('<path d="M4 12H36" stroke="#18202A" stroke-width="6"/>', "Strong")}${sw('<path d="M4 12H36" stroke="#18202A" stroke-width="2.2"/>', "Moderate")}${sw('<path d="M4 12H36" stroke="#18202A" stroke-width="2" stroke-dasharray="6 5"/>', "Tenuous")}${sw('<path d="M4 12H36" stroke="#C2413A" stroke-width="2"/><path d="M12 6l4 12M20 6l4 12M28 6l4 12" stroke="#C2413A" stroke-width="2"/>', "Stressful")}${sw('<path d="M4 12H28" stroke="#18202A" stroke-width="2"/><path d="M26 6l10 6-10 6z" fill="#18202A"/>', "Flow of support")}`;
+      hud.textContent = D.eco.systems.length ? "Click a system to set its link. Drag systems to rearrange." : "Add the systems around this family, such as school, work or services, from the panel.";
+      renderInsp();
+    }
+    function renderEcoInsp() {
+      const I = ctx.insp, sy = D.eco.systems.find(x => x.id === selSys), mem = ecoMembers();
+      if (!sy) { I.innerHTML = `<h2>Ecomap</h2><p class="hint">Shows the family’s links with the people and services around them, and how supportive or stressful each one is. The centre shows ${D.households[0] ? `the household “${esc(D.households[0].name)}”` : "the index person’s close family"} from the genogram.</p>
+        <h3>Add a system</h3><div class="chips">${ECO_PRESETS.map(([n], i) => `<button class="chip" data-eadd="${i}">${esc(n)}</button>`).join("")}</div>
+        <div class="row" style="margin-top:.5rem"><input class="inp" id="eNew" placeholder="Something else, such as Grandma’s church" style="flex:1"><button class="btn" id="eNewGo">${ICONS.plus}Add</button></div>
+        ${D.eco.systems.length ? `<h3>Systems (${D.eco.systems.length})</h3>${D.eco.systems.map(x => `<button class="chip" data-esel="${x.id}" style="margin:.15rem">${esc(x.name)}: ${STRENGTH[x.strength || "moderate"].toLowerCase()}</button>`).join("")}<button class="btn block" id="eTidy" style="margin-top:.8rem">Arrange in a circle</button>` : ""}
+        <p class="note">Line styles follow Hartman’s ecomap conventions (1978). Keep ecomaps as private as genograms.</p>`;
+        I.querySelectorAll("[data-eadd]").forEach(b => b.onclick = () => { const [n, k] = ECO_PRESETS[+b.dataset.eadd]; addSys(n, k); });
+        const add = () => { const v = I.querySelector("#eNew").value.trim(); if (v) addSys(v, "other"); }; I.querySelector("#eNewGo").onclick = add; I.querySelector("#eNew").onkeydown = e => { if (e.key === "Enter") add(); };
+        I.querySelectorAll("[data-esel]").forEach(b => b.onclick = () => { selSys = b.dataset.esel; render(); }); I.querySelector("#eTidy")?.addEventListener("click", () => { D.eco.systems.forEach(x => { delete x.x; delete x.y; }); ctx.changed(); render(); setTimeout(fit, 0); }); return; }
+      I.innerHTML = `<h2>System</h2><label class="field"><span>Name</span><input id="sN" value="${esc(sy.name)}"></label>
+        <label class="field"><span>Kind</span><select id="sK">${Object.keys(ECO_COL).map(k => `<option value="${k}" ${sy.kind === k ? "selected" : ""}>${k[0].toUpperCase() + k.slice(1)}</option>`).join("")}</select></label>
+        <h3>Link</h3><div class="chips">${Object.entries(STRENGTH).map(([k, n]) => `<button class="chip" data-st="${k}" aria-pressed="${(sy.strength || "moderate") === k}">${n}</button>`).join("")}</div>
+        <label class="field"><span>Flow of support or resources</span><select id="sF">${Object.entries(FLOW).map(([k, n]) => `<option value="${k}" ${(sy.flow || "none") === k ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+        <label class="field"><span>Linked to</span><select id="sT"><option value="family">The whole family</option>${mem.map(p => `<option value="${p.id}" ${sy.to === p.id ? "selected" : ""}>${esc(display(p))}</option>`).join("")}</select></label>
+        <label class="field"><span>Notes</span><textarea id="sNt" placeholder="What makes this link strong or stressful? Who is the contact?">${esc(sy.note || "")}</textarea></label>
+        <div class="row"><button class="btn" id="sBack">Done</button><button class="btn danger" id="sDel">${ICONS.trash}Remove</button></div>`;
+      const set = (k, v, re = true) => { sy[k] = v; ctx.changed(); if (re) render(); };
+      I.querySelector("#sN").onchange = e => set("name", e.target.value.trim() || sy.name); I.querySelector("#sK").onchange = e => set("kind", e.target.value);
+      I.querySelectorAll("[data-st]").forEach(b => b.onclick = () => set("strength", b.dataset.st)); I.querySelector("#sF").onchange = e => set("flow", e.target.value); I.querySelector("#sT").onchange = e => set("to", e.target.value);
+      I.querySelector("#sNt").oninput = e => set("note", e.target.value, false); I.querySelector("#sBack").onclick = () => { selSys = null; render(); };
+      I.querySelector("#sDel").onclick = () => { D.eco.systems = D.eco.systems.filter(x => x !== sy); selSys = null; ctx.changed(); render(); };
+    }
+    function addSys(name, kind) { const sy = { id: uid(), name, kind, strength: "moderate", flow: "none", to: "family", note: "" }; D.eco.systems.push(sy); selSys = sy.id; ctx.changed(); render(); setTimeout(fit, 0); }
+    svg.addEventListener("pointerdown", e => { if (D.mode !== "eco") return; const g = e.target.closest?.("[data-sys]"); if (!g) { if (selSys) { selSys = null; render(); } return; } const id = g.dataset.sys; selSys = id; const sy = D.eco.systems.find(x => x.id === id), lay = ecoLayout().spos.find(q => q.sy === sy), p = vp.toWorld(e.clientX, e.clientY); sdrag = g.classList.contains("eco-sys") ? { sy, sx: p.x, sy0: p.y, ox: lay.x, oy: lay.y, moved: false } : null; if (sdrag) svg.setPointerCapture(e.pointerId); render(); e.stopPropagation(); }, true);
+    svg.addEventListener("pointermove", e => { if (!sdrag) return; const p = vp.toWorld(e.clientX, e.clientY); if (!sdrag.moved && Math.hypot(p.x - sdrag.sx, p.y - sdrag.sy0) < 4) return; sdrag.moved = true; sdrag.sy.x = Math.round(sdrag.ox + p.x - sdrag.sx); sdrag.sy.y = Math.round(sdrag.oy + p.y - sdrag.sy0); render(); });
+    svg.addEventListener("pointerup", () => { if (sdrag?.moved) ctx.changed(); sdrag = null; });
+    function renderInsp() { if (D.mode === "eco") return renderEcoInsp(); return renderGenoInsp(); }
+    function renderGenoInsp() {
       const I = ctx.insp, sx = (v, cur) => `<option value="${v}" ${cur === v ? "selected" : ""}>`;
       if (multi.size > 1) { I.innerHTML = `<h2>${multi.size} people</h2><p class="hint">Group them to show who lives together.</p><label class="field"><span>Household name</span><input id="hhName" value="Living together"></label><button class="btn primary block" id="hhGo">Show as a household</button>`; I.querySelector("#hhGo").onclick = () => { D.households.push({ id: uid(), name: I.querySelector("#hhName").value.trim(), members: [...multi] }); multi.clear(); ctx.changed(); render(); toast("Household added"); }; return; }
       if (selBond) { const b = D.bonds.find(x => x.id === selBond); I.innerHTML = `<h2>Relationship</h2><p class="hint">${esc(person(b.a)?.name)} and ${esc(person(b.b)?.name)}</p><label class="field"><span>Kind</span><select id="bk">${Object.entries(BOND).map(([k, [n]]) => `<option value="${k}" ${b.kind === k ? "selected" : ""}>${n}</option>`).join("")}</select></label>${b.kind === "abuse" || b.kind === "caring" ? `<button class="btn" id="bRev">Swap direction</button>` : ""}<button class="btn danger block" id="bDel" style="margin-top:.8rem">${ICONS.trash}Remove</button>`; I.querySelector("#bk").onchange = e => { b.kind = e.target.value; ctx.changed(); render(); }; I.querySelector("#bRev")?.addEventListener("click", () => { [b.a, b.b] = [b.b, b.a]; ctx.changed(); render(); }); I.querySelector("#bDel").onclick = () => { D.bonds = D.bonds.filter(x => x !== b); selBond = null; ctx.changed(); render(); }; return; }

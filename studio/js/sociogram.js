@@ -76,7 +76,8 @@
       I.innerHTML = `<h2>Sociogram</h2>${tabs}<div class="sg-pane">${body}</div>`; bind(I);
     }
     function peoplePane() {
-      return `<p class="hint">Add everyone in the group, one name per line. Add a group (such as class or house) after a comma if you like.</p>
+      return `<div class="gen"><b>Got answers from a Google Form?</b><p class="note">Copy the rows from the response spreadsheet (name, up to 3 people to work with, and up to 3 to avoid) and paste them in.</p><button class="btn primary block" id="pPaste">Paste responses</button></div>
+        <p class="hint">Or add everyone in the group, one name per line. Add a group (such as class or house) after a comma if you like.</p>
         <label class="field"><span>Add people</span><textarea id="pAdd" rows="5" placeholder="Aisha, Group A\nBen, Group B\nChen"></textarea></label><button class="btn primary block" id="pGo">${ICONS.plus}Add to the sociogram</button>
         <h3>${D.people.length} ${D.people.length === 1 ? "person" : "people"}</h3><div class="plist">${D.people.map(p => `<div class="prow" data-p="${p.id}"><input value="${esc(p.name)}" data-pf="name" aria-label="Name"><input value="${esc(p.group || "")}" data-pf="group" placeholder="Group" aria-label="Group"><button class="icon sm" data-pdel="${p.id}" aria-label="Remove ${esc(p.name)}">✕</button></div>`).join("")}</div>
         ${D.people.length ? `<button class="btn block" data-tab="choices" style="margin-top:.6rem">Next: enter choices</button>` : ""}`;
@@ -94,18 +95,20 @@
     function insightsPane() {
       if (D.people.length < 2) return `<p class="hint">Add at least two people and their choices to see insights.</p>`;
       if (sel && per(sel)) { const P = per(sel), p = person(sel), choseMe = D.ties.filter(t => t.to === sel && t.type === "positive").map(t => person(t.from)?.name), iChose = D.ties.filter(t => t.from === sel && t.type === "positive").map(t => person(t.to)?.name);
-        return `<h3>${esc(p.name)}</h3><div class="stats"><div><b>${P.inDeg}</b><span>chose them</span></div><div><b>${P.outDeg}</b><span>they chose</span></div><div><b>${P.mutual}</b><span>mutual</span></div></div>
+        return `<h3>${esc(p.name)}</h3>${p.responded === false ? `<p class="note">Didn’t fill in the form: only choices received are shown.</p>` : ""}<div class="stats"><div><b>${P.inDeg}</b><span>chose them</span></div><div><b>${P.outDeg}</b><span>they chose</span></div><div><b>${P.mutual}</b><span>mutual</span></div></div>
           <p class="note"><b>Chosen by:</b> ${choseMe.length ? esc(choseMe.join(", ")) : "no one yet"}.<br><b>Chose:</b> ${iChose.length ? esc(iChose.join(", ")) : "no one"}.</p>
           ${P.status ? `<p><span class="badge" style="background:${STATUS_COL[P.status]}">${P.status}</span></p>` : ""}
           <table class="mtab"><tr><th scope="row" title="Share of shortest paths between others that pass through this person">Bridging (betweenness)</th><td>${n2(P.betweenness)}</td></tr><tr><th scope="row" title="How easily they reach everyone else through choices">Reach (harmonic closeness)</th><td>${n2(P.closeness)}</td></tr><tr><th scope="row" title="Connected to well-connected people">Eigenvector</th><td>${n2(P.eigenvector)}</td></tr><tr><th scope="row" title="Influence through being chosen by people who are themselves chosen">PageRank</th><td>${(P.pagerank * 100).toFixed(1)}%</td></tr><tr><th scope="row" title="How many of their contacts are connected to each other">Clustering</th><td>${n2(P.clustering)}</td></tr><tr><th scope="row">Community</th><td>Group ${P.community + 1}</td></tr></table>
           <button class="btn block" id="clearSel">Back to the whole group</button>`; }
       const by = (k, n = 3) => [...A.per].sort((a, b) => b[k] - a[k]).filter(p => p[k] > 0).slice(0, n);
-      const stars = A.per.filter(p => p.star), unchosen = A.per.filter(p => p.unchosen), isolates = A.per.filter(p => p.isolate), bridges = by("betweenness", 3), name = id => esc(person(id)?.name);
+      const noReply = D.people.filter(p => p.responded === false), noReplyIds = new Set(noReply.map(p => p.id));
+      const stars = A.per.filter(p => p.star), unchosen = A.per.filter(p => p.unchosen), isolates = A.per.filter(p => p.isolate && !noReplyIds.has(p.id)), bridges = by("betweenness", 3), name = id => esc(person(id)?.name);
       return `<div class="stats"><div><b>${A.n}</b><span>people</span></div><div><b>${A.ties}</b><span>choices</span></div><div><b>${A.communities}</b><span>groups</span></div></div>
         <ul class="insights">
           <li><b>Most chosen:</b> ${stars.length ? stars.map(p => `${esc(p.name)} (${p.inDeg})`).join(", ") : by("inDeg").map(p => `${esc(p.name)} (${p.inDeg})`).join(", ") || "none yet"}.</li>
           <li class="${unchosen.length ? "flag" : ""}"><b>Not chosen by anyone:</b> ${unchosen.length ? unchosen.map(p => esc(p.name)).join(", ") : "everyone was chosen at least once"}.${unchosen.length ? " Worth a quiet check-in." : ""}</li>
           ${isolates.length ? `<li class="flag"><b>Not connected at all:</b> ${isolates.map(p => esc(p.name)).join(", ")} chose no one and were not chosen.</li>` : ""}
+          ${noReply.length ? `<li><b>Didn’t fill in the form:</b> ${noReply.map(p => esc(p.name)).join(", ")}. They were named by others, so their measures are based only on choices they received.</li>` : ""}
           <li><b>Mutual pairs:</b> ${A.mutualPairs.length}${A.mutualPairs.length ? `: ${A.mutualPairs.slice(0, 6).map(([a, b]) => `${name(a)} and ${name(b)}`).join("; ")}${A.mutualPairs.length > 6 ? "; and more" : ""}` : ""}.</li>
           <li><b>Close-knit groups</b> (everyone chose each other): ${A.cliques.length ? A.cliques.slice(0, 4).map(c => c.map(name).join(", ")).join("; ") : "none of three or more"}.</li>
           <li><b>Bridges between groups:</b> ${bridges.length ? bridges.map(p => esc(p.name)).join(", ") : "none"}. They link people who would otherwise be apart.</li>
@@ -128,6 +131,7 @@
     }
     function bind(I) {
       I.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { D.tab = b.dataset.tab; selTie = null; if (D.tab !== "choices") sel = null; ctx.changed(); render(); }); // switching tabs shows the whole group
+      I.querySelector("#pPaste")?.addEventListener("click", pasteResponses);
       I.querySelector("#pGo")?.addEventListener("click", () => { const lines = I.querySelector("#pAdd").value.split("\n").map(l => l.trim()).filter(Boolean); let n = 0; lines.forEach(l => { const [name, group] = l.split(/\s*[,\t]\s*/); if (name && !D.people.some(p => p.name.toLowerCase() === name.toLowerCase())) { D.people.push({ id: uid(), name, group: group || "" }); n++; } }); if (!n) return toast("Type at least one new name."); D.pos = {}; ctx.changed(); compute(); render(); setTimeout(fit, 0); toast(`Added ${n} ${n === 1 ? "person" : "people"}`); });
       I.querySelectorAll(".prow").forEach(r => r.querySelectorAll("[data-pf]").forEach(inp => inp.onchange = () => { person(r.dataset.p)[inp.dataset.pf] = inp.value.trim(); ctx.changed(); compute(); render(); }));
       I.querySelectorAll("[data-pdel]").forEach(b => b.onclick = () => { const id = b.dataset.pdel; D.people = D.people.filter(p => p.id !== id); D.ties = D.ties.filter(t => t.from !== id && t.to !== id); delete D.pos[id]; if (sel === id) sel = null; ctx.changed(); compute(); render(); });
@@ -144,6 +148,78 @@
       I.querySelector("#sImp")?.addEventListener("click", importCsv);
       I.querySelectorAll("[data-tt]").forEach(b => b.onclick = () => { D.ties.find(x => x.id === selTie).type = b.dataset.tt; ctx.changed(); compute(); render(); });
       I.querySelector("#tDel")?.addEventListener("click", () => { D.ties = D.ties.filter(x => x.id !== selTie); selTie = null; ctx.changed(); compute(); render(); });
+    }
+    /* ---------- paste responses from a Google Form or any spreadsheet ---------- */
+    const norm = t => String(t || "").normalize("NFKC").replace(/[\u200B-\u200D\uFEFF]/g, "").trim().replace(/\s+/g, " ").replace(/^[\s.,;:'"()-]+|[\s.,;:'"()-]+$/g, "").toLowerCase();
+    const lev = (a, b) => { if (Math.abs(a.length - b.length) > 2) return 9; const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j; for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; };
+    function parseTable(text) {
+      text = text.replace(/\r\n?/g, "\n").replace(/\n+$/, ""); if (!text.trim()) return [];
+      if (text.includes("\t")) return text.split("\n").map(l => l.split("\t").map(c => c.replace(/^"|"$/g, "").trim()));
+      const rows = []; let row = [], cell = "", q = false; for (let i = 0; i < text.length; i++) { const c = text[i]; if (q) { if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; } else if (c === '"') q = false; else cell += c; } else if (c === '"') q = true; else if (c === ",") { row.push(cell.trim()); cell = ""; } else if (c === "\n") { row.push(cell.trim()); rows.push(row); row = []; cell = ""; } else cell += c; } row.push(cell.trim()); rows.push(row); return rows;
+    }
+    const looksStamp = v => /\d/.test(v) && /[\/:\-.]/.test(v) && /^[\d\s\/:\-.,APMapm]+$/.test(v) && v.length >= 6, looksMail = v => /@/.test(v);
+    function detect(rows) {
+      const head = rows[0] || [], n = Math.max(...rows.map(r => r.length)), hasHeader = head.some(c => /name|timestamp|choice|work with|prefer|avoid|rather not|email|first|second|third|1st|2nd|3rd|partner|friend|pick/i.test(c));
+      const roles = Array(n).fill("ignore"), data = hasHeader ? rows.slice(1) : rows;
+      if (hasHeader) {
+        head.forEach((h, i) => { const x = String(h || "").toLowerCase(); if (/timestamp|^time$|date|email|e-mail|score|class|form/.test(x) && !/name/.test(x)) roles[i] = /class|form/.test(x) ? "group" : "ignore"; else if (/not|avoid|rather|least|don.?t|dislike/.test(x)) roles[i] = "avoid"; else if (/name/.test(x) && !/choice|work|want|with|pick|friend|partner|1st|2nd|3rd|first|second|third/.test(x) && !roles.includes("name")) roles[i] = "name"; else if (/choice|work|want|with|pick|friend|partner|1st|2nd|3rd|first|second|third|person/.test(x)) roles[i] = "want"; });
+        if (!roles.includes("name")) { const i = roles.findIndex((r, k) => r === "ignore" && !data.every(row => looksStamp(row[k] || "") || looksMail(row[k] || ""))); if (i >= 0) roles[i] = "name"; }
+      } else {
+        const free = [...Array(n).keys()].filter(k => !data.slice(0, 8).every(row => !row[k] || looksStamp(row[k]) || looksMail(row[k])));
+        free.forEach((k, j) => roles[k] = j === 0 ? "name" : j <= 3 ? "want" : j <= 6 ? "avoid" : "ignore");
+      }
+      return { roles, hasHeader, n };
+    }
+    function analysePaste(rows, roles, hasHeader) {
+      const data = (hasHeader ? rows.slice(1) : rows).filter(r => r.some(c => c && c.trim())), nameCol = roles.indexOf("name"), groupCol = roles.indexOf("group");
+      if (nameCol < 0) return { error: "Choose which column holds each pupil’s name." };
+      const byNorm = new Map(); D.people.forEach(p => byNorm.set(norm(p.name), { name: p.name, existing: p.id }));
+      const respondents = new Map(); let dups = 0;
+      data.forEach(r => { const nm = (r[nameCol] || "").trim().replace(/\s+/g, " "); if (!nm) return; const k = norm(nm); if (respondents.has(k)) dups++; respondents.set(k, { name: nm, row: r }); if (!byNorm.has(k)) byNorm.set(k, { name: nm }); });
+      const keys = [...byNorm.keys()], firstTok = k => k.split(" ")[0];
+      const resolve = raw => { const k = norm(raw); if (!k) return null; if (byNorm.has(k)) return k;
+        const a = keys.filter(x => firstTok(x) === k || (k.length >= 3 && x.startsWith(k + " "))); if (a.length === 1) return a[0];
+        const b = keys.filter(x => k.length >= 3 && (x.startsWith(k) || k.startsWith(x)) && Math.abs(x.length - k.length) <= 3); if (b.length === 1) return b[0];
+        const lim = k.length >= 6 ? 2 : 1, c = keys.map(x => [x, lev(k, x)]).filter(([, d]) => d <= lim).sort((p, q) => p[1] - q[1]); if (c.length && (c.length === 1 || c[0][1] < c[1][1])) return c[0][0];
+        // a one-word answer with a small typo in the first name, such as "Aishah" for "Aisha Rahman"
+        if (!k.includes(" ") && k.length >= 4) { const f = keys.map(x => [x, lev(k, firstTok(x))]).filter(([x, d]) => d <= 1 && x.includes(" ")).sort((p, q) => p[1] - q[1]); if (f.length === 1 || (f.length > 1 && f[0][1] < f[1][1])) return f[0][0]; }
+        return null; };
+      const suggest = raw => { const k = norm(raw); let best = null, bd = 9; for (const x of keys) { const d = Math.min(lev(k, x), lev(k, firstTok(x)) + (x.includes(" ") ? .5 : 0)); if (d < bd) { bd = d; best = x; } } return bd <= 2 ? best : null; };
+      const choices = [], unmatched = new Map(); let selfs = 0, conflicts = 0;
+      for (const [k, { row }] of respondents) { const seen = new Map(); roles.forEach((role, i) => { if (role !== "want" && role !== "avoid") return; const raw = (row[i] || "").trim(); if (!raw) return; const t = resolve(raw); if (!t) { unmatched.set(norm(raw), { raw, count: (unmatched.get(norm(raw))?.count || 0) + 1 }); choices.push({ from: k, raw, type: role === "want" ? "positive" : "negative", rank: roles.slice(0, i + 1).filter(x => x === role).length }); return; } if (t === k) { selfs++; return; } if (seen.has(t)) { if (seen.get(t) !== role) conflicts++; return; } seen.set(t, role); choices.push({ from: k, to: t, type: role === "want" ? "positive" : "negative", rank: roles.slice(0, i + 1).filter(x => x === role).length }); }); }
+      return { respondents, byNorm, choices, unmatched, dups, selfs, conflicts, groupCol, suggest, wants: choices.filter(c => c.type === "positive").length, avoids: choices.filter(c => c.type === "negative").length };
+    }
+    async function pasteResponses() {
+      let rows = [], det = null, res = null; const body = h("div", { class: "paste-imp" });
+      body.innerHTML = `<p class="note">In the form’s response spreadsheet, select the rows (with or without the header row) and copy them, then paste here. Expected order: <b>name</b>, then up to <b>3 people to work with</b>, then up to <b>3 to avoid</b> (optional). A timestamp or email column is skipped automatically.</p>
+        <label class="field"><span>Paste responses</span><textarea id="ppT" rows="7" placeholder="Timestamp&#9;Your name&#9;Choice 1&#9;Choice 2&#9;Choice 3&#9;Prefer not 1&#9;Prefer not 2&#9;Prefer not 3"></textarea></label>
+        <div id="ppPrev"></div>`;
+      const ta = body.querySelector("#ppT"), prev = body.querySelector("#ppPrev");
+      const show = () => { if (!rows.length) { prev.innerHTML = ""; return; } res = analysePaste(rows, det.roles, det.hasHeader);
+        const opts = r => ["ignore", "name", "want", "avoid", "group"].map(v => `<option value="${v}" ${r === v ? "selected" : ""}>${{ ignore: "Skip", name: "Pupil’s name", want: "Wants to work with", avoid: "Prefer not", group: "Group or class" }[v]}</option>`).join("");
+        const sample = (det.hasHeader ? rows.slice(1) : rows).slice(0, 3);
+        prev.innerHTML = `<h3>Columns</h3><div class="pp-tbl"><table><thead><tr>${Array.from({ length: det.n }, (_, i) => `<th><select data-col="${i}" aria-label="Column ${i + 1}">${opts(det.roles[i])}</select>${det.hasHeader ? `<small>${esc(rows[0][i] || "")}</small>` : ""}</th>`).join("")}</tr></thead><tbody>${sample.map(r => `<tr>${Array.from({ length: det.n }, (_, i) => `<td>${esc(r[i] || "")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+          <label class="check"><input type="checkbox" id="ppHead" ${det.hasHeader ? "checked" : ""}> The first row is a header</label>
+          ${res.error ? `<p class="note warn">${res.error}</p>` : `<div class="stats"><div><b>${res.respondents.size}</b><span>responses</span></div><div><b>${res.wants}</b><span>want choices</span></div><div><b>${res.avoids}</b><span>avoid choices</span></div></div>
+          <ul class="insights">${res.dups ? `<li>${res.dups} pupil${res.dups > 1 ? "s" : ""} submitted more than once: the latest answers are used.</li>` : ""}${res.selfs ? `<li>${res.selfs} choice${res.selfs > 1 ? "s" : ""} of oneself ignored.</li>` : ""}${res.conflicts ? `<li>${res.conflicts} name${res.conflicts > 1 ? "s" : ""} appeared in both lists for the same pupil: the first answer is kept.</li>` : ""}${res.avoids ? "" : `<li>No “prefer not” answers: the sociogram uses positive choices only, which is fine.</li>`}${(() => { const extra = [...new Set(res.choices.filter(c => c.to && !res.respondents.has(c.to)).map(c => res.byNorm.get(c.to).name))]; return extra.length ? `<li>Named but didn’t respond: ${extra.map(esc).join(", ")}. They’ll be added and marked.</li>` : ""; })()}</ul>
+          ${res.unmatched.size ? `<h3>Names to check (${res.unmatched.size})</h3><p class="note">These didn’t match anyone. Link each to the right pupil, or add them as a new person.</p>${[...res.unmatched.values()].map(u => { const g = res.suggest(u.raw); return `<label class="row2 pp-un"><span>“${esc(u.raw)}”${u.count > 1 ? ` (×${u.count})` : ""}${g ? `<small class="note"> looks like ${esc(res.byNorm.get(g).name)}</small>` : ""}</span><select data-un="${esc(norm(u.raw))}"><option value="__new" ${g ? "" : "selected"}>Add as a new person (didn’t respond)</option><option value="__skip">Ignore this name</option>${[...res.byNorm.entries()].sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([k, v]) => `<option value="${esc(k)}" ${k === g ? "selected" : ""}>${esc(v.name)}</option>`).join("")}</select></label>`; }).join("")}` : ""}
+          ${D.people.length ? `<label class="check"><input type="checkbox" id="ppRep" checked> Replace the people and choices already here</label>` : ""}`}`;
+        prev.querySelectorAll("[data-col]").forEach(sel => sel.onchange = () => { if (sel.value === "name") det.roles = det.roles.map(r => r === "name" ? "ignore" : r); det.roles[+sel.dataset.col] = sel.value; show(); });
+        prev.querySelector("#ppHead").onchange = e => { det.hasHeader = e.target.checked; show(); };
+      };
+      ta.addEventListener("input", () => { rows = parseTable(ta.value); det = rows.length ? detect(rows) : null; show(); });
+      const r = await dialog({ title: "Paste responses from a form", body, wide: true, actions: [{ label: "Cancel", value: "" }, { label: "Make the sociogram", primary: true, value: "ok" }] });
+      if (r.value !== "ok") return; if (!res || res.error || !res.respondents.size) return toast("Nothing to import yet. Paste the response rows first.");
+      const map = {}; prev.querySelectorAll("[data-un]").forEach(s2 => map[s2.dataset.un] = s2.value);
+      if (prev.querySelector("#ppRep")?.checked) { D.people = []; D.ties = []; D.pos = {}; }
+      const idOf = new Map(D.people.map(p => [norm(p.name), p.id])), ensure = (k, name, responded) => { let id = idOf.get(k); if (!id) { id = uid(); D.people.push({ id, name, group: "", responded }); idOf.set(k, id); } const p = person(id); if (responded) p.responded = true; else if (p.responded == null) p.responded = false; return id; };
+      for (const [k, v] of res.respondents) { const id = ensure(k, v.name, true); if (res.groupCol >= 0 && v.row[res.groupCol]) person(id).group = v.row[res.groupCol].trim(); }
+      let added = 0;
+      for (const c of res.choices) { let to = c.to; if (!to) { const m = map[norm(c.raw)] || "__new"; if (m === "__skip") continue; to = m === "__new" ? norm(c.raw) : m; if (!res.byNorm.has(to)) res.byNorm.set(to, { name: c.raw }); }
+        if (to === c.from) continue; const a = ensure(c.from, res.byNorm.get(c.from).name, true), b = ensure(to, res.byNorm.get(to).name, res.respondents.has(to)); if (D.ties.some(t => t.from === a && t.to === b)) continue; D.ties.push({ id: uid(), from: a, to: b, type: c.type, rank: c.rank }); added++; }
+      if (res.avoids && !D.allowNeg) { D.allowNeg = true; toast("“Prefer not” answers were recorded. Handle them sensitively, and keep the results private.", 6500); }
+      D.pos = {}; D.tab = "insights"; sel = null; ctx.changed(); compute(); render(); setTimeout(fit, 0);
+      if (!res.avoids) toast(`Sociogram made from ${res.respondents.size} responses and ${added} choices.`);
     }
     async function importCsv() { const f = h("input", { type: "file", accept: ".csv,text/csv" }); f.onchange = async () => { const txt = await f.files[0].text(), rows = txt.split(/\r?\n/).map(l => l.split(",").map(c => c.trim().replace(/^"|"$/g, ""))).filter(r => r.length >= 2 && r[0]); if (/^(from|source)$/i.test(rows[0][0])) rows.shift(); const idOf = n => { let p = D.people.find(x => x.name.toLowerCase() === n.toLowerCase()); if (!p) { p = { id: uid(), name: n, group: "" }; D.people.push(p); } return p.id; }; let k = 0; rows.forEach(([a, b, t]) => { const ia = idOf(a), ib = idOf(b), type = /neg|avoid|^-/i.test(t || "") ? "negative" : "positive"; if (ia !== ib && !D.ties.some(x => x.from === ia && x.to === ib)) { D.ties.push({ id: uid(), from: ia, to: ib, type }); k++; } }); if (D.ties.some(t => t.type === "negative")) D.allowNeg = true; D.pos = {}; ctx.changed(); compute(); render(); setTimeout(fit, 0); toast(`Imported ${k} choices`); }; f.click(); }
     const csv = rows => new Blob(["\ufeff" + rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n")], { type: "text/csv" });
