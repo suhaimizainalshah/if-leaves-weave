@@ -152,3 +152,24 @@ Licence texts for the Word libraries are in `vendor/LICENSE-*.txt`.
 
 ## Licence
 This repository does not yet include a licence file, so by default all rights are reserved. To let others reuse the code, add a `LICENSE` file (for example the MIT licence). The bundled third-party libraries keep their own licences, listed above.
+
+## Marking (If Leaves Weave Mark)
+Open **Mark work** (from the start screen or the tool switcher), then drop in a student’s PDF or image.
+- **Tools:** pen (red ink by default), highlighter, line, arrow, box, circle, strike through, text comments, stamps (✓ ✗ ? ★ ☺, “Great!”, “See me” and your own, such as “7/10”), marks (+1, +2, +3, +0.5 or −1) with the page and overall totals, an eraser, and select-and-move. Undo and redo, six ink colours and three thicknesses.
+- **Comment bank:** reusable comments for common feedback. Add your own; Shift-click removes one. Kept in this browser.
+- **Audio comments:** record up to two minutes, pinned where it applies.
+- **For the student:** their name, an overall comment and the marks out of a total.
+- **Outputs:** a **marked PDF** (the original text stays selectable; audio comments and the feedback page are attached, with a note on page 1), a **feedback page** (one HTML file that opens on any phone or computer, with the marked pages, play buttons on each audio pin, all comments and the score), and **Save marking to continue later**.
+- **Keys:** V select, P pen, H highlighter, L line, A arrow, R box, O circle, K strike, T text, S stamp, M marks, U audio, E eraser, [ and ] to change ink, Ctrl+Z and Ctrl+Y.
+- **Why a feedback page:** most PDF viewers, including those in browsers and on phones, can’t play audio inside a PDF, so the feedback page is the reliable way for every student to hear it.
+
+## Question bank (If Leaves Weave Question bank)
+Turn question papers and their answer keys (PDF or Word) into a question bank spreadsheet, on your device.
+- **Add papers in batches,** each marked as a question paper, a paper with its answers, or an answer key (matched to its paper automatically from the file name, or chosen).
+- **What it reads:** question numbers (1., 1), Q1, Question 1), parts and sub-parts ((a), (i)), multiple-choice options (on separate lines or one line), marks ([2], (2 marks), [2m], 2 marks), Answer: lines, sections that restart numbering, answer sections at the end, and separate marking schemes or answer grids such as “1 B 2 C 3 A”. Word’s automatic numbering is rebuilt.
+- **Layouts to choose from,** each with an example: numbered with parts, multiple choice, sections and question headings, marking schemes, and two-column or scanned pages.
+- **Page settings:** each page is checked and flagged when it looks two-column, scanned or like an answer section, and can be read normally, by column, with text recognition, as answers, or skipped. A page that can’t be read is reported and skipped; the rest are still read.
+- **Figures:** pictures are cropped next to their question. **Read labels** uses text recognition (downloaded once) to start a description; **Describe with AI** copies the figure and a ready-made prompt for your own AI assistant.
+- **Review:** an editable table with checks (no answer, no marks, few options, possible duplicate, figure needing a description).
+- **The bank:** kept in this browser; add batches over time, with duplicates skipped. Export a formatted **Excel** file (bold headings, frozen top row, filters, wrapped text), **CSV**, or a **Little Light Lit Course** file (multiple choice becomes quiz questions, the rest flashcards). Import a spreadsheet you exported to continue.
+- **Note:** published exam papers are copyrighted. A bank for your own teaching is usually fine; check before sharing it.

@@ -121,6 +121,7 @@ const INKS = ["#1E2A2F", "#0E7C7B", "#2F6DB5", "#7A4FC2", "#C2413A", "#B86E00", 
 // Inline icons (simple strokes, currentColor)
 const IC = (d, extra = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${d}</svg>`;
 const ICONS = {
+  mark: IC('<path d="M5 13l4 4L19 7"/><path d="M4 20h7"/>'),
   edit: IC('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>'),
   copy: IC('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>'),
   board: IC('<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/>'),
@@ -139,6 +140,8 @@ const TYPES = {
   whiteboard: { name: "Whiteboard", family: "If Leaves Weave Canvas", page: "canvas.html", blurb: "Sticky notes, shapes and connectors on an endless canvas", icon: "whiteboard" },
   mindmap: { name: "Mind and concept map", family: "If Leaves Weave Maps", page: "maps.html", blurb: "Branch ideas fast, then link concepts with labelled relationships", icon: "mindmap" },
   sociogram: { name: "Sociogram", family: "If Leaves Weave Sociogram", page: "sociogram.html", blurb: "Map who connects with whom, with accurate network measures", icon: "sociogram" },
+  questions: { name: "Question bank", family: "If Leaves Weave Question bank", page: "questions.html", blurb: "Turn question papers and answer keys into a question bank spreadsheet", icon: "mark" },
+  marking: { name: "Mark", family: "If Leaves Weave Mark", page: "marking.html", blurb: "Mark work with ticks, comments, marks and audio feedback", icon: "mark" },
   genogram: { name: "Genogram", family: "If Leaves Weave Genogram", page: "genogram.html", blurb: "Family structure and relationships with standard symbols", icon: "genogram" },
   prototype: { name: "Prototype", family: "If Leaves Weave Prototype", page: "prototype.html", blurb: "Clickable app screens you can play and export", icon: "prototype" },
 };

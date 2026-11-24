@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Mark work · If Leaves Weave</title>
+<link rel="icon" href="logo.png" type="image/png"><link rel="stylesheet" href="fonts/fonts.css">
+<style>html,body{margin:0;height:100%}body{display:grid;grid-template-rows:auto 1fr;font:15px/1.45 "Hanken Grotesk",system-ui,sans-serif;background:#f6f7fb;color:#16191f}
+header{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid #e1e4ec;background:#fff;flex-wrap:wrap}header a.brand{display:flex;gap:8px;align-items:center;color:inherit;text-decoration:none;font-weight:800}header img{width:26px;height:26px}
+.sp{flex:1}.btn{font:inherit;font-weight:650;border:1px solid #d5d9e2;background:#fff;color:inherit;border-radius:10px;padding:7px 13px;cursor:pointer;text-decoration:none}.btn.pri{background:#d0021b;border-color:#d0021b;color:#fff}
+header input{font:inherit;border:1px solid #d5d9e2;border-radius:8px;padding:5px 8px;min-width:220px}#mk{min-height:0}
+.start{max-width:720px;margin:40px auto;padding:24px;background:#fff;border:1px solid #e1e4ec;border-radius:18px;text-align:center}.drop{border:2px dashed #cfd4dd;border-radius:14px;padding:28px;margin:14px 0;cursor:pointer}.drop.over{border-color:#d0021b;background:#fff5f6}
+.hint{color:#5a6272;font-size:13.5px}:focus-visible{outline:3px solid #1f4fd1;outline-offset:2px}
+@media (prefers-color-scheme:dark){body{background:#12141a;color:#edf0f6}header,.start{background:#1b1e26;border-color:#2d323e}.btn,header input{background:#232733;color:#edf0f6;border-color:#3a4050}.hint{color:#a3abbb}.drop{border-color:#3a4050}}</style>
+</head>
+<body>
+<header><a class="brand" href="home.html"><img src="logo.png" alt="" width="26" height="26">If Leaves Weave</a><b>Mark work</b><span class="sp"></span>
+  <label>Title <input id="title" value="Feedback on your work"></label><button class="btn" id="resumeBtn">Continue a saved marking</button><input type="file" id="resumeIn" accept=".json" hidden><a class="btn" href="index.html">PDF tool</a></header>
+<div id="mk"><section class="start"><h1 style="margin-top:0">Mark a student’s work</h1>
+  <p>Tick, cross, comment, give marks and record short audio comments, in red ink by default. Then send the student a marked PDF and a feedback page they can open on any phone or computer.</p>
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a PDF or image to mark">Drop a <b>PDF</b> or an <b>image</b> here, or <u>choose a file</u></div><input type="file" id="fileIn" accept="application/pdf,image/*" hidden>
+  <p class="hint">Everything stays on this device. Nothing is uploaded.</p></section></div>
+<script src="vendor/pdf-lib.min.js"></script>
+<script src="markkit.js"></script>
+<script type="module">
+import * as pdfjsLib from "./vendor/pdf.min.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("./vendor/pdf.worker.min.mjs", import.meta.url).href;
+const $ = s => document.querySelector(s), download = (blob, name) => { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); };
+const slug = () => ($("#title").value || "feedback").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "feedback";
+let file = null, bytes = null, isPdf = false, kit = null, resume = null;
+const drop = $("#drop"); drop.onclick = () => $("#fileIn").click(); drop.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#fileIn").click(); } };
+["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); })); ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, () => drop.classList.remove("over")));
+drop.addEventListener("drop", e => { e.preventDefault(); if (e.dataTransfer.files[0]) open(e.dataTransfer.files[0]); }); $("#fileIn").onchange = e => { if (e.target.files[0]) open(e.target.files[0]); };
+$("#resumeBtn").onclick = () => $("#resumeIn").click();
+$("#resumeIn").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; try { resume = JSON.parse(await f.text()); if (resume.kind !== "ifleavesweave-marking") throw 0; $("#title").value = resume.title || $("#title").value;
+  if (kit) return alert("Open the same work again to continue: choose the file, and the saved marks are added."); drop.innerHTML = `Now choose the work these marks belong to: <b>${resume.file || "the same file"}</b>`; } catch { alert("That isn’t a saved marking from If Leaves Weave."); } };
+
+async function open(f) {
+  file = f; bytes = new Uint8Array(await f.arrayBuffer()); isPdf = bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46;
+  if (!isPdf && !/^image\//.test(f.type)) return alert("Choose a PDF or an image.");
+  $("#mk").innerHTML = `<p style="padding:20px">Preparing the pages…</p>`; const pages = [];
+  if (isPdf) { const doc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise;
+    for (let n = 1; n <= doc.numPages; n++) { const pg = await doc.getPage(n), base = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: Math.min(2, 1400 / base.width) }), c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height;
+      const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); await pg.render({ canvasContext: g, viewport: vp }).promise; pages.push({ src: c.toDataURL("image/jpeg", .9), w: Math.round(vp.width), h: Math.round(vp.height) }); } }
+  else { const src = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); }), im = await new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; }); pages.push({ src, w: im.naturalWidth, h: im.naturalHeight }); }
+  $("#mk").innerHTML = "";
+  kit = MarkKit.mount($("#mk"), { app: "If Leaves Weave", title: $("#title").value, pages, annots: resume?.annots || [], outOf: resume?.outOf, student: resume?.student, overall: resume?.overall,
+    exports: [
+      { label: isPdf ? "Marked PDF" : "Marked image", run: async k => isPdf ? download(await markedPdf(k), slug() + "-marked.pdf") : download(await new Promise(async r => (await k.renderPage(0, 1)).toBlob(r, "image/png")), slug() + "-marked.png") },
+      { label: "Feedback page for the student", run: async k => download(new Blob([await k.feedbackHTML()], { type: "text/html" }), slug() + "-feedback.html") },
+      { label: "Save marking to continue later", run: async k => download(new Blob([JSON.stringify({ kind: "ifleavesweave-marking", v: 1, file: file.name, title: $("#title").value, ...k.state() })], { type: "application/json" }), slug() + ".marking.json") }] });
+  $("#title").oninput = e => kit.setTitle(e.target.value); window.__kit = kit;
+}
+// the marked PDF: each page keeps its original (selectable) content, with the marks laid over it; audio and the feedback page are attached
+async function markedPdf(k) {
+  const { PDFDocument, StandardFonts, rgb } = PDFLib, doc = await PDFDocument.load(bytes, { ignoreEncryption: true }), pages = doc.getPages();
+  for (let i = 0; i < pages.length && i < k.pages.length; i++) { const has = k.annots.some(a => a.page === i); if (!has) continue;
+    const c = await k.renderOverlay(i, 2), png = await doc.embedPng(await new Promise(r => c.toBlob(b => b.arrayBuffer().then(r), "image/png"))), p = pages[i], { width, height } = p.getSize();
+    p.drawImage(png, { x: 0, y: 0, width, height }); }
+  const st = k.state(), au = k.annots.filter(a => a.type === "audio");
+  if (au.length) { const font = await doc.embedFont(StandardFonts.HelveticaBold), p = pages[0], { width, height } = p.getSize(), note = `Audio feedback is attached (${au.length} comment${au.length > 1 ? "s" : ""}). Open the feedback page to listen.`;
+    p.drawRectangle({ x: 18, y: height - 34, width: Math.min(width - 36, font.widthOfTextAtSize(note, 10) + 16), height: 22, color: rgb(1, .95, .95), borderColor: rgb(.82, 0, .1), borderWidth: 1 });
+    p.drawText(note, { x: 26, y: height - 27, size: 10, font, color: rgb(.63, 0, .09) });
+    for (const [i, a] of au.entries()) { const b64 = a.src.split(",")[1], ext = /mp4/.test(a.mime) ? "m4a" : "webm"; await doc.attach(Uint8Array.from(atob(b64), c => c.charCodeAt(0)), `audio-comment-${i + 1}.${ext}`, { mimeType: a.mime || "audio/webm", description: `Audio comment ${i + 1}, page ${a.page + 1}` }); }
+    await doc.attach(new TextEncoder().encode(await k.feedbackHTML()), "feedback-page.html", { mimeType: "text/html", description: "Open in a browser to read and hear the feedback" }); }
+  doc.setSubject(`Marked: ${st.title}${st.student ? " for " + st.student : ""}`); return new Blob([await doc.save()], { type: "application/pdf" });
+}
+</script>
+</body>
+</html>

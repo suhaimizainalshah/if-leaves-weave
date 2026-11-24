@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Question bank · If Leaves Weave</title>
+<meta name="description" content="Turn question papers and answer keys into a question bank spreadsheet. On your device: nothing is uploaded.">
+<link rel="icon" href="logo.png" type="image/png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#16191f;--muted:#5a6272;--line:#e1e4ec;--soft:#eef1f8;--acc:#2453d6;--acc-ink:#fff;--ok:#1d7a45;--warn-bg:#fff4dc;--warn-ink:#6b4400;--focus:#2453d6;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#12141a;--card:#1b1e26;--ink:#edf0f6;--muted:#a3abbb;--line:#2d323e;--soft:#232733;--acc:#86a8ff;--acc-ink:#0b1430;--ok:#7fd6a2;--warn-bg:#3a2a0a;--warn-ink:#ffd591;--focus:#a9c0ff;color-scheme:dark}}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Hanken Grotesk",system-ui,sans-serif}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+header.bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:10px 18px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.bar a.brand{display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;font-weight:800}header.bar img{width:28px;height:28px}
+header.bar .sp{flex:1}.pill{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--soft)}
+main{max-width:1240px;margin:0 auto;padding:16px 18px 60px}
+.steps{display:flex;gap:6px;margin:4px 0 16px;flex-wrap:wrap}.steps button{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--card);color:inherit;font:inherit;font-weight:650;padding:8px 14px;border-radius:999px;cursor:pointer}
+.steps button span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--soft);font-size:12px}.steps button[aria-current=step]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}.steps button[aria-current=step] span{background:var(--acc);color:var(--acc-ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}h2{margin:0 0 6px;font-size:17px}h3{margin:12px 0 6px;font-size:14px}.hint{color:var(--muted);font-size:13px;margin:4px 0}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);color:inherit;font:inherit;font-weight:650;padding:8px 14px;border-radius:10px;cursor:pointer}.btn:hover{border-color:var(--acc)}.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}.btn:disabled{opacity:.5;cursor:default}.btn.sm{padding:4px 10px;font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;cursor:pointer}.drop.over{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 7%,transparent)}
+.layouts{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.lay{display:grid;gap:6px;text-align:left;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--card);cursor:pointer;color:inherit;font:inherit}.lay[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.lay b{font-size:14px}.lay pre{margin:0;font:12px/1.45 ui-monospace,monospace;background:var(--soft);border-radius:8px;padding:8px;white-space:pre-wrap;color:var(--muted)}.lay small{color:var(--muted)}
+.files{display:grid;gap:8px;margin-top:10px}.file{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.file select,.pg select,td textarea,td input,.fld input,.fld select{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:inherit}
+.pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}.pg{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;gap:5px;font-size:13px}.pg .fl{font-size:12px;color:var(--warn-ink);background:var(--warn-bg);border-radius:6px;padding:2px 6px;justify-self:start}
+.tw{overflow:auto;border:1px solid var(--line);border-radius:12px;max-height:68vh}table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+th{position:sticky;top:0;z-index:1;background:var(--soft);text-align:left;padding:7px 8px;font-size:12px;white-space:nowrap;border-bottom:1px solid var(--line)}td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td textarea{width:100%;min-width:180px;resize:vertical;min-height:38px}td input{width:100%;min-width:48px}td.n input{width:54px}
+tr.check td:first-child{box-shadow:inset 4px 0 0 #d97706}.flags{font-size:12px;color:var(--warn-ink)}.flags span{display:inline-block;background:var(--warn-bg);border-radius:6px;padding:1px 6px;margin:0 3px 3px 0}
+.fig{display:grid;gap:4px;min-width:200px}.fig img{max-width:200px;max-height:130px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.stat{display:flex;gap:10px;flex-wrap:wrap}.stat div{background:var(--soft);border-radius:12px;padding:10px 14px}.stat b{display:block;font-size:22px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#16191f;color:#fff;border-radius:12px;padding:10px 16px;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}.toast.show{opacity:1}
+.prog{height:6px;border-radius:999px;background:var(--soft);overflow:hidden;margin-top:8px}.prog span{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+.note{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:9px 12px;font-size:13px}
+</style>
+</head>
+<body>
+<header class="bar"><a class="brand" href="home.html"><img src="logo.png" alt="" width="26" height="26">If Leaves Weave</a><span class="pill">Question bank</span><span class="sp"></span><a class="btn sm" href="index.html">PDF tool</a><a class="btn sm" href="home.html">All tools</a></header>
+<main>
+  <nav class="steps" aria-label="Steps"><button data-step="1" aria-current="step"><span>1</span>Add papers</button><button data-step="2"><span>2</span>Check pages</button><button data-step="3"><span>3</span>Review</button><button data-step="4"><span>4</span>Bank <b class="pill" id="bankCount">0</b></button></nav>
+
+  <section data-panel="1">
+    <div class="card"><h2>Add question papers and answer keys</h2><p class="hint">PDF or Word (.docx). Add a paper and its answer key together, or several papers at once. Everything is read on this device: nothing is uploaded.</p>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose papers or drop them here"><b>Drop papers here</b> or <u>choose files</u><br><span class="hint">PDF, Word</span></div><input type="file" id="fileIn" multiple accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+      <div class="files" id="files"></div>
+      <div class="row" style="margin-top:12px"><button class="btn pri" id="toPages" disabled>Next: check pages</button></div>
+    </div>
+    <div class="card"><h2>What it can read</h2><p class="hint">Choose the layout closest to your papers, or leave it on <b>Detect for me</b>. Mixed papers work too: each rule below is always on unless switched off.</p><div class="layouts" id="layouts"></div>
+      <h3>Good to know</h3><ul class="hint" style="margin:0;padding-left:18px"><li><b>Works best:</b> typed papers with clear numbering, multiple choice with an answer key, and marking schemes numbered like the paper.</li><li><b>Needs a check:</b> two-column pages (set them in step 2), questions split across pages, and numbering that restarts in each section (name the sections).</li><li><b>Not read as text:</b> diagrams, graphs, tables and equations. Pictures are cropped next to their question, with tools to describe them.</li></ul></div>
+  </section>
+
+  <section data-panel="2" hidden>
+    <div class="card"><h2>Check how each page will be read</h2><p class="hint">Pages are checked automatically and flagged when they look scanned, two-column or like an answer section. Change any page that should be read differently.</p><div id="pageList"></div>
+      <div class="row" style="margin-top:12px"><button class="btn pri" id="readBtn">Read the papers</button><span class="hint" id="readMsg"></span></div><div class="prog" hidden id="prog"><span></span></div></div>
+  </section>
+
+  <section data-panel="3" hidden>
+    <div class="card"><div class="row"><h2 style="flex:1">Review the questions</h2><label class="hint"><input type="checkbox" id="onlyChecks"> Show only rows to check</label><button class="btn sm" id="addRow">Add a row</button><button class="btn pri" id="toBank">Add to the bank</button></div>
+      <p class="hint" id="revSum"></p><div class="tw"><table id="rev"></table></div></div>
+  </section>
+
+  <section data-panel="4" hidden>
+    <div class="card"><h2>Your question bank</h2><p class="hint">Kept in this browser. Add more papers in batches, or import a spreadsheet you saved before, to keep building it.</p><div class="stat" id="stats"></div>
+      <div class="row" style="margin-top:12px"><button class="btn pri" id="xlsxBtn">Excel (.xlsx)</button><button class="btn" id="csvBtn">CSV</button><button class="btn" id="courseBtn">Little Light Lit Course quiz</button><span class="sp" style="flex:1"></span><button class="btn" id="impBtn">Import a spreadsheet</button><input type="file" id="impIn" accept=".xlsx,.csv" hidden><button class="btn" id="clearBtn">Clear the bank</button></div>
+      <p class="hint">Spreadsheets you import should have a heading row. The columns are matched by name, for example <i>Question no.</i>, <i>Question</i>, <i>Answer</i> and <i>Marks</i>; the others are optional.</p>
+      <label class="hint">Search <input id="bankSearch" style="font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:inherit"></label>
+      <div class="tw" style="margin-top:8px"><table id="bankT"></table></div>
+      <p class="note" style="margin-top:12px">Published exam papers are copyrighted. A question bank for your own teaching is usually fine; check before sharing or publishing it.</p></div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/mammoth.browser.min.js"></script>
+<script src="qbank-core.js"></script>
+<script src="qbank-xlsx.js"></script>
+<script type="module">
+import * as pdfjsLib from "./vendor/pdf.min.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("./vendor/pdf.worker.min.mjs", import.meta.url).href;
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)], uid = () => Math.random().toString(36).slice(2, 9);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const toast = (t, ms = 3800) => { const e = $("#toast"); e.textContent = t; e.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove("show"), ms); };
+const download = (blob, name) => { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); };
+
+/* ---------- layouts people can choose, with examples ---------- */
+const LAYOUTS = [
+  ["auto", "Detect for me", "Every rule below, on together. Right for most papers.", "1. …  [2]\n(a) …   Q2 …\nA. …  B. …"],
+  ["parts", "Numbered with parts", "1. or 1) numbers, parts (a) (b), sub-parts (i) (ii), and marks such as [2], (2 marks) or [2m].", "2. The diagram shows a cell.\n(a) Label part X. [1]\n(b) (i) State one function. [1]"],
+  ["mcq", "Multiple choice", "Options A to D on their own lines or on one line, with an answer key such as 1 B 2 C.", "Q1 What is 7 × 8?\nA. 54   B. 56   C. 58   D. 64\n\nAnswer key: 1 B 2 C 3 A"],
+  ["sections", "Sections and question headings", "Section A, Section B (numbering can restart), “Question 1” headings, and Answer: lines.", "Section B\nQuestion 1 Solve 2x + 3 = 11. [3]\nAnswer: x = 4"],
+  ["scheme", "Marking scheme", "A separate answer document numbered like the paper: 3(b)(ii), Question 3 headings, marks at the end.", "Question 3\n(b)(ii) F = ma = 2000 N [2]"],
+  ["layout", "Two columns or scanned", "Not a numbering style: set these pages in step 2 so they’re read column by column, or with text recognition.", "[ left column ][ right column ]\nScanned page → text recognition"],
+];
+let layout = "auto";
+$("#layouts").innerHTML = LAYOUTS.map(([id, t, d, ex]) => `<button class="lay" data-lay="${id}" aria-pressed="${id === layout}"><b>${esc(t)}</b><small>${esc(d)}</small><pre>${esc(ex)}</pre></button>`).join("");
+$("#layouts").onclick = e => { const b = e.target.closest("[data-lay]"); if (!b) return; layout = b.dataset.lay; $$("[data-lay]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); if (layout === "layout") toast("Set two-column or scanned pages in step 2: they’re detected for you there."); };
+const opts = () => ({ mcq: layout !== "parts" && layout !== "sections", sections: true, answerSection: true });
+
+/* ---------- step navigation ---------- */
+function go(n) { $$("[data-panel]").forEach(p => p.hidden = p.dataset.panel !== String(n)); $$("[data-step]").forEach(b => b.toggleAttribute("aria-current", false) || (b.dataset.step === String(n) && b.setAttribute("aria-current", "step"))); scrollTo(0, 0); if (n === 4) drawBank(); }
+$$("[data-step]").forEach(b => b.onclick = () => go(+b.dataset.step));
+
+/* ---------- files: role and pairing ---------- */
+let FILES = []; // { id, file, name, kind: pdf|docx, role: paper|key|both, pairs: paperId, pages: [...] }
+const fileIn = $("#fileIn"), drop = $("#drop");
+drop.onclick = () => fileIn.click(); drop.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileIn.click(); } };
+["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); })); ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, () => drop.classList.remove("over")));
+drop.addEventListener("drop", e => { e.preventDefault(); addFiles([...e.dataTransfer.files]); }); fileIn.onchange = () => { addFiles([...fileIn.files]); fileIn.value = ""; };
+async function sniff(f) { const b = new Uint8Array(await f.slice(0, 8).arrayBuffer()); if (b[0] === 0x25 && b[1] === 0x50 && b[2] === 0x44 && b[3] === 0x46) return "pdf"; if (b[0] === 0x50 && b[1] === 0x4B) return "docx"; return null; }
+async function addFiles(list) {
+  for (const f of list) { const kind = await sniff(f); if (!kind) { toast(`“${f.name}” isn’t a PDF or Word file, so it wasn’t added.`); continue; }
+    const isKey = /answer|ans\b|key|scheme|marking|solution|jawapan|skema/i.test(f.name), lastPaper = [...FILES].reverse().find(x => x.role !== "key");
+    FILES.push({ id: uid(), file: f, name: f.name, kind, role: isKey ? "key" : "paper", pairs: isKey ? lastPaper?.id || "" : "", pages: null }); }
+  drawFiles();
+}
+function drawFiles() {
+  const papers = FILES.filter(f => f.role !== "key");
+  $("#files").innerHTML = FILES.map(f => `<div class="file"><div><b>${esc(f.name)}</b><div class="hint">${f.kind === "pdf" ? "PDF" : "Word"}</div></div>
+    <select data-role="${f.id}" aria-label="What ${esc(f.name)} is"><option value="paper" ${f.role === "paper" ? "selected" : ""}>Question paper</option><option value="both" ${f.role === "both" ? "selected" : ""}>Paper with its answers</option><option value="key" ${f.role === "key" ? "selected" : ""}>Answer key or marking scheme</option></select>
+    ${f.role === "key" ? `<select data-pair="${f.id}" aria-label="Which paper ${esc(f.name)} answers"><option value="">Answers which paper?</option>${papers.map(p => `<option value="${p.id}" ${f.pairs === p.id ? "selected" : ""}>${esc(p.name)}</option>`).join("")}</select>` : "<span></span>"}
+    <button class="btn sm" data-rm="${f.id}" aria-label="Remove ${esc(f.name)}">Remove</button></div>`).join("");
+  $("#toPages").disabled = !papers.length;
+}
+$("#files").onchange = e => { const r = e.target.dataset.role, p = e.target.dataset.pair; if (r) { const f = FILES.find(x => x.id === r); f.role = e.target.value; if (f.role === "key" && !f.pairs) f.pairs = FILES.find(x => x.role !== "key")?.id || ""; drawFiles(); } if (p) FILES.find(x => x.id === p).pairs = e.target.value; };
+$("#files").onclick = e => { const id = e.target.dataset.rm; if (id) { FILES = FILES.filter(f => f.id !== id); drawFiles(); } };
+
+/* ---------- reading: PDF pages (text with positions, and pictures) and Word ---------- */
+const MODES = [["normal", "Read normally"], ["two", "Two columns"], ["ocr", "Scanned: use text recognition"], ["answers", "Answer section"], ["skip", "Skip this page"]];
+async function analysePdf(f) {
+  const doc = await pdfjsLib.getDocument({ data: await f.file.arrayBuffer() }).promise; f.doc = doc; f.pages = [];
+  for (let n = 1; n <= doc.numPages; n++) { const page = await doc.getPage(n), vp = page.getViewport({ scale: 1 }), tc = await page.getTextContent(), items = tc.items.filter(i => i.str.trim());
+    const lines = toLines(items, vp), starts = lines.map(l => l.x / vp.width), right = starts.filter(x => x > .48).length, left = starts.filter(x => x < .35).length;
+    const ops = await page.getOperatorList(), imgs = imageBoxes(ops, vp), big = imgs.some(b => b.w * b.h > vp.width * vp.height * .5);
+    const flags = [], auto = items.length < 5 && (big || !items.length) ? "ocr" : lines.some(l => QBank && /^\s*(?:answers?|answer key|mark(?:ing)? scheme|suggested answers|jawapan|skema)\b/i.test(l.text)) ? "answers" : right > 6 && left > 6 && right > lines.length * .25 ? "two" : "normal";
+    if (auto === "ocr") flags.push("Looks scanned"); if (auto === "two") flags.push("Looks two-column"); if (auto === "answers") flags.push("Has an answer section"); if (imgs.length && auto !== "ocr") flags.push(`${imgs.length} picture${imgs.length > 1 ? "s" : ""}`);
+    f.pages.push({ n, mode: auto === "answers" ? "normal" : auto, auto, flags, words: items.length, imgs, vp }); }
+}
+function toLines(items, vp) { // group text pieces into lines by their height on the page
+  const rows = []; for (const it of items) { const x = it.transform[4], y = vp.height - it.transform[5], h = Math.abs(it.transform[3]) || 10; let r = rows.find(r => Math.abs(r.y - y) < h * .45 && Math.abs(r.h - h) < h); if (!r) rows.push(r = { y, h, parts: [] }); r.parts.push({ x, s: it.str, w: it.width }); }
+  // a wide gap (more than 6% of the page, or three character heights) starts a new line: that is how two columns stay apart
+  const out = []; for (const r of rows.sort((a, b) => a.y - b.y)) { r.parts.sort((a, b) => a.x - b.x); let cur = null, end = null;
+    for (const p of r.parts) { if (!cur || p.x - end > Math.max(vp.width * .06, r.h * 3)) { cur = { text: "", x: p.x, y: r.y, h: r.h }; out.push(cur); end = null; }
+      if (end != null && p.x - end > r.h * .25) cur.text += " "; cur.text += p.s; end = p.x + p.w; } }
+  return out.map(l => ({ ...l, text: l.text.replace(/\s+/g, " ").trim() })).filter(l => l.text);
+}
+function imageBoxes(ops, vp) { // where pictures are painted, from the page's drawing operations
+  const O = pdfjsLib.OPS, boxes = []; let m = [1, 0, 0, 1, 0, 0]; const stack = [];
+  const mul = (a, b) => [a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1], a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3], a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]];
+  ops.fnArray.forEach((fn, i) => { const a = ops.argsArray[i];
+    if (fn === O.save) stack.push(m); else if (fn === O.restore) m = stack.pop() || [1, 0, 0, 1, 0, 0]; else if (fn === O.transform) m = mul(m, a);
+    else if (fn === O.paintImageXObject || fn === O.paintInlineImageXObject || fn === O.paintImageMaskXObject) { const xs = [m[4], m[4] + m[0], m[4] + m[2], m[4] + m[0] + m[2]], ys = [m[5], m[5] + m[1], m[5] + m[3], m[5] + m[1] + m[3]];
+      const b = { x: Math.min(...xs), y: vp.height - Math.max(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) }; if (b.w > 30 && b.h > 30) boxes.push(b); } });
+  return boxes;
+}
+async function readPdf(f, report) {
+  const lines = []; let tess = null;
+  for (const pg of f.pages) { if (pg.mode === "skip") continue; report(`Reading ${f.name}, page ${pg.n}…`);
+    const page = await f.doc.getPage(pg.n), vp = page.getViewport({ scale: 1 }); let L;
+    const needRender = pg.mode === "ocr" || pg.imgs.length; let canvas = null, scale = 2;
+    if (needRender) { canvas = document.createElement("canvas"); const v2 = page.getViewport({ scale }); canvas.width = v2.width; canvas.height = v2.height; await page.render({ canvasContext: canvas.getContext("2d"), viewport: v2 }).promise; }
+    if (pg.mode === "ocr") { try { tess ||= await ocrWorker(report); report(`Recognising text on ${f.name}, page ${pg.n}…`); const r = await tess.recognize(canvas); L = (r.data.lines || []).map(l => ({ text: l.text.trim(), x: l.bbox.x0 / scale, y: l.bbox.y0 / scale, h: (l.bbox.y1 - l.bbox.y0) / scale })); }
+      catch { tess = null; PROBLEMS.push(`${f.name}, page ${pg.n}: text recognition couldn’t load (it needs the internet once), so this page was skipped.`); continue; } }
+    else L = toLines((await page.getTextContent()).items.filter(i => i.str.trim()), vp);
+    if (pg.mode === "two") { const mid = vp.width / 2; L = [...L.filter(l => l.x < mid).sort((a, b) => a.y - b.y), ...L.filter(l => l.x >= mid).sort((a, b) => a.y - b.y)]; } // left column, then right
+    const pics = pg.mode === "ocr" ? [] : pg.imgs.map(b => { const c = document.createElement("canvas"), k = Math.min(1, 600 / (b.w * scale)); c.width = b.w * scale * k; c.height = b.h * scale * k; c.getContext("2d").drawImage(canvas, b.x * scale, b.y * scale, b.w * scale, b.h * scale, 0, 0, c.width, c.height); return { y: b.y, x: b.x, img: { id: uid(), src: c.toDataURL("image/png"), description: "", page: pg.n } }; });
+    // pictures join the text flow at their height on the page, so they attach to the question above them
+    const flow = [...L.map(l => ({ ...l, page: pg.n, answerSection: pg.mode === "answers" })), ...pics.map(p => ({ y: p.y, x: p.x, page: pg.n, img: p.img }))];
+    if (pg.mode !== "two") flow.sort((a, b) => a.y - b.y); else { const mid = vp.width / 2; flow.sort((a, b) => (a.x >= mid) - (b.x >= mid) || a.y - b.y); }
+    lines.push(...flow); }
+  return lines;
+}
+async function readDocx(f) { // Word numbering isn't in the text, so it is rebuilt from the list structure
+  const res = await mammoth.convertToHtml({ arrayBuffer: await f.file.arrayBuffer() }, { convertImage: mammoth.images.imgElement(img => img.read("base64").then(d => ({ src: `data:${img.contentType};base64,${d}` }))) });
+  const dom = new DOMParser().parseFromString(`<div>${res.value}</div>`, "text/html"), out = [], ROM = QBank.ROMAN;
+  const walk = (el, depth) => { for (const ch of el.children) {
+    if (ch.tagName === "OL" || ch.tagName === "UL") { let i = 0; for (const li of ch.children) { if (li.tagName !== "LI") continue; i++; const label = ch.tagName === "UL" ? "" : depth === 0 ? `${i}. ` : depth === 1 ? `(${String.fromCharCode(96 + i)}) ` : `(${ROM[i - 1] || i}) `;
+        const own = [...li.childNodes].filter(n => !(n.nodeType === 1 && /^(OL|UL)$/.test(n.tagName))).map(n => n.textContent).join(" ").trim(); out.push({ text: label + own, page: 1 }); li.querySelectorAll(":scope > img, :scope > p img").forEach(im => out.push({ page: 1, img: { id: uid(), src: im.src, description: "", page: 1 } })); walk(li, depth + 1); } continue; }
+    if (ch.tagName === "TABLE") { for (const tr of ch.querySelectorAll("tr")) out.push({ text: [...tr.children].map(td => td.textContent.trim()).join("  "), page: 1 }); continue; }
+    if (ch.querySelector && ch.querySelector("img")) ch.querySelectorAll("img").forEach(im => out.push({ page: 1, img: { id: uid(), src: im.src, description: "", page: 1 } }));
+    const t = ch.textContent.trim(); if (t) out.push({ text: t, page: 1 }); } };
+  walk(dom.body.firstChild, 0); return out;
+}
+/* text recognition: Tesseract.js, downloaded once from jsDelivr only when a scanned page or figure needs it */
+let tessP = null;
+function ocrWorker(report) { return tessP ||= (async () => { report?.("Downloading text recognition (about 4 MB, once)…"); await new Promise((res, rej) => { const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"; s.onload = res; s.onerror = () => { tessP = null; rej(new Error("load")); }; document.head.append(s); }); return Tesseract.createWorker("eng"); })(); }
+
+/* ---------- step 2: pages ---------- */
+$("#toPages").onclick = async () => { $("#toPages").disabled = true; $("#toPages").textContent = "Checking pages…";
+  try { for (const f of FILES) if (f.kind === "pdf" && !f.pages) await analysePdf(f); } catch (e) { toast("One of the PDFs couldn’t be opened. It may be damaged or password-protected."); }
+  $("#toPages").disabled = false; $("#toPages").textContent = "Next: check pages"; drawPages(); go(2); };
+function drawPages() {
+  $("#pageList").innerHTML = FILES.map(f => `<h3>${esc(f.name)} <span class="hint">· ${f.role === "key" ? "answer key" : f.role === "both" ? "paper with answers" : "question paper"}</span></h3>${f.kind === "docx" ? `<p class="hint">Word documents are read as one flowing document, including list numbering and pictures.</p>` : `<div class="pages">${f.pages.map(p => `<div class="pg"><b>Page ${p.n}</b><span class="hint">${p.words} text pieces</span>${p.flags.map(x => `<span class="fl">${esc(x)}</span>`).join("")}<select data-f="${f.id}" data-p="${p.n}" aria-label="How to read ${esc(f.name)} page ${p.n}">${MODES.map(([v, t]) => `<option value="${v}" ${p.mode === v ? "selected" : ""}>${t}</option>`).join("")}</select></div>`).join("")}</div>`}`).join("");
+}
+$("#pageList").onchange = e => { const s = e.target; if (s.dataset.f) FILES.find(f => f.id === s.dataset.f).pages.find(p => p.n === +s.dataset.p).mode = s.value; };
+
+/* ---------- reading everything into rows ---------- */
+let REV = [], PROBLEMS = [];
+$("#readBtn").onclick = async () => {
+  const btn = $("#readBtn"), msg = $("#readMsg"), pr = $("#prog"); btn.disabled = true; pr.hidden = false; REV = []; PROBLEMS = []; let done = 0, unmatched = 0;
+  const report = t => { msg.textContent = t; }, step = () => { pr.firstElementChild.style.width = `${Math.round(++done / FILES.length * 100)}%`; };
+  try {
+    const lines = {}; for (const f of FILES) { lines[f.id] = f.kind === "pdf" ? await readPdf(f, report) : await readDocx(f); step(); }
+    for (const f of FILES.filter(x => x.role !== "key")) {
+      const { rows, answerLines } = QBank.parseQuestions(lines[f.id], opts()); rows.forEach(r => r.source = f.name.replace(/\.(pdf|docx)$/i, ""));
+      if (answerLines.length) QBank.merge(rows, QBank.parseAnswers(answerLines));
+      for (const k of FILES.filter(x => x.role === "key" && x.pairs === f.id)) QBank.merge(rows, QBank.parseAnswers(lines[k.id].filter(l => !l.img)));
+      REV.push(...rows); }
+    QBank.flag(REV); unmatched = REV.filter(r => !r.answer).length;
+    report(""); pr.hidden = true; drawReview(); go(3);
+    toast(REV.length ? `Found ${REV.length} question${REV.length > 1 ? "s" : ""}${unmatched ? `; ${unmatched} without an answer` : ""}. Check the highlighted rows.` : "No numbered questions found. Try another layout, or check the page settings.", 6000);
+    $("#revSum").insertAdjacentHTML("afterend", PROBLEMS.length ? `<p class="note" id="probs">${PROBLEMS.map(esc).join("<br>")}</p>` : ""); $("#probs") && !PROBLEMS.length && $("#probs").remove();
+  } catch (e) { console.error(e); report("Something went wrong reading the papers: " + e.message); }
+  btn.disabled = false;
+};
+
+/* ---------- step 3: review and edit ---------- */
+const COLS = [["section", "Section", "n"], ["num", "No.", "n"], ["part", "Part", "n"], ["sub", "Sub", "n"], ["stem", "Stem (shared context)"], ["text", "Question"], ["options", "Options"], ["answer", "Answer"], ["marks", "Marks", "n"], ["topic", "Topic", "n"]];
+const optText = r => r.options.map(o => `${o.letter}. ${o.text}`).join("\n");
+function drawReview() {
+  const only = $("#onlyChecks").checked, list = REV.filter(r => !only || r.flags?.length), t = $("#rev");
+  $("#revSum").textContent = `${REV.length} rows · ${REV.filter(r => r.flags?.length).length} to check · ${REV.filter(r => r.figures.length).length} with figures`;
+  t.innerHTML = `<thead><tr><th>Source</th>${COLS.map(c => `<th>${c[1]}</th>`).join("")}<th>Figure</th><th>Checks</th><th></th></tr></thead><tbody>${list.map(r => `<tr data-id="${r.id}" class="${r.flags?.length ? "check" : ""}"><td class="hint">${esc(r.source)}<br>p.${r.page ?? ""}</td>${COLS.map(([k, , n]) => `<td class="${n ? "n" : ""}">${n ? `<input data-k="${k}" value="${esc(r[k] ?? "")}" aria-label="${k}">` : `<textarea data-k="${k}" aria-label="${k}" rows="${k === "text" || k === "stem" ? 3 : 2}">${esc(k === "options" ? optText(r) : r[k] ?? "")}</textarea>`}</td>`).join("")}
+    <td>${r.figures.map((f, i) => `<div class="fig"><img src="${f.src}" alt="Figure ${i + 1}"><textarea data-fig="${i}" rows="2" placeholder="Brief description of the figure" aria-label="Figure description">${esc(f.description)}</textarea><div class="row"><button class="btn sm" data-labels="${i}" title="Read the words in the figure with text recognition">Read labels</button><button class="btn sm" data-ai="${i}" title="Copy the figure and a prompt for your own AI assistant">Describe with AI</button></div></div>`).join("") || `<span class="hint">None</span>`}</td>
+    <td class="flags">${(r.flags || []).map(x => `<span>${esc(x)}</span>`).join("")}</td><td><button class="btn sm" data-del aria-label="Delete this row">✕</button></td></tr>`).join("")}</tbody>`;
+}
+$("#onlyChecks").onchange = drawReview;
+$("#rev").addEventListener("input", e => { const tr = e.target.closest("tr"), r = REV.find(x => x.id === tr?.dataset.id); if (!r) return; const k = e.target.dataset.k;
+  if (k === "options") r.options = e.target.value.split("\n").map(l => l.match(/^\s*([A-E])[.)]\s*(.*)$/)).filter(Boolean).map(m => ({ letter: m[1], text: m[2] }));
+  else if (k === "marks") r.marks = e.target.value === "" ? null : +e.target.value; else if (k) r[k] = e.target.value;
+  if (e.target.dataset.fig != null) r.figures[+e.target.dataset.fig].description = e.target.value; });
+$("#rev").addEventListener("change", () => { QBank.flag(REV); const y = scrollY; drawReview(); scrollTo(0, y); });
+const PROMPT = "Describe this figure from an exam question in one or two sentences for a question bank. Say what kind of figure it is (for example a labelled diagram, graph, table or photo) and the key labels, values and units shown. Do not solve the question or add anything that isn’t shown.";
+$("#rev").addEventListener("click", async e => { const tr = e.target.closest("tr"), r = REV.find(x => x.id === tr?.dataset.id); if (!r) return;
+  if (e.target.closest("[data-del]")) { REV = REV.filter(x => x !== r); drawReview(); return; }
+  const li = e.target.dataset.labels, ai = e.target.dataset.ai;
+  if (li != null) { const f = r.figures[+li], b = e.target; b.disabled = true; b.textContent = "Reading…"; try { const w = await ocrWorker(t => toast(t)); const res = await w.recognize(f.src), words = res.data.text.replace(/\s+/g, " ").trim(); f.description = words ? `Figure with the labels: ${words}.` + (f.description ? " " + f.description : "") : f.description || "Figure (no readable labels)."; QBank.flag(REV); drawReview(); toast(words ? "Labels added. Edit the description to say what the figure shows." : "No labels found in this figure."); } catch { toast("Text recognition couldn’t load. Check the connection; it downloads once."); b.disabled = false; b.textContent = "Read labels"; } }
+  if (ai != null) { const f = r.figures[+ai]; try { const png = await (await fetch(f.src)).blob(); await navigator.clipboard.write([new ClipboardItem({ "image/png": png, "text/plain": new Blob([PROMPT], { type: "text/plain" }) })]); toast("Copied the figure and a prompt. Paste both into your AI assistant, then paste its reply into the description.", 7000); }
+    catch { await navigator.clipboard.writeText(PROMPT).catch(() => {}); download(await (await fetch(f.src)).blob(), `figure-${QBank.label(r)}.png`); toast("Copied the prompt and saved the figure. Give both to your AI assistant, then paste its reply into the description.", 7500); } }
+});
+$("#addRow").onclick = () => { REV.unshift({ id: uid(), source: "Added by hand", section: "", num: "", part: "", sub: "", stem: "", text: "", options: [], answer: "", marks: null, figures: [], flags: [] }); drawReview(); };
+
+/* ---------- step 4: the bank, kept in this browser (IndexedDB) ---------- */
+const DB = { open: () => new Promise((res, rej) => { const r = indexedDB.open("ifleavesweave-qbank", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }),
+  async get() { const d = await DB.open(); return new Promise(res => { const q = d.transaction("kv").objectStore("kv").get("bank"); q.onsuccess = () => res(q.result || { rows: [] }); q.onerror = () => res({ rows: [] }); }); },
+  async set(v) { const d = await DB.open(); return new Promise((res, rej) => { const t = d.transaction("kv", "readwrite"); t.objectStore("kv").put(v, "bank"); t.oncomplete = res; t.onerror = () => rej(t.error); }); } };
+let BANK = { rows: [] };
+DB.get().then(b => { BANK = b; $("#bankCount").textContent = BANK.rows.length; });
+async function addToBank(rows, from) { const have = new Set(BANK.rows.map(QBank.fingerprint)); let added = 0, dup = 0;
+  for (const r of rows) { const fp = QBank.fingerprint(r); if (fp.length > 8 && have.has(fp)) { dup++; continue; } have.add(fp); BANK.rows.push({ ...r, added: new Date().toISOString().slice(0, 10) }); added++; }
+  await DB.set(BANK); $("#bankCount").textContent = BANK.rows.length; return { added, dup }; }
+$("#toBank").onclick = async () => { if (!REV.length) return toast("Nothing to add yet."); const { added, dup } = await addToBank(REV); REV = []; drawReview(); go(4); FILES = []; drawFiles(); toast(`Added ${added} question${added === 1 ? "" : "s"} to the bank${dup ? `; ${dup} duplicate${dup > 1 ? "s were" : " was"} skipped` : ""}. Add the next batch whenever you’re ready.`, 6500); };
+const HEAD = ["Source", "Section", "Question no.", "Part", "Sub-part", "Stem", "Question", "Options", "Answer", "Marks", "Topic", "Figure", "Figure description", "Page", "Checks", "Added"], WID = [22, 9, 11, 7, 9, 36, 50, 34, 40, 8, 16, 8, 40, 6, 28, 11];
+const toRow = r => [r.source || "", r.section || "", r.num ? +r.num || r.num : "", r.part || "", r.sub || "", r.stem || "", r.text || "", optText(r), r.answer || "", r.marks ?? "", r.topic || "", r.figures?.length ? "Yes" : "", (r.figures || []).map(f => f.description).filter(Boolean).join(" | "), r.page ?? "", (r.flags || []).join("; "), r.added || ""];
+function drawBank() { const s = $("#bankSearch").value.toLowerCase(), list = BANK.rows.filter(r => !s || QBank.fingerprint(r).includes(s) || (r.source || "").toLowerCase().includes(s) || (r.topic || "").toLowerCase().includes(s)), sources = new Set(BANK.rows.map(r => r.source));
+  $("#stats").innerHTML = `<div><b>${BANK.rows.length}</b>questions</div><div><b>${sources.size}</b>papers</div><div><b>${BANK.rows.filter(r => r.answer).length}</b>with answers</div><div><b>${BANK.rows.reduce((a, r) => a + (+r.marks || 0), 0)}</b>marks in total</div>`;
+  $("#bankT").innerHTML = `<thead><tr>${["Source", "No.", "Question", "Answer", "Marks", "Topic"].map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${list.slice(0, 400).map(r => `<tr><td class="hint">${esc(r.source)}</td><td>${esc(QBank.label(r))}</td><td>${esc((r.stem ? r.stem + " — " : "") + r.text).slice(0, 220)}${r.options?.length ? `<div class="hint">${esc(r.options.map(o => o.letter + ". " + o.text).join("  "))}</div>` : ""}</td><td>${esc(r.answer).slice(0, 160)}</td><td>${r.marks ?? ""}</td><td>${esc(r.topic || "")}</td></tr>`).join("")}</tbody>`; }
+$("#bankSearch").oninput = drawBank;
+const stamp = () => new Date().toISOString().slice(0, 10);
+$("#xlsxBtn").onclick = async () => { if (!BANK.rows.length) return toast("The bank is empty."); download(await QBankXLSX.write(HEAD, BANK.rows.map(toRow), WID), `question-bank-${stamp()}.xlsx`); };
+$("#csvBtn").onclick = () => { if (!BANK.rows.length) return toast("The bank is empty."); const c = v => { const s = String(v ?? ""), safe = /^[=+\-@]/.test(s) ? "'" + s : s; return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe; }; download(new Blob(["\ufeff" + [HEAD, ...BANK.rows.map(toRow)].map(r => r.map(c).join(",")).join("\r\n")], { type: "text/csv" }), `question-bank-${stamp()}.csv`); };
+$("#courseBtn").onclick = () => { if (!BANK.rows.length) return toast("The bank is empty."); const id = () => Math.random().toString(36).slice(2, 9), blocks = [];
+  for (const src of [...new Set(BANK.rows.map(r => r.source))]) { const rs = BANK.rows.filter(r => r.source === src); blocks.push({ id: id(), type: "heading", text: src, level: 2 });
+    const mc = rs.filter(r => r.options?.length >= 2 && /^[A-E]\b/i.test(r.answer || "")), rest = rs.filter(r => !mc.includes(r));
+    mc.forEach(r => blocks.push({ id: id(), type: "question", qtype: "mc", prompt: `${QBank.label(r)}. ${r.stem ? r.stem + " " : ""}${r.text}`, choices: r.options.map(o => ({ text: o.text, correct: o.letter.toUpperCase() === r.answer.trim()[0].toUpperCase() })), points: +r.marks || 1, shuffle: false }));
+    if (rest.length) blocks.push({ id: id(), type: "flashcards", title: "Practice: questions and answers", cards: rest.map(r => ({ front: `${QBank.label(r)}. ${r.stem ? r.stem + " — " : ""}${r.text}${r.marks != null ? ` [${r.marks}]` : ""}`, back: r.answer || "(answer not recorded)" })) }); }
+  download(new Blob([JSON.stringify({ kind: "littlelightlit-course", v: 1, course: { title: "Question bank practice", intro: "Made from a question bank in If Leaves Weave.", accent: "#2453d6", passMark: 60, vars: [], blocks } }, null, 1)], { type: "application/json" }), `question-bank-${stamp()}.course.json`);
+  toast("Saved. Open it in Little Light Lit Course: multiple-choice questions become quiz questions, the rest flashcards.", 6500); };
+// importing a spreadsheet: columns matched by name
+const ALIAS = { source: ["source", "paper"], section: ["section"], num: ["question no.", "question no", "no.", "no", "qn", "q no", "number", "question number"], part: ["part"], sub: ["sub-part", "subpart", "sub"], stem: ["stem", "context"], text: ["question", "question text"], options: ["options", "choices"], answer: ["answer", "answers", "mark scheme", "solution"], marks: ["marks", "mark", "score", "points"], topic: ["topic", "tags", "tag"], figdesc: ["figure description"], page: ["page"] };
+$("#impBtn").onclick = () => $("#impIn").click();
+$("#impIn").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  try { const rows = /\.csv$/i.test(f.name) ? QBankXLSX.readCSV(await f.text()) : await QBankXLSX.read(f); if (rows.length < 2) throw new Error("empty");
+    const head = rows[0].map(h => String(h).trim().toLowerCase()), idx = Object.fromEntries(Object.entries(ALIAS).map(([k, names]) => [k, head.findIndex(h => names.includes(h))]));
+    if (idx.text < 0) return toast("That spreadsheet needs a “Question” column.", 5000);
+    const got = rows.slice(1).map(c => { const v = k => idx[k] >= 0 ? String(c[idx[k]] ?? "").trim() : ""; return { id: uid(), source: v("source") || f.name.replace(/\.(xlsx|csv)$/i, ""), section: v("section"), num: v("num"), part: v("part"), sub: v("sub"), stem: v("stem"), text: v("text"), answer: v("answer"), marks: v("marks") === "" ? null : +v("marks"), topic: v("topic"), page: v("page"),
+      options: v("options").split(/\n|\s\|\s/).map(l => l.match(/^\s*([A-E])[.)]\s*(.*)$/)).filter(Boolean).map(m => ({ letter: m[1], text: m[2] })), figures: v("figdesc") ? [{ id: uid(), src: "", description: v("figdesc") }] : [] }; }).filter(r => r.text || r.stem);
+    QBank.flag(got); const { added, dup } = await addToBank(got); drawBank(); toast(`Imported ${added} question${added === 1 ? "" : "s"}${dup ? `; ${dup} already in the bank` : ""}.`, 5000);
+  } catch (err) { toast("Couldn’t read that spreadsheet. Save it as .xlsx or .csv with a heading row."); } };
+$("#clearBtn").onclick = async () => { if (!BANK.rows.length || !confirm(`Remove all ${BANK.rows.length} questions from this browser? Export a spreadsheet first if you want to keep them.`)) return; BANK = { rows: [] }; await DB.set(BANK); $("#bankCount").textContent = 0; drawBank(); toast("The bank was cleared."); };
+window.QB = { get REV() { return REV; }, get BANK() { return BANK; }, FILES: () => FILES }; // for testing
+</script>
+</body>
+</html>
