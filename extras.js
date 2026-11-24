@@ -136,9 +136,29 @@ $("#batesIn").onchange = async () => {
 let fbWidth = 1300;
 chips("#fbQ", "fq", v => fbWidth = +v);
 const canWebp = (() => { try { const c = document.createElement("canvas"); c.width = c.height = 2; return c.toDataURL("image/webp").startsWith("data:image/webp"); } catch { return false; } })();
+// read aloud (text to speech) is optional: when ticked, flip-tts.js is placed inside the flipbook,
+// with an optional introduction (typed, and optionally recorded) heard before the cover
+let flipTts = "", flipIntro = { text: "", audio: "" };
+function introUI() {
+  const tick = $("#fbTts"), wrap = $("#fbIntroWrap"); if (!tick || !wrap) return; const sync = () => { wrap.hidden = !tick.checked; }; tick.addEventListener("change", sync); sync();
+  const st = $("#fbRecSt"), play = $("#fbRecPlay"), rm = $("#fbRecRm"), show = () => { const on = !!flipIntro.audio; play.hidden = rm.hidden = !on; st.textContent = on ? "Recording added: it plays instead of the device voice." : "No recording: the device voice reads the introduction."; };
+  let rec = null;
+  $("#fbRec").onclick = async () => { const b = $("#fbRec");
+    if (rec) { rec.stop(); return; }
+    try { const stream = await navigator.mediaDevices.getUserMedia({ audio: true }), mr = new MediaRecorder(stream), parts = []; rec = mr; mr.ondataavailable = e => parts.push(e.data);
+      mr.onstop = () => { stream.getTracks().forEach(t => t.stop()); rec = null; b.textContent = "● Record"; const fr = new FileReader(); fr.onload = () => { flipIntro.audio = fr.result; show(); toast("Introduction recorded"); }; fr.readAsDataURL(new Blob(parts, { type: mr.mimeType || "audio/webm" })); };
+      mr.start(); b.textContent = "■ Stop recording"; st.textContent = "Recording… read your introduction, then press Stop."; } catch { toast("Couldn’t use the microphone. Allow it for this site, or upload a file instead."); } };
+  $("#fbRecUp").onclick = () => $("#fbRecIn").click();
+  $("#fbRecIn").onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; if (!/^audio\//.test(f.type)) return toast("Choose an audio file, such as MP3, M4A or WAV."); if (f.size > 5 * 1024 * 1024) return toast("Keep the introduction under 5 MB (about a minute as MP3)."); const fr = new FileReader(); fr.onload = () => { flipIntro.audio = fr.result; show(); }; fr.readAsDataURL(f); };
+  play.onclick = () => { if (flipIntro.audio) new Audio(flipIntro.audio).play(); };
+  rm.onclick = () => { flipIntro.audio = ""; show(); };
+  show();
+}
+introUI();
 async function makeFlip(preview = false) {
   if (!F.hasDoc()) return toast("Open a PDF first.");
   try {
+    flipTts = $("#fbTts")?.checked ? await (await fetch("flip-tts.js")).text() : ""; flipIntro.text = ($("#fbIntro")?.value || "").trim();
     busy("Preparing pages", 0); const bytes = await F.buildPdf(), doc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise, imgs = [], texts = [];
     for (let i = 1; i <= doc.numPages; i++) {
       const pg = await doc.getPage(i), base = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: fbWidth / base.width }), c = document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
@@ -155,7 +175,8 @@ async function makeFlip(preview = false) {
       files.forEach(f => zip.file(f.path, f.src.split(",")[1], { base64: true }));
       zip.file("preview.jpg", (await previewCard(imgs[0].src, title, $("#fbBg").value)).split(",")[1], { base64: true });
       if (pdf) zip.file(`${F.safeName()}.pdf`, bytes);
-      const html = flipHtml(title, files.map(f => ({ src: f.path, w: f.w, h: f.h })), texts, $("#fbBg").value, $("#fbCover").checked, pdf ? `${F.safeName()}.pdf` : null, `${F.safeName()}.pdf`, { base: $("#fbUrl").value.trim(), preview: "preview.jpg" });
+      let introPath = ""; if (flipTts && flipIntro.audio) { const ext = /audio\/(mpeg|mp3)/.test(flipIntro.audio) ? "mp3" : /audio\/mp4|m4a|aac/.test(flipIntro.audio) ? "m4a" : /ogg/.test(flipIntro.audio) ? "ogg" : /wav/.test(flipIntro.audio) ? "wav" : "webm"; introPath = "intro." + ext; zip.file(introPath, flipIntro.audio.split(",")[1], { base64: true }); }
+      const html = flipHtml(title, files.map(f => ({ src: f.path, w: f.w, h: f.h })), texts, $("#fbBg").value, $("#fbCover").checked, pdf ? `${F.safeName()}.pdf` : null, `${F.safeName()}.pdf`, { base: $("#fbUrl").value.trim(), preview: "preview.jpg", introAudio: introPath });
       zip.file("index.html", html); zip.file(".nojekyll", "");
       download(await zip.generateAsync({ type: "blob" }), `${F.safeName()}-flipbook-site.zip`); busy(false);
       toast($("#fbUrl").value.trim() ? "Website folder saved. Put its contents at that address, and link previews will show your cover." : "Website folder saved. Add the web address next time so LinkedIn and others can show a preview image.", 7000); count("flipbook_site"); return;
@@ -217,7 +238,7 @@ const FLIP_JS = [
 "addEventListener('hashchange',pageFromHash);build();var start=/^#page-(\\d+)$/.exec(location.hash);if(start){s=-1;if(!pageFromHash()){s=0;show()}}else show();"
 ].join("\n");
 function flipHtml(title, imgs, texts, bg, cover, pdf, pdfName, site = {}) {
-  const ratio = (imgs[0].h / imgs[0].w).toFixed(4), t = esc(title), ink = inkFor(bg), data = JSON.stringify({ pages: imgs.map(i => i.src), texts, cover, ratio: +ratio }).replace(/</g, "\\u003c");
+  const ratio = (imgs[0].h / imgs[0].w).toFixed(4), t = esc(title), ink = inkFor(bg), data = JSON.stringify({ pages: imgs.map(i => i.src), texts, cover, ratio: +ratio, ...(flipTts && flipIntro.text ? { intro: flipIntro.text } : {}), ...(flipTts && flipIntro.audio ? { introAudio: site.introAudio || flipIntro.audio } : {}) }).replace(/</g, "\\u003c");
   const desc = esc(site.description || (texts.find(x => x && x.length > 60) || "").slice(0, 160)), base = site.base ? site.base.replace(/\/?$/, "/") : "";
   const og = site.preview ? `<meta property="og:image" content="${esc(base + site.preview)}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="${t}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${esc(base + site.preview)}">` : "";
   const canon = base ? `<link rel="canonical" href="${esc(base)}"><meta property="og:url" content="${esc(base)}">` : "";
@@ -249,7 +270,7 @@ body.zoomed main{overflow:auto;place-items:start center;padding:20px}
 <main id="main"><div class="book" id="book" aria-live="polite"></div></main>
 <button class="nav prev" id="prev" aria-label="Previous page">‹</button><button class="nav next" id="next" aria-label="Next page">›</button>
 <div id="panel" hidden role="dialog" aria-label="Pages"></div>
-<script>window.FLIP=${data};<\/script><script>${FLIP_JS}<\/script></body></html>`;
+<script>window.FLIP=${data};<\/script><script>${FLIP_JS}<\/script>${flipTts ? `<script>${flipTts.replace(/<\/script/gi, "<\\/script")}<\/script>` : ""}</body></html>`;
 }
 
 /* ============ 4. Text recognition (OCR) ============ */

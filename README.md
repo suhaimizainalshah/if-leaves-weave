@@ -1,241 +1,154 @@
-# Little Light Lit
+# If Leaves Weave
 
-**Little Light Lit** is a set of free creative studios for photos, photo strips, designs, video, audio, animation, interactive lessons and courses, animations, zooming presentations, 360° media and 3D. Everything runs in your browser: there are no accounts, your files are never uploaded, and the studios work offline once loaded (apart from the downloads noted below).
+**If Leaves Weave** is a family of seven free, private tools for documents, plans and people, like separate pages woven into one book. Everything runs in your browser: there are no accounts, nothing is uploaded, and the tools work offline once loaded.
 
-## The studios at a glance
+## The tools at a glance
 
-| Studio | Page | What it is for |
+| Tool | Page | What it is for |
 | --- | --- | --- |
-| **Photo** and **Many photos** | `index.html` | Edit photos, make passport photos, remove backgrounds, and compress or resize many photos at once |
-| **Photo booth** | `photobooth.html` | Take photo strips with any camera |
-| **Design** | `design.html` | Posts, posters, thumbnails, cards and other layouts |
-| **Video** | `video.html` | Edit videos and slideshows |
-| **Audio** | `audio.html` | Record, edit and clean up sound |
-| **Animate** | `animate.html` | Whiteboard and cartoon explainer videos |
-| **Lessons** | `lesson.html` | Interactive video lessons with questions, like Edpuzzle |
-| **Course** | `course.html` | Interactive courses from blocks, with questions, scenes, animations and software simulations |
-| **Motion** | `motion.html` | Interactive HTML5 animations with a keyframe timeline, scenes and symbols, like Tumult Hype |
-| **Present** | `present.html` | Zooming, interactive presentations with your own path, like Prezi and Genially |
-| **360°** | `360.html` | 360 photos and videos |
-| **3D** | `3d.html` | Simple 3D models, for printing, AR and pictures |
+| **If Leaves Weave PDF** | `index.html` | Edit, sign, fill, convert, compare, redact and organise PDFs, and turn Word files into PDFs |
+| **Boards** | `boards.html` | Plan work in Kanban, Table and Timeline views |
+| **Canvas** | `canvas.html` | An endless whiteboard for brainstorms and retrospectives |
+| **Maps** | `maps.html` | Mind maps and concept maps |
+| **Sociogram** | `sociogram.html` | See how a group connects, from nominations or a Google Form |
+| **Genogram** | `genogram.html` | Family maps and ecomaps for casework |
+| **Prototype** | `prototype.html` | Clickable app screens |
 
-## Photo
+The **home page** (`home.html`) lists every tool and your recent work.
 
-### Editing
-- **Open:** with the button, by dragging a photo anywhere on the page, or by pasting (Ctrl+V).
-- **Crop:** freely, to Square, 4:5, 3:2, 4:3, 16:9, 9:16 or the original shape, or to an **exact size** (1280 × 800, 1920 × 1080, 1080 × 1080, 1080 × 1350, 1200 × 630, 1584 × 396 or your own numbers). The current size shows inside the crop box, with width, height and position fields to type into, and a note warns when a crop will be enlarged.
-- **Rotate and flip** in either direction.
-- **Adjust:** auto enhance; brightness, contrast, exposure, highlights, shadows, saturation, vibrance, warmth, tint and vignette; sharpen, soften and film grain.
-- **17 filters,** including Greyscale, Black and white, Sepia, Noir, Vintage, Duotone, Cyanotype, Retro and Pop art, with a strength slider.
-- **Text** in 23 fonts, with colour, size, alignment, bold, italic, outline, shadow and label background; drag to place.
-- **Borders** in any colour, and rounded corners.
-- **Undo and redo** (Ctrl+Z and Ctrl+Shift+Z), hold **Compare** to see the original, and **Start over** at any time.
+## If Leaves Weave PDF
 
-### Backgrounds
-- **Remove the background with AI,** on your device, then fill it with white, grey, blue, black or any colour, or keep it see-through.
-- **Pick a colour to make see-through:** click a colour (or type a hex code) and choose **Touching areas only** or **Everywhere in the photo**, with sliders for how similar colours must be and for soft edges.
+### Pages and editing
+- **Pages:** merge any number of PDFs, images and Word files; drag to reorder (or Move earlier and Move later on phones); rotate, duplicate, delete and insert blank pages; download selected pages as a new PDF.
+- **Edit and sign:** type text anywhere (Helvetica, Times or Courier, any size and colour, bold or italic); add signatures (draw, type in a script font, or upload a photo with its background removed, saved on your device for next time), images, ticks and crosses, highlighter, whiteout, freehand drawing and today’s date. Move, resize, duplicate and delete anything; arrow keys nudge.
+- **Fill form:** finds the PDF’s own fillable fields (text boxes, tick boxes, drop-downs and option buttons) and can lock the answers.
+- **Document properties:** title, author, subject and keywords, in the Pages panel.
+- **Undo and redo** for everything (Ctrl+Z and Ctrl+Shift+Z), and Ctrl+S to download.
 
-### Passport and ID photos
-- **Photo types:** the US, UK, Schengen and EU, Singapore, Malaysia, India, Australia, Canada, China, Japan, or a custom size.
-- **Frame it for me:** finds the face and places the crop so the head size and the space above it match the rules; **Frame by hand** uses a face guide.
-- **Check the photo:** looks for exactly one face, head size and position, centring, level eyes, open eyes, a closed mouth, a plain light background, even lighting and enough resolution to print, and explains anything worth checking. A guide only: the issuing authority decides.
-- **Print sheets** for 4 × 6 in, 5 × 7 in or A4 paper.
+### Signing with others
+- **Get it signed:** add up to five signers and mark where each one signs (signature, initials, date signed, full name or text), then download a signing file and email it.
+- **Guided signing:** signers open the file in If Leaves Weave, are guided field by field, agree to sign electronically, and download the signed PDF. It ends with a signing record page (document ID, the original file’s fingerprint, who signed and when). With several signers, the file passes from one to the next by email. No server is involved.
 
-### Saving
-- **Formats:** PNG, JPG, WebP, and AVIF where the browser supports it, with quality and size controls.
-- **By file size:** make a photo fit a limit such as “under 500 KB”, in KB or MB, as JPG, WebP or PNG. It keeps full size and the highest quality that fits, and otherwise shrinks the photo slightly while keeping quality at 60% or more.
-- **Copy** to the clipboard, or **Share** on phones.
+### Splitting, numbering and stamping
+- **Split:** every page, every N pages, or ranges such as `1-3, 5, 7-9`. Several files download as one ZIP.
+- **Page numbers:** four styles, three positions, a start number, and cover pages skipped.
+- **Watermark:** diagonal or straight text, with adjustable strength.
+- **Bates numbering and stamps:** prefix, start number, digits and suffix (for example ABC000001), four positions, an optional stamp such as “CONFIDENTIAL”, and a white box for legibility. Number many PDFs in sequence: they download as a ZIP with an `index.csv` of each file’s range.
 
-### Many photos
-- **Compress and resize a whole folder at once:** by longest side, width or percentage, with format and quality, or under a file-size limit (50 KB to 5 MB, or your own).
-- **See the saving** for each photo, and download them all as one ZIP. Camera and location details are removed.
+### Converting
+- **Word to PDF:** open a `.docx`, or choose **Word to PDF** on the start screen, and it becomes PDF pages to edit, sign or redact. Text stays real and selectable; headings, lists, tables and images come through, in a simplified layout.
+- **PowerPoint to PDF:** open a `.pptx`, or choose **PowerPoint to PDF** on the start screen, and each slide becomes a PDF page, with searchable text. Text boxes, titles and bullets (with sizes, bold, colours and alignment, and positions from the slide layout or master), shapes, pictures and slide backgrounds come through; charts, SmartArt, tables, gradients, theme colours and animations are not drawn. Older `.ppt` files need saving as `.pptx` first.
+- **PDF to Word, PowerPoint or images:** a Word document (editable text, or an exact-look version with each page as a picture), a PowerPoint deck (one slide per page, with the page’s text in the speaker notes), or JPG and PNG images at screen, standard or print quality.
+- **Compress:** three levels for scanned or photo-heavy PDFs. A “compressed” file that comes out bigger is never downloaded.
 
-## Photo booth
-1. **Snap:** choose 1 to 5 photos and a countdown (3, 5 or 10 seconds), then press the shutter or Space. A countdown, a soft flash and an optional shutter sound take each photo, and any photo can be retaken. The camera can be mirrored, and phones can switch between front and back cameras. No camera? Use up to five existing photos.
-2. **Remove the background (optional):** **Clean background** (step out of the frame, capture the empty scene, and whatever matches it is removed; best with a still camera and steady light) or **Green screen** (green or blue), with **Strength** and **Edge softness** sliders and a live preview. A small shader runs on your device’s graphics chip: no AI model, nothing downloaded. Removed areas show the strip’s background.
-3. **Style:** a look (colour, black and white, greyscale or sepia), a background (swatches, any colour or your own image), a layout (strip, row or grid), spacing, rounded corners, and a caption in clean, handwritten or classic lettering, with the date.
-4. **Share:** the phone’s share sheet, a PNG or JPG download, copy, or **Email it**.
+### Checking and comparing
+- **Compare two versions:** every word added, removed or changed between two PDFs, page by page. Download the revised version with changes highlighted, the original with removals struck through, or a plain-text report.
+- **Read text (OCR):** recognises text in scanned pages in 12 languages and saves a searchable PDF (an invisible text layer over the original pages) or a text file.
 
-Each photo is 1200 × 900 pixels, so strips are sharp enough to print. The camera switches off when you leave the page, and your choices are remembered in the browser.
+### Redacting
+- **Redact by hand:** in Edit and sign, drag a black box over anything sensitive.
+- **Find and redact (optional):** switch it on under **Pages → Optional tools**. It finds Singapore NRIC and FIN numbers (including masked ones), Malaysian MyKad numbers, UK National Insurance numbers, phone numbers, email addresses and card numbers (checked with the Luhn test), and optionally long account numbers, dates, Singapore postal codes and any names you type. Every match is listed, partly hidden, so you can untick anything that should stay visible.
+- **True removal:** on download, every redacted page is rebuilt as an image, so hidden text is permanently removed, not just covered. Boxes are measured from the real letter widths, with a safety margin.
+- **Redaction report:** a plain-text record of what was removed, on which pages and when, with the redacted PDF’s **SHA-256 fingerprint** and an optional name and reason (such as a PDPA access request). It never includes the removed details.
 
-## Design
-- **Ready sizes:** Instagram post and story, YouTube thumbnail, LinkedIn post and banner, presentation slide, A4 poster, A5 flyer, business card, X post, or a custom size, with six starter templates.
-- **Layers:** text (six fonts, spacing, capitals and highlight boxes), eight shapes with gradient fills, 30 icons and illustrations, characters from the Animate people builder, photos and QR codes. Drag, resize, rotate, snap, align, reorder, lock and hide.
-- **Effects:** opacity, 14 blend modes, shadow, outline and glow.
-- **Photo tools:** erase and restore brushes, clone stamp, healing brush, remove a colour by click, AI background removal, 2× enlargement, adjustments, frames (rounded, circle and arch) and flip.
-- **Resize to another format** in one click, with everything kept inside the edges.
-- **Brand kit:** your colours and fonts, saved in the browser, with colours that can be removed.
-- **Download:** PNG, JPG, PDF (print sizes for A4 and A5) or transparent PNG, or as a phone, laptop, tablet or framed-poster mockup. Save and open projects as files.
+### Sharing and teaching
+- **Flipbook:** a self-contained page-turning HTML file, with spreads on wide screens, swipe, keys, full screen, find text, a page grid, zoom and links to a page (`…#page-12`). Page text is included for screen readers and search. **Preview first** opens it in a new tab before saving. A **website folder** option exports one image per page, a 1200 × 630 `preview.jpg` and link-preview tags. Links to `index.html#flipbook` open the tool ready to make one. Optionally, add a **Listen** button that reads the pages aloud with the reader’s own device voices (voice and speed choices, pause, and turning pages automatically); it is off unless you tick it. With it, you can add a short **spoken introduction**, heard once before the cover when someone starts listening from the first page and not shown on the pages, and optionally a **recording** of it in your own voice (record it in the browser or upload an audio file). The recording plays instead of the device voice; if it can’t play, the typed introduction is spoken. Single-file flipbooks carry the recording inside them; website folders save it as its own `intro` file.
+- **Classroom:** read the document aloud with the browser’s voices; add paper pages (lined, handwriting, squared, graph, dotted, isometric, Cornell notes, music staves or blank, in A4 or US Letter); and record voice notes saved inside the PDF as attachments.
 
-## Video
-- **Timeline:** trim by dragging clip ends, split (S), duplicate, reorder, undo and redo.
-- **Clips:** speed from 0.25× to 4×; photo slideshows with an optional slow zoom; freeze frames; snapshots of any frame.
-- **Transitions:** crossfade, fade through black or white, slide, slide up, wipe, zoom and circle, on one clip or every clip.
-- **Looks and framing:** black and white, sepia, vintage, warm, cool, vivid and noir, plus brightness, contrast and saturation; zoom, reposition, rotate and mirror (for example, landscape to vertical).
-- **Sound:** clip volume with fades; detach a clip’s sound; several audio tracks; record a voiceover; remove vocals, isolate voice, clearer speech, remove rumble, reduce hiss and boost bass.
-- **Remove silences:** choose a pace (Natural, Tight or Very tight) for one clip or every clip; Undo restores everything.
-- **Titles** in five fonts, with fade, pop, slide-up and typewriter animations.
-- **Export:** video (MP4 where supported, otherwise WebM), animated GIF, audio only (M4A or WebM), or a PNG frame.
+## The six document tools
 
-## Audio
-- **Open or record:** any audio file, a video’s sound, or the microphone.
-- **Edit:** a zoomable waveform with drag-to-select; keep the selection, delete, silence, insert silence, add a file at the end or mix one in at the playhead; undo and redo.
-- **Clean up:** fade in and out, normalise, reverse, reduce background noise, clearer speech, remove vocals and isolate voice; volume, speed, bass, middle, treble, echo, reverb and compression.
-- **Remove silences:** pauses show in red, then are cut with smooth joins; set the quiet level (or let it choose), the shortest pause to cut and how much pause to keep.
-- **Export:** MP3 (128, 192 or 320 kbps) or WAV.
-- **Find music (Video and Audio):** links to trend charts and free music libraries, plus a credit-line maker. Little Light Lit doesn’t download audio from other sites, which would break their terms and usually copyright.
+### Boards
+- **Three views of the same cards:** Kanban, Table and Timeline.
+- **Cards:** labels, owner, start and due dates, priority (low, medium, high or urgent) and checklists, with filters and CSV export.
+- **Templates:** project plan and sprint board.
+- **Action boards from AI Benar:** an AI Benar audit can open here as a board of fixes, through a link that never reaches a server.
 
-## Animate
-- **Two styles, mixed scene by scene:** **whiteboard** (a hand sketches each item, then colours it in; text is written stroke by stroke) and **cartoon** (characters walk, pop or slide in, with talking mouths and waving arms).
-- **People builder:** 6 skin tones, 7 hairstyles including a hijab, hair colours, tops, bottoms, glasses and facial hair, with 6 poses and 6 expressions. **Save characters** to reuse in any scene, and rename or delete them under **Manage my characters**.
-- **30 props and 9 backgrounds,** and imported SVG illustrations (such as Open Peeps, Humaaans or unDraw) traced path by path.
-- **Realistic drawing:** three single-line pen fonts; shapes drawn along their outlines; a marker, pen or chalk hand in six skin tones, your own hand photo, or no hand.
-- **Scenes:** lengths and transitions (cut, fade and wipe), music and voiceover, and three shapes (16:9, 9:16 and 1:1).
-- **Export:** MP4 or WebM, in Full HD 1080p or HD 720p. Save and open projects as files.
+### Canvas
+- **Tools:** sticky notes, text, rectangles, ellipses, diamonds, frames, images, a pen, and connectors with labels, arrows, and dashed or curved lines.
+- **Arranging:** align and spread evenly; keyboard shortcuts (S, T, R, O, D, C, P, F, I, V and H).
+- **Templates:** team retrospective and SWOT analysis.
 
-## Lessons
-- **Any video becomes a lesson,** with no student accounts or servers: a video file (works offline) or a YouTube link (a tiny lesson file; students need internet).
-- **Add at any moment:** multiple-choice questions (one or several correct answers, with feedback), open questions, polls and pop-up notes.
-- **Skipping control:** **Allow skipping**, **Rewind only** (the default) or **Watch straight through**, with a fastest playback speed; built-in video controls and Picture-in-Picture are blocked when skipping is restricted.
-- **Branching stories:** several clips, choices that jump to a clip or a time, endings, jump points, a story map that warns about unreachable clips, and scoring of the best choices.
-- **360° video clips,** with a built-in viewer.
-- **Settings:** retries, showing correct answers, shuffled answers, names and classes, captions (.vtt or .srt) and a pass mark.
-- **Student interface in six languages:** English, Bahasa Melayu, Chinese, Tamil, Bahasa Indonesia and Vietnamese. Students can pick up where they left off.
-- **Building:** undo and redo, draggable colour-coded markers, warnings on unfinished questions, and **Preview as a student**. Work is saved as a draft in the browser: **Carry on** reopens it, and **Discard draft** removes it (useful on shared computers).
-- **Sharing and collecting answers:** a student lesson file (answers handed in as a file, a code, an email or to the teacher’s own Google Sheet); a **SCORM 1.2** package for Moodle, Canvas, Blackboard and Brightspace; a **Singapore Student Learning Space (SLS)** package; or an embed code.
-- **Results:** scores, how much each student watched, answers to every question (with weak questions flagged), written answers, paths and endings, and a CSV download.
+### Maps
+- **Mind maps by keyboard:** Tab adds a child idea, Enter a sibling, the arrow keys move, Space folds and F2 edits.
+- **Concept maps:** linking phrases and labelled cross-links.
+- **Details:** notes, tags, links, done marks and colours on every idea; three layouts (balanced, right and top-down); an outline view.
+- **Export:** PNG, SVG and Markdown.
 
-## Course
-Build interactive, responsive courses from blocks, and export them as a web page or a SCORM package.
+### Sociogram
+- **Paste responses from a Google Form** or any spreadsheet: a name, up to three people to work with and up to three to avoid. Columns are recognised automatically, with a preview to correct them.
+- **Forgiving name matching:** capitals, extra spaces, first names alone and small typos are matched when only one pupil fits; any remaining names are listed with the closest pupil suggested.
+- **Messy data handled:** blank cells, choosing oneself, repeated names and repeat submissions (the latest answers count). Pupils named but who didn’t respond are added and marked.
+- **The “prefer not” answers are optional:** without them, every measure uses positive choices only.
+- **Layouts:** network, target and circle, with size and colour options.
+- **Measures:** in-degree, out-degree, mutual choices, betweenness, harmonic closeness, eigenvector centrality, PageRank, clustering, Louvain communities, cliques and sociometric status (Coie, Dodge and Coppotelli, 1982), checked against the NetworkX library, with plain-English insights.
+- **CSV import and export.**
 
-### Content and interaction blocks
-- **Content:** headings, text (with **bold**, _italic_, links and lists), images with descriptions and captions, and video (YouTube or a video address).
-- **Interactions:** accordions, tabs (with arrow-key navigation), flashcards, step-by-step processes, timelines, and labelled graphics (click a picture to add numbered labels).
+### Genogram
+- **Standard conventions** (McGoldrick, Gerson and Petry): symbols, couple and child lines, twins, relationship lines (close, distant, conflict, cut off, abuse and more), health shading, households (including non-family members such as a domestic helper), automatic layout and an automatic key.
+- **Ecomap view:** the household in the centre, with systems around it (School, Work, Family Service Centre, ComCare, HDB, Faith community, RC or CC and more, or your own), each linked as strong, moderate, tenuous or stressful, with arrows for the flow of support (after Hartman, 1978).
+- **Privacy mode:** initials only, for sharing.
+- **Export:** PNG, SVG and a plain-text summary.
 
-### Questions
-- **Eight types:** multiple choice, multiple response, true or false, fill in the blanks (with accepted alternatives, in any capitalisation), matching, sequencing, sorting into groups, and click the spot on a picture.
-- **Options:** points, custom feedback for right and wrong answers, another try, and shuffled answers.
-- **Drag and drop:** matching, sorting into groups and sequencing use real drag and drop, with a mouse or touch. With a keyboard, press Space on a card to pick it up, then Space on a slot or group to drop it; screen readers hear each step. Matching and sorting can switch to drop-down lists instead, and sequencing also has up and down buttons.
+### Prototype
+- **Screens from 14 parts,** with links between screens and a Play mode.
+- **Describe a screen:** a starter that builds a screen from a sentence, by rules, offline (no AI).
+- **Export:** a working clickable HTML prototype, or PNG pictures of screens.
 
-### Interactive scenes
-- **Objects:** buttons, text, shapes and pictures, placed by dragging on a 16:9 stage.
-- **States:** a look for normal, when hovered, after clicking and selected.
-- **Layers:** pop-ups shown or hidden by rules.
-- **Rules in plain language:** “When [object] is [clicked, hovered or shown], and [variable] [is, is more than…] [value], then [show a layer, set a state, set or add to a variable, go to a block, or mark the scene complete].”
-- **Variables:** set in the Course panel, shown in any text with `{{name}}`.
-
-### Animations
-- **Controlled by scenes:** scene rules can play, pause, restart or jump an animation to a time, so a button can start it.
-- **Easing per keyframe:** smooth, steady, slow down, speed up, overshoot or steps, from each keyframe to the next.
-- **Import from Motion:** bring in a scene made in the Motion studio, with its keyframes and easing (symbols are left out).
-- **Keyframes on a timeline:** move the time slider, then drag an object or edit its position, scale, rotation and opacity to set a keyframe.
-- **Playback:** smooth, steady, slow-down or speed-up easing; looping; playing when scrolled into view; and Play and Replay buttons. It respects the “reduce motion” setting.
-
-### Software simulations
-- **Steps from screenshots** (for example from Lassoft): on each one, drag to mark where to click, or ask the learner to type text.
-- **Three modes:** **Watch** (the steps play with the target highlighted), **Try it** (hints after two wrong clicks) and **Test** (scored on first-time accuracy).
-
-### Narration
-- **For any block:** **Read aloud** uses the device’s own voice (no file, works offline, with a speed setting), or add **recorded** narration (from the microphone) or an **uploaded** audio file.
-- **Transcripts:** every narrated block shows a transcript for learners who can’t listen. For read aloud, it is the block’s own text unless you write your own.
-
-### Course settings and export
-- **Settings:** title, introduction, colour, pass mark and variables. The colour is adjusted automatically in light and dark mode, so text and buttons always stay readable.
-- **Progress and score:** shown at the end of the course, counting questions, scored simulations and scenes that can be completed.
-- **Export:** a **single HTML file** that opens in any browser; a **SCORM 1.2** or **SCORM 2004** package that reports score, completion and pass or fail to Moodle, Canvas, Blackboard and other learning platforms; or a **Singapore Student Learning Space (SLS)** package, which sends the score as SLS expects (upload it as an Integrated Scorable Response question, with maximum marks set to the course’s total points, which the export tells you). SLS packages can’t load YouTube.
-- **Saving:** a draft is kept in the browser as you work (**Carry on** or **Discard draft** on the start screen), and **Save** and **Open** keep course files.
-- **Sample course:** a ready-made course showing every kind of block.
-
-## Motion
-Interactive HTML5 animations, like Tumult Hype.
-- **Timeline:** a row for every object, with keyframe diamonds you drag to change their time; click the ruler to move the playhead, double-click a row to add a keyframe, and use the arrow keys on a selected keyframe to nudge it.
-- **Separate tracks for each property:** expand an object’s row (▸) to see Position, Scale, Rotation and Opacity tracks. Dragging sets only position, and changing one value sets only that property, so each can have its own timing; K sets a keyframe for everything. Double-click a track to add a keyframe to it.
-- **Physics:** switch it on for any object, so it falls with gravity, bounces off the stage edges and other objects, and slows with friction. Choose falls and bounces, can be thrown (drag and let go), or fixed (others bounce off it), with bounciness, friction and a starting push. Each scene sets its gravity and whether the edges act as walls. Physics objects follow their scale, rotation and opacity keyframes but not their position ones.
-- **Keyframes:** position, scale, rotation and opacity, set by dragging on the stage or typing values, with easing from each keyframe to the next (smooth, steady, slow down, speed up, overshoot, bounce back or steps).
-- **Scenes:** as many as you like, each with its length, background, transition (cut or fade) and what happens at the end (stop, go to the next scene, loop, or go back to the start). Rename, duplicate and reorder them.
-- **Symbols:** select objects (Shift-click for several) and make a symbol: a reusable animated group with its own looping timeline. Place it again from the Symbols list, and edit it once to change every copy.
-- **Actions:** objects that are clicked or hovered can go to the next, previous or any scene, play, pause, restart, jump to a time, or open a web page. Clickable objects become real buttons that work with a keyboard.
-- **Sizes:** 16:9 video and slides, social posts and stories, web banners (728 × 90), ad rectangles (300 × 250) and link previews (1200 × 630).
-- **Export:** a **web page** (one HTML file that scales to fit any screen), an **embed code** for websites, or a **Course file** to import into Course. Animations respect the “reduce motion” setting.
-- **Keyboard:** Space plays and pauses, K adds a keyframe, Delete removes the selected object.
-
-## Present
-Zooming, interactive presentations, like Prezi and Genially.
-- **Present a PowerPoint:** choose **From PowerPoint** on the start screen, or **Add slides from PowerPoint**, and each slide of a `.pptx` becomes a frame, named after its title and in slide order. Titles, bullets and text boxes (with sizes, bold, colours, alignment and vertical position), shapes, pictures and backgrounds come through, with positions from the slide layout or master; charts, SmartArt, tables and animations don’t. Then add zooming, buttons and pop-ups. It is read on your device; nothing is uploaded.
-- **Canvas and frames:** frames sit on a large canvas. Drag them to arrange them, drag a corner to resize them (a big frame zooms out, a small one zooms in), scroll to zoom and drag the background to pan.
-- **Your path:** set the order with up and down buttons. Frames can be taken off the path, to be reached only through buttons.
-- **Editing a frame:** double-click it to add headings, text, pictures, boxes, circles, buttons and hotspots; drag to move, drag the blue dot to resize, double-click text to change it, and set each element’s alignment and vertical position.
-- **Interactive elements:** buttons and hotspots can go to the next frame, go back, go to any frame (for menus and choose-your-path presentations), open a pop-up window, or open a web page, and anything can show a tooltip on hover or keyboard focus.
-- **Presenting:** full screen, zooming and panning along your path. → or Space moves on, ← goes back, O shows the overview (select a frame to zoom into it), and Esc closes a pop-up or exits.
-- **Sharing:** rename it, download it as one HTML file that presents in any browser, and copy an embed code for presenting online.
-- **PDF:** each frame becomes a 16:9 page in path order, drawn on your device, with searchable text. Optionally include frames off the path, and a “More details” page with pop-up content, since buttons and pop-ups can’t work on paper.
-- **Sample tour:** a ready-made presentation with a menu, choose-your-path topics, pop-ups and zooming.
-
-## 360°
-- **Open** stitched 360 photos and videos, or stitch raw dual-lens files (for example Samsung Gear 360).
-- **Adjust:** level the horizon, set the starting direction, colour controls and a vignette, and hide the tripod with a patch or your logo.
-- **Views:** 360, little planet, tunnel and flat.
-- **Save:** 360 photos with Facebook and Google metadata, pictures of the current view, spin-around and spinning-planet videos, 360 videos and flat videos of one view.
-
-## 3D
-- **Shapes and text:** cubes, spheres, cylinders, cones, rings, panels and 3D text; open GLB, glTF, OBJ, STL and PLY files.
-- **Arranging:** move, rotate and resize with handles, exact numbers or exact sizes in millimetres; snap, mirror, copy in a row or a circle, and group.
-- **Look:** colours, finishes, pictures on surfaces, faceted shading and realistic reflections.
-- **Export:** GLB, STL (3D printing), OBJ, USDZ (AR on iPhone and iPad), a PNG picture or a turntable video.
-
-## Across all studios
-- **Studio menu:** shows as many studios as fit and moves the rest into **More**; on narrow screens it becomes one button named after the current studio. Header buttons switch to icons when space is short.
-- **Opening files:** drop files anywhere on a page. Each studio shows what will happen and explains files it can’t open.
-- **Checking what files really are:** photos are checked by their first bytes, whatever their names say: programs or web pages disguised as photos are refused, misnamed photos still open, and PDFs and HEIC photos get advice.
-- **Honest labels in saved images:** photos, strips and designs saved as JPEG or PNG carry a standard IPTC **digital source type** label, so tools such as AI Asli can tell how they were made: edited by a person, algorithmically enhanced (such as AI background removal), a composite of camera captures, or a digital creation. An imported picture labelled as AI-generated is never relabelled.
-- **Keyboard:** Enter runs the main action in every save or export window, and Escape closes it.
+## Across all seven tools
+- **Home and navigation:** the logo in every tool goes to the home page; each tool’s **Home** button returns to its own templates and recent work; **Tools** (in the PDF tool) and **All If Leaves Weave tools** switch directly between tools.
+- **Document actions:** every document has a **⋯** menu in the sidebar, on the home screen and in the top bar, with **Rename**, **Duplicate**, **Download as a file** and **Delete**. Deleting asks first and offers **Undo** for a few seconds. On a selected document, F2 renames it and the Delete key deletes it.
+- **Saving:** the six document tools save automatically in the browser, with undo and redo. **Back up** saves every document from all six to one file, and **Open file** restores it on any device.
+- **Send to If Leaves Weave PDF:** from Canvas, Maps, Sociogram, Genogram and Prototype, open the drawing as a PDF page to annotate, sign or redact. The hand-off stays on the device.
+- **Checking what files really are:** every file’s first bytes show its real format, whatever its name says. Programs or web pages disguised as documents (such as a Windows program renamed `invoice.pdf`) are refused; misnamed files open as what they really are, with a note; older `.doc` files and HEIC photos get advice.
 - **Compact mode:** **Compact** in the header (Ctrl+\ on Windows, Cmd+\ on a Mac) hides the side panel, which then slides in as a drawer.
-- **Back to the start:** the Little Light Lit logo returns to the Photo studio’s start screen.
+- **Navigation aids:** menus open where they fit, flipping upward near the bottom of the screen.
 
 ## Compatibility
-- **Browsers:** current versions of Chrome, Edge, Firefox and Safari, on computers, tablets and phones. Camera features need permission to use the camera.
-- **How to open it:** from a website (such as GitHub Pages) or a local web server. Several studios won’t start when their files are opened directly from the computer.
-- **Offline:** everything works offline once loaded, except **AI background removal** in Photo and Design, which downloads its model (tens of MB) the first time.
-- **Photos it opens:** JPG, PNG, WebP, GIF, BMP and AVIF. iPhone HEIC photos open in Safari; elsewhere, export them as JPEG first. Very large photos are reduced to 4096 pixels on the longest side.
-- **Video and audio:** what plays depends on the browser. iPhone HEVC videos may not play in Chrome on Windows; export them as H.264 MP4 first.
-- **3D files:** GLB, glTF, OBJ, STL and PLY in; GLB, STL, OBJ and USDZ out.
-- **Accessibility:** every studio passes the automated WCAG 2.x A and AA checks in axe-core, in light and dark mode. Studios follow the system’s dark mode and respect reduced-motion settings.
+- **Browsers:** current versions of Chrome, Edge, Firefox and Safari, on computers, tablets and phones.
+- **How to open it:** from a website (such as GitHub Pages) or a local web server. Browsers block parts of it when the files are opened directly from the computer.
+- **Offline:** everything works offline once loaded, except **Read text**, which downloads its recognition engine the first time it is used.
+- **Files it opens:** PDF; JPG, PNG, WebP, GIF, BMP and AVIF images; Word `.docx`; and PowerPoint `.pptx`.
+- **Files it saves:** PDF, Word (`.docx`), PowerPoint (`.pptx`), JPG, PNG, SVG, CSV, Markdown, plain text, ZIP, HTML (flipbooks and prototypes) and If Leaves Weave files (`.ifleavesweave.json`).
+- **Languages and scripts:** the interface is in English. Text recognition supports 12 languages. In PDFs it creates, non-Latin text (such as Chinese or Arabic) is saved as a crisp image of the text; Word to PDF warns when a document uses such scripts.
+- **Accessibility:** every page passes the automated WCAG 2.x A and AA checks in axe-core, in light and dark mode. Menus, documents and most actions work with a keyboard (drawing with the pen needs a mouse, pen or touch). Every tool follows the system’s dark mode and respects reduced-motion settings.
 
 ## Privacy
-- **Your files stay on your device:** photos, videos, recordings, lessons and designs are processed in the browser and never uploaded. The camera is used only after you allow it.
-- **Anonymous counts:** visits and actions (such as saves) are counted as anonymous totals with the free Abacus counter: no cookies, no names, no file names or contents, and no identifiers. Nothing is counted for browsers that send *Do Not Track* or *Global Privacy Control*, and the owner can stop counting their own visits on the `#stats` page. Like any web service, the counter sees the visitor’s IP address while handling a request.
-- **Never counted:** lessons you share with students contain no counters.
-- **Saved in your browser:** preferences, lesson drafts, saved Animate characters and the Design brand kit. Lesson drafts and characters can be removed in their studios.
+- **Your files stay on your device:** documents, photos, drawings and answers are processed in the browser and never uploaded.
+- **Anonymous counts:** visits and actions (such as downloads) are counted as anonymous totals with the free Abacus counter: no cookies, no names, no file names or contents, and no identifiers. Nothing is counted for browsers that send *Do Not Track* or *Global Privacy Control*, and the owner can stop counting their own visits on the `#stats` page. Like any web service, the counter sees the visitor’s IP address while handling a request.
+- **Never counted:** flipbooks and other files you share contain no counters.
+- **Sensitive work:** handle genograms, sociograms and redacted documents according to your organisation’s consent and data protection rules (for example the PDPA in Singapore or UK GDPR), and keep backups.
 
 ## Honest limits
-- **Exports involving video or animation record in real time:** a 2-minute video takes about 2 minutes.
-- **Remove vocals** cancels sound panned to the centre of a stereo mix; it isn’t the AI stem separation paid tools use.
-- **Photo booth background removal** compares colours rather than understanding the photo: it works best with a still camera, steady light and a background unlike your clothes.
-- **Passport rules differ by country and change:** check the official requirements, and print sheets at 100% size.
-- **3D text** supports English letters, numbers and common symbols.
+- **Signatures are simple electronic signatures:** signers’ names and emails are recorded, not verified. Some documents (such as property deeds, wills or regulated contracts) need a qualified or witnessed signature.
+- **Editing adds on top:** existing text in a PDF isn’t rewritten; cover it with whiteout and type over it.
+- **Password-protected PDFs** need their password removed first. If Leaves Weave does not add passwords to PDFs.
+- **Word to PDF simplifies layouts:** text boxes, columns, headers and footers may differ.
+- **PDF to Word rebuilds text, headings and lists,** not exact layouts; use Exact look when appearance matters. Scanned PDFs contain no text to extract until **Read text** is used.
+- **Compressing turns pages into images,** so their text can’t be selected or searched.
+- **Automatic searches can miss details,** such as names in images: check each page before sharing a redacted document.
 
 ## Third-party code
-Bundled in `vendor/` unless noted, and loaded only when needed.
+All bundled in `vendor/` unless noted, and loaded only when needed.
 
 | Library | Used for | Licence |
 | --- | --- | --- |
-| three.js r169 | 3D and 360° | MIT |
-| lamejs 1.2.1 | MP3 export | LGPL 3.0 |
-| qrcode-generator | QR codes in Design | MIT |
-| JSZip | ZIP downloads | MIT |
-| ADL xAPI Wrapper 1.11.0 | SLS lesson packages | Apache 2.0 |
-| @vladmandic/face-api, with its models | Passport photo checker and framing | MIT |
-| EMS pen fonts (Evil Mad Scientist Laboratories) | Handwriting in Animate | SIL Open Font License |
-| 21 typefaces via Fontsource | Fonts, bundled in `assets/fonts/` | SIL Open Font License 1.1 |
-| @imgly/background-removal | AI background removal in Photo and Design (loaded from jsDelivr; models from img.ly) | **AGPL 3.0** |
+| pdf.js 4.10.38 | Reading and showing PDFs | Apache 2.0 |
+| pdf-lib 1.17.1 | Building PDFs | MIT |
+| JSZip 3.10.1 | ZIP files | MIT |
+| docx 9.0.2 | Word export | MIT |
+| PptxGenJS 3.12.0 | PowerPoint export | MIT |
+| mammoth 1.13.0 | Reading Word files | BSD 2-Clause |
+| jsPDF 4.2.1 and html2canvas 1.4.1 | Laying out Word files as PDF | MIT |
+| Tesseract.js | Text recognition (downloaded from jsDelivr on first use) | Apache 2.0 |
+| Hanken Grotesk, Caveat, Dancing Script and Great Vibes (via Fontsource) | Fonts, bundled in `fonts/` | SIL Open Font License 1.1 |
 
-**About the AGPL library:** while Little Light Lit uses `@imgly/background-removal`, the app as a whole must follow AGPL 3.0 terms, and commercial use needs img.ly’s commercial licence. It is under review for replacement with a permissively licensed, locally bundled alternative.
+Licence texts for the Word libraries are in `vendor/LICENSE-*.txt`.
 
 ## Files
-- **Studio pages:** `index.html`, `photobooth.html`, `design.html`, `video.html`, `audio.html`, `animate.html`, `lesson.html`, `course.html`, `motion.html`, `present.html`, `360.html` and `3d.html`.
-- **Players:** `assets/course-player.js`, `assets/motion-player.js` and `assets/present-player.js`, used in Preview and inside every export, so what you preview is what others see.
-- **Shared code, styles and fonts:** `assets/` (`littlelightlit-ux.js`, `nav.js`, `compact.js`, `labels.js`, `lesson-player.js` and others, `littlelightlit.css` and the fonts).
-- **Libraries:** `vendor/`.
+- **Home page:** `home.html`, for all seven tools.
+- **If Leaves Weave PDF:** `index.html`, `app.js`, `extras.js` and `compact.js`.
+- **Document tools:** `boards.html`, `canvas.html`, `maps.html`, `sociogram.html`, `genogram.html` and `prototype.html`, sharing `studio/` (`studio.css` and `studio/js/`).
+- **Libraries and fonts:** `vendor/` and `fonts/`.
 
 ## Licence
-This repository does not yet include a licence file, so by default all rights are reserved. To let others reuse the code, add a `LICENSE` file (for example the MIT licence), bearing in mind the AGPL library above. The bundled third-party libraries keep their own licences, listed above.
+This repository does not yet include a licence file, so by default all rights are reserved. To let others reuse the code, add a `LICENSE` file (for example the MIT licence). The bundled third-party libraries keep their own licences, listed above.

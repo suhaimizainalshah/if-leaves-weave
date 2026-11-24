@@ -17,7 +17,7 @@ function download(blob, name) { const a = document.createElement("a"); a.href = 
 const safeName = () => ($("#docName").value.trim() || "document").replace(/[\\/:*?"<>|]+/g, "-").replace(/\.pdf$/i, "");
 
 /* ============ Anonymous counters (no cookies, no personal data) ============ */
-const COUNTER = { on: true, ns: "ifleavesweave", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", board_visits: "Boards: visits", board_created: "Boards: boards made", whiteboard_visits: "Canvas: visits", whiteboard_created: "Canvas: whiteboards made", mindmap_visits: "Maps: visits", mindmap_created: "Maps: maps made", sociogram_visits: "Sociogram: visits", sociogram_created: "Sociogram: sociograms made", genogram_visits: "Genogram: visits", genogram_created: "Genogram: genograms made", prototype_visits: "Prototype: visits", prototype_created: "Prototype: prototypes made", send_to_pdf: "Sent to If Leaves Weave PDF from other tools", home_visits: "Home page: visits", autoredact: "Find and redact: used", redaction_report: "Redaction reports made", word_to_pdf: "Word files converted to PDF", flipbook_entry: "Arrived at the flipbook maker from a link", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
+const COUNTER = { on: true, ns: "ifleavesweave", keys: { visits: "Visits", opens: "Files opened", downloads: "PDFs downloaded", splits: "Splits", compress: "Compressions", images: "Image exports", convert: "Word and PowerPoint exports", redact: "Redacted downloads", forms: "Forms filled", requests: "Signing requests created", signed: "Documents signed", board_visits: "Boards: visits", board_created: "Boards: boards made", whiteboard_visits: "Canvas: visits", whiteboard_created: "Canvas: whiteboards made", mindmap_visits: "Maps: visits", mindmap_created: "Maps: maps made", sociogram_visits: "Sociogram: visits", sociogram_created: "Sociogram: sociograms made", genogram_visits: "Genogram: visits", genogram_created: "Genogram: genograms made", prototype_visits: "Prototype: visits", prototype_created: "Prototype: prototypes made", send_to_pdf: "Sent to If Leaves Weave PDF from other tools", home_visits: "Home page: visits", autoredact: "Find and redact: used", redaction_report: "Redaction reports made", word_to_pdf: "Word files converted to PDF", pptx_to_pdf: "PowerPoint files converted to PDF", flipbook_entry: "Arrived at the flipbook maker from a link", compare: "Comparisons", bates: "Bates numbering", flipbook: "Flipbooks (single file)", flipbook_site: "Flipbooks (website folder)", ocr: "Text recognition (OCR)", read_aloud: "Read aloud", paper_pages: "Paper pages added", voice_notes: "Voice notes saved" } };
 const canCount = COUNTER.on && !navigator.globalPrivacyControl && navigator.doNotTrack !== "1" && /^https?:/.test(location.protocol);
 const noCount = () => { try { return localStorage.getItem("ifleavesweave-nocount") === "1"; } catch { return false; } };
 function count(key) { if (noCount()) return; if (!canCount) return; try { fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER.ns}/${key}`, { keepalive: true }).catch(() => {}); } catch {} }
@@ -53,7 +53,7 @@ function dims(p) { const i = info(p), R = ((i.rot + p.rot) % 360 + 360) % 360; r
 
 /* ============ Loading ============ */
 const fileIn = $("#fileIn");
-function pick(accept = "application/pdf,image/*,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document", then = null) { pendingTool = then; fileIn.accept = accept; fileIn.value = ""; fileIn.click(); }
+function pick(accept = "application/pdf,image/*,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation", then = null) { pendingTool = then; fileIn.accept = accept; fileIn.value = ""; fileIn.click(); }
 fileIn.onchange = () => addFiles([...fileIn.files]);
 
 /* ============ What is this file really? Signature check on open ============
@@ -101,14 +101,77 @@ async function wordToPdf(f) {
   } finally { box.remove(); }
 }
 
+/* ============ PowerPoint to PDF, on this device ============
+   A .pptx is a ZIP of XML. Each slide is drawn on a canvas (text boxes, shapes, pictures and backgrounds, with placeholder
+   positions taken from the slide layout when a slide doesn't set them), then becomes a PDF page with an invisible,
+   searchable text layer. Simplified: theme colours, charts, SmartArt, tables, gradients and animations are not drawn. */
+const EMU = 12700; // EMUs per point
+async function pptxToPdf(f) {
+  const zip = await JSZip.loadAsync(await f.arrayBuffer()), read = p => zip.file(p)?.async("string"), xml = t => new DOMParser().parseFromString(t, "application/xml");
+  const ns = { p: "http://schemas.openxmlformats.org/presentationml/2006/main", a: "http://schemas.openxmlformats.org/drawingml/2006/main", r: "http://schemas.openxmlformats.org/officeDocument/2006/relationships" };
+  const q = (el, pre, name) => el ? [...el.getElementsByTagNameNS(ns[pre], name)] : [], q1 = (el, pre, name) => q(el, pre, name)[0] || null;
+  const kids = (el, pre, name) => el ? [...el.children].filter(c => c.namespaceURI === ns[pre] && c.localName === name) : [];
+  const pres = xml(await read("ppt/presentation.xml")), sz = q1(pres, "p", "sldSz"), cx = +sz.getAttribute("cx"), cy = +sz.getAttribute("cy");
+  const rels = async path => { const dir = path.replace(/[^/]+$/, ""), t = await read(dir + "_rels/" + path.split("/").pop() + ".rels"); const m = {}; if (t) for (const r of q(xml(t), "", "Relationship").length ? q(xml(t), "", "Relationship") : [...xml(t).getElementsByTagName("Relationship")]) m[r.getAttribute("Id")] = new URL(r.getAttribute("Target"), "http://x/" + dir).pathname.slice(1); return m; };
+  const presRels = await rels("ppt/presentation.xml"), order = q(pres, "p", "sldId").map(s => presRels[s.getAttributeNS(ns.r, "id")]).filter(Boolean);
+  const W = 1920, H = Math.round(1920 * cy / cx), k = W / cx, ptPx = W / (cx / EMU);
+  const color = el => { const c = q1(el, "a", "srgbClr"); return c ? "#" + c.getAttribute("val") : null; };
+  const xfrm = sp => { const x = q1(sp, "a", "xfrm"), off = q1(x, "a", "off"), ext = q1(x, "a", "ext"); return off && ext ? { x: +off.getAttribute("x"), y: +off.getAttribute("y"), w: +ext.getAttribute("cx"), h: +ext.getAttribute("cy") } : null; };
+  const phKey = sp => { const ph = q1(sp, "p", "ph"); return ph ? (ph.getAttribute("type") || "body") + ":" + (ph.getAttribute("idx") || "") : null; };
+  const doc = await PDFDocument.create(), font = await doc.embedFont(StandardFonts.Helvetica); doc.setTitle(f.name.replace(/\.pptx$/i, "")); doc.setCreator("If Leaves Weave");
+  const safe = t => [...t].map(ch => { try { font.encodeText(ch); return ch; } catch { return ""; } }).join("");
+  for (const sp of order) {
+    const sx = xml(await read(sp)), sRels = await rels(sp), layoutPath = Object.values(sRels).find(v => /slideLayout/.test(v)), layout = layoutPath ? xml(await read(layoutPath)) : null;
+    // placeholder positions: from the slide layout, and failing that from the slide master the layout is based on
+    const lay = {}, addFrom = d => { if (d) q(d, "p", "sp").forEach(s2 => { const kk = phKey(s2), x = xfrm(s2); if (kk && x) { lay[kk] ||= x; lay[kk.split(":")[0] + ":"] ||= x; } }); };
+    let styleSize = { title: 0, body: 0, other: 0 };
+    addFrom(layout); if (layoutPath) { const lr = await rels(layoutPath), mp = Object.values(lr).find(v => /slideMaster/.test(v)); if (mp) { const md = xml(await read(mp)); addFrom(md);
+      const sz = st => +q1(q1(q1(md, "p", st), "a", "lvl1pPr"), "a", "defRPr")?.getAttribute("sz") / 100 || 0; styleSize = { title: sz("titleStyle"), body: sz("bodyStyle"), other: sz("otherStyle") }; } }
+    const c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d"), texts = [];
+    g.fillStyle = color(q1(q1(sx, "p", "bg"), "a", "solidFill")) || color(q1(q1(layout, "p", "bg"), "a", "solidFill")) || "#ffffff"; g.fillRect(0, 0, W, H);
+    const tree = q1(sx, "p", "spTree");
+    const drawShape = async (el, ox = 0, oy = 0, sxk = 1, syk = 1) => {
+      if (el.localName === "grpSp") { const gx = q1(q1(el, "p", "grpSpPr"), "a", "xfrm"), off = q1(gx, "a", "off"), ext = q1(gx, "a", "ext"), co = q1(gx, "a", "chOff"), ce = q1(gx, "a", "chExt");
+        const fx = ext && ce ? +ext.getAttribute("cx") / (+ce.getAttribute("cx") || 1) : 1, fy = ext && ce ? +ext.getAttribute("cy") / (+ce.getAttribute("cy") || 1) : 1;
+        const nox = off ? ox + (+off.getAttribute("x") - (co ? +co.getAttribute("x") * fx : 0)) * sxk : ox, noy = off ? oy + (+off.getAttribute("y") - (co ? +co.getAttribute("y") * fy : 0)) * syk : oy;
+        for (const ch of [...el.children]) if (["sp", "pic", "grpSp"].includes(ch.localName)) await drawShape(ch, nox, noy, sxk * fx, syk * fy); return; }
+      // a body placeholder in the slide may be typed "body" or only numbered; titles may be "title" or "ctrTitle"
+      const spPr = kids(el, "p", "spPr")[0], key = phKey(el), kind = key?.split(":")[0]; let b = xfrm(spPr) || (key && (lay[key] || lay[kind + ":"] || (kind === "ctrTitle" && lay["title:"]) || (kind === "subTitle" && lay["body:"]) || (kind === "body" && lay["body:1"]))); if (!b) return;
+      b = { x: ox + b.x * sxk, y: oy + b.y * syk, w: b.w * sxk, h: b.h * syk }; const X = b.x * k, Y = b.y * k, Wd = b.w * k, Ht = b.h * k;
+      if (el.localName === "pic") { const id = q1(el, "a", "blip")?.getAttributeNS(ns.r, "embed"), path = sRels[id]; if (path && zip.file(path)) { const blob = new Blob([await zip.file(path).async("uint8array")]); try { const bmp = await createImageBitmap(blob); g.drawImage(bmp, X, Y, Wd, Ht); } catch {} } return; }
+      const geom = q1(spPr, "a", "prstGeom")?.getAttribute("prst") || "rect", fill = color(kids(spPr, "a", "solidFill")[0]);
+      if (fill && !q1(spPr, "a", "noFill")) { g.fillStyle = fill; g.beginPath(); geom === "ellipse" ? g.ellipse(X + Wd / 2, Y + Ht / 2, Wd / 2, Ht / 2, 0, 0, Math.PI * 2) : g.roundRect(X, Y, Wd, Ht, geom === "roundRect" ? Math.min(Wd, Ht) * .16 : 0); g.fill(); }
+      const ln = kids(spPr, "a", "ln")[0]; if (ln && color(ln) && !q1(ln, "a", "noFill")) { g.strokeStyle = color(ln); g.lineWidth = Math.max(1, (+ln.getAttribute("w") || 12700) * k); g.strokeRect(X, Y, Wd, Ht); }
+      const body = kids(el, "p", "txBody")[0]; if (!body) return; const bp = q1(body, "a", "bodyPr"), anchor = bp?.getAttribute("anchor") || (key?.startsWith("ctrTitle") || key?.startsWith("title") || (!key && q1(el, "p", "cNvSpPr")?.getAttribute("txBox") !== "1") ? "ctr" : "t");
+      const inL = (+(bp?.getAttribute("lIns") ?? 91440)) * k, inT = (+(bp?.getAttribute("tIns") ?? 45720)) * k, maxW = Wd - inL * 2, lines = [];
+      // text boxes start top-left; other shapes centre their text, as PowerPoint does
+      const isTitle = key && /^(title|ctrTitle)/.test(key), isBox = q1(el, "p", "cNvSpPr")?.getAttribute("txBox") === "1", shapeText = !key && !isBox;
+      const defSize = isTitle ? (styleSize.title || 40) * (key.startsWith("ctrTitle") ? 1.1 : 1) : key?.startsWith("subTitle") ? (styleSize.body || 24) * .75 : key ? (styleSize.body || 22) : (styleSize.other || 18);
+      for (const para of q(body, "a", "p")) { const pPr = q1(para, "a", "pPr"), algn = pPr?.getAttribute("algn") || (key?.startsWith("ctrTitle") || key?.startsWith("subTitle") || shapeText ? "ctr" : "l");
+        const runs = q(para, "a", "r").map(r => { const rp = q1(r, "a", "rPr"); return { t: q1(r, "a", "t")?.textContent || "", size: (+(rp?.getAttribute("sz")) / 100 || defSize), bold: rp?.getAttribute("b") === "1" || isTitle, color: color(rp) || "#000000" }; });
+        const bullet = q1(pPr, "a", "buChar") || (key && /^body/.test(key) && runs.length && !q1(pPr, "a", "buNone")); const text = (bullet ? "• " : "") + runs.map(r => r.t).join(""), r0 = runs[0] || { size: defSize, bold: isTitle, color: "#000000" };
+        const px = r0.size * ptPx; g.font = `${r0.bold ? 700 : 400} ${px}px Helvetica, Arial, sans-serif`;
+        let line = ""; const words = text.split(/(\s+)/); for (const w of words) { const t2 = line + w; if (g.measureText(t2).width > maxW && line.trim()) { lines.push({ s: line.trimEnd(), px, bold: r0.bold, color: r0.color, algn }); line = w.trimStart(); } else line = t2; }
+        lines.push({ s: line, px, bold: r0.bold, color: r0.color, algn }); }
+      const total = lines.reduce((a, l) => a + l.px * 1.2, 0); let y = anchor === "ctr" ? Y + (Ht - total) / 2 : anchor === "b" ? Y + Ht - inT - total : Y + inT;
+      g.textBaseline = "top"; for (const l of lines) { g.font = `${l.bold ? 700 : 400} ${l.px}px Helvetica, Arial, sans-serif`; g.fillStyle = l.color; const lw = g.measureText(l.s).width, tx = l.algn === "ctr" ? X + (Wd - lw) / 2 : l.algn === "r" ? X + Wd - inL - lw : X + inL; g.fillText(l.s, tx, y); if (l.s.trim()) texts.push({ s: l.s, x: tx / W, y: (y + l.px * .85) / H, size: l.px / W }); y += l.px * 1.2; }
+    };
+    for (const el of [...(tree?.children || [])]) if (["sp", "pic", "grpSp"].includes(el.localName)) await drawShape(el);
+    const jpg = await doc.embedJpg(await (await new Promise(r => c.toBlob(r, "image/jpeg", .9))).arrayBuffer()), pw = cx / EMU, ph = cy / EMU, page = doc.addPage([pw, ph]);
+    page.drawImage(jpg, { x: 0, y: 0, width: pw, height: ph });
+    for (const t of texts) { const v = safe(t.s); if (v) page.drawText(v, { x: t.x * pw, y: ph - t.y * ph, size: t.size * pw, font, opacity: 0 }); } // searchable, invisible
+  }
+  return { bytes: await doc.save(), slides: order.length };
+}
+
 async function addFiles(files, insertAt = null) {
   // check what each file really is, whatever its name says
   const checked = [], notes = [];
   for (const f of files) {
     const kind = await sniff(f).catch(() => "unknown");
     if (kind === "program" || kind === "html") { toast(`“${f.name}” isn’t a document: it looks like ${kind === "program" ? "a program" : "a web page"}, so it wasn’t opened. Files that hide what they are can be harmful.`, 6500); continue; }
-    if (kind === "pdf" || IMAGE_KINDS.has(kind) || kind === "docx") { if ((kind === "pdf") !== /\.pdf$/i.test(f.name) && !(IMAGE_KINDS.has(kind) && /\.(jpe?g|png|gif|webp|bmp|avif)$/i.test(f.name)) && !(kind === "docx" && /\.docx$/i.test(f.name))) notes.push(`“${f.name}” is really a ${kind === "docx" ? "Word document" : kind.toUpperCase() + (kind === "pdf" ? "" : " image")}, so it was opened as one.`); checked.push({ f, kind }); continue; }
-    if (kind === "ole") { toast(`“${f.name}” is an older Word, Excel or PowerPoint file. Save it as .docx in Word, then open it here.`, 6000); continue; }
+    if (kind === "pdf" || IMAGE_KINDS.has(kind) || kind === "docx" || kind === "pptx") { if ((kind === "pdf") !== /\.pdf$/i.test(f.name) && !(IMAGE_KINDS.has(kind) && /\.(jpe?g|png|gif|webp|bmp|avif)$/i.test(f.name)) && !(kind === "docx" && /\.docx$/i.test(f.name)) && !(kind === "pptx" && /\.pptx$/i.test(f.name))) notes.push(`“${f.name}” is really a ${kind === "docx" ? "Word document" : kind === "pptx" ? "PowerPoint file" : kind.toUpperCase() + (kind === "pdf" ? "" : " image")}, so it was opened as one.`); checked.push({ f, kind }); continue; }
+    if (kind === "ole") { toast(`“${f.name}” is an older Word, Excel or PowerPoint file. Save it as .docx or .pptx, then open it here.`, 6000); continue; }
     if (kind === "heic") { toast(`“${f.name}” is a HEIC photo, which this browser may not open. Export it as JPEG first.`, 5000); continue; }
     toast(`“${f.name}” isn’t a PDF, Word document or image, so it wasn’t opened.`, 4500);
   }
@@ -118,6 +181,11 @@ async function addFiles(files, insertAt = null) {
     const { f, kind } = checked[i]; busy(`Opening ${f.name}`, (i / checked.length) * 100); await tick();
     try {
       if (IMAGE_KINDS.has(kind)) added.push(...await loadImage(f.type.startsWith("image/") ? f : new File([f], f.name, { type: "image/" + kind })));
+      else if (kind === "pptx") {
+        busy(`Turning ${f.name} into PDF pages`, (i / checked.length) * 100); const pp = await pptxToPdf(f);
+        added.push(...await loadPdf(new File([pp.bytes], f.name.replace(/\.pptx$/i, "") + ".pdf", { type: "application/pdf" }))); count("pptx_to_pdf");
+        notes.push(`“${f.name}” was converted from PowerPoint (${pp.slides} slide${pp.slides === 1 ? "" : "s"}) with a simplified look: charts, SmartArt, tables, theme colours and animations aren’t drawn. Check the pages before sharing.`);
+      }
       else if (kind === "docx") {
         busy(`Turning ${f.name} into PDF pages`, (i / checked.length) * 100); const w = await wordToPdf(f);
         added.push(...await loadPdf(new File([w.bytes], f.name.replace(/\.docx$/i, "") + ".pdf", { type: "application/pdf" }))); count("word_to_pdf");
@@ -788,6 +856,7 @@ async function exportImages() {
 const TASKS = [
   ["Merge PDFs", "pages", "M8 3h8l4 4v8M4 9h8l4 4v8H4z", true],
   ["Word to PDF", "pages", "M7 3h8l5 5v13H7zM10 12l1.5 5 1.5-4 1.5 4 1.5-5", "docx"],
+  ["PowerPoint to PDF", "pages", "M4 5h16v11H4zM9 20h6M12 16v4M8 9h5", "pptx"],
   ["Split a PDF", "split", "M6 3v18M18 3v18M6 12h12"],
   ["Sign a PDF", { tool: "edit", sign: true }, "M3 17c3-6 5-10 6-7s-2 8 1 8 4-6 6-6 1 4 3 4 2-1 2-1"],
   ["Fill in and edit", "edit", "M4 20h4L19 9l-4-4L4 16z"],
@@ -802,7 +871,7 @@ const TASKS = [
   ["Read aloud, paper and voice notes", "class", "M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2zM8 7h6M8 11h8"],
 ];
 $("#tasks").innerHTML = TASKS.map(([n, , d], i) => `<button class="task" data-task="${i}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>${n}</button>`).join("");
-$("#tasks").onclick = e => { const b = e.target.closest("[data-task]"); if (!b) return; const [, t, , extra] = TASKS[+b.dataset.task]; pick(extra === "image/*" ? "image/*" : extra === "docx" ? ".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "application/pdf,image/*,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document", t); };
+$("#tasks").onclick = e => { const b = e.target.closest("[data-task]"); if (!b) return; const [, t, , extra] = TASKS[+b.dataset.task]; pick(extra === "image/*" ? "image/*" : extra === "docx" ? ".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" : extra === "pptx" ? ".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" : "application/pdf,image/*,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation", t); };
 $("#tray").addEventListener("click", e => { if (e.target === e.currentTarget) pick(); });
 $("#numOn").addEventListener("change", () => { if ($("#numOn").checked) toast("Page numbers will be added when you download"); });
 
