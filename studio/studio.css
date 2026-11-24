@@ -216,3 +216,8 @@ a.famcard:hover{border-color:var(--accent)}a.famcard svg{width:20px;height:20px;
 .topbar .title:hover, .topbar .title:focus { border-color: var(--line); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2357616C' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 20h4L19 9l-4-4L4 16z'/%3E%3C/svg%3E"); padding-right: 1.6rem; }
 .toast-act { margin-left: .8rem; border: 0; background: none; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; padding: .2rem .3rem; }
 .toast .toast-act { pointer-events: auto; position: relative; z-index: 1; } .toast:has(.toast-act) { pointer-events: auto; z-index: 1000; }
+
+/* the tools menu: a grid of tiles, in the home page's order, that always fits on the screen */
+.pop.fampop{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;width:min(980px,calc(100vw - 16px));overflow:auto;padding:8px}
+.fampop .famlink{align-items:flex-start}.fampop .famlink small{display:block;color:var(--muted);font-size:.78rem}.fampop .famlink.fam-all{grid-column:1/-1;border-bottom:1px solid var(--line);margin-bottom:4px}
+@media (max-width:1000px){.pop.fampop{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:720px){.pop.fampop{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:440px){.pop.fampop{grid-template-columns:1fr}}

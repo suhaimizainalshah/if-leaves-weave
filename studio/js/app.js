@@ -10,11 +10,11 @@ const App = (() => {
   /* ---------- the If Leaves Weave family switcher ---------- */
   const FAMILY = [["home.html", "All tools", "The If Leaves Weave home page", ICONS.home], ["index.html", "If Leaves Weave PDF", "Edit, sign, convert and redact PDFs", IC('<path d="M7 3h8l5 5v13H7z"/><path d="M15 3v5h5"/><path d="M10 14h7M10 17h5"/>')], ...Object.entries(TYPES).map(([k, t]) => [t.page, t.family, t.blurb, ICONS[t.icon], k])];
   $("#brandName").textContent = T.family.replace("If Leaves Weave ", ""); $("#famBtn").onclick = e => {
-    $$(".pop").forEach(p => p.remove()); const p = h("div", { class: "pop", role: "menu", "aria-label": "If Leaves Weave tools" });
-    FAMILY.forEach(([href, name, blurb, icon, k]) => { const a = h("a", { class: "famlink", href, role: "menuitem", "aria-current": k === TOOL ? "page" : null }); a.innerHTML = `${icon}<span>${esc(name)}<small>${esc(blurb)}</small></span>`; p.append(a); });
-    document.body.append(p); const r = e.currentTarget.getBoundingClientRect(); p.style.top = `${r.bottom + 6}px`; p.style.left = `${r.left}px`; p.querySelector("a")?.focus();
+    $$(".pop").forEach(p => p.remove()); const p = h("div", { class: "pop fampop", role: "menu", "aria-label": "If Leaves Weave tools" });
+    FAMILY.forEach(([href, name, blurb, icon, k]) => { const a = h("a", { class: "famlink", href, role: "menuitem", "aria-current": k === TOOL ? "page" : null }); if (href === "home.html") a.classList.add("fam-all"); a.innerHTML = `${icon}<span>${esc(href === "home.html" ? name : name.replace("If Leaves Weave ", ""))}<small>${esc(blurb)}</small></span>`; p.append(a); });
+    document.body.append(p); const r = e.currentTarget.getBoundingClientRect(); p.style.top = `${r.bottom + 6}px`; p.style.maxHeight = `calc(100vh - ${r.bottom + 18}px)`; p.style.left = `${Math.max(8, Math.min(r.left, innerWidth - p.offsetWidth - 8))}px`; p.querySelector("a")?.focus();
     setTimeout(() => { const off = ev => { if (!p.contains(ev.target)) { p.remove(); removeEventListener("pointerdown", off, true); } }; addEventListener("pointerdown", off, true); });
-    p.addEventListener("keydown", ev => { const as = [...p.querySelectorAll("a")], i = as.indexOf(document.activeElement); if (ev.key === "Escape") { p.remove(); e.currentTarget?.focus?.(); } if (ev.key === "ArrowDown") { ev.preventDefault(); as[(i + 1) % as.length].focus(); } if (ev.key === "ArrowUp") { ev.preventDefault(); as[(i - 1 + as.length) % as.length].focus(); } });
+    p.addEventListener("keydown", ev => { const as = [...p.querySelectorAll("a")], i = as.indexOf(document.activeElement); if (ev.key === "Escape") { p.remove(); e.currentTarget?.focus?.(); } const cols = getComputedStyle(p).gridTemplateColumns.split(" ").length; if (ev.key === "ArrowDown" || ev.key === "ArrowRight") { ev.preventDefault(); as[(i + (ev.key === "ArrowDown" && i > 0 ? cols : 1)) % as.length].focus(); } if (ev.key === "ArrowUp" || ev.key === "ArrowLeft") { ev.preventDefault(); as[(i - (ev.key === "ArrowUp" && i > cols ? cols : 1) + as.length) % as.length].focus(); } });
   };
 
   /* ---------- documents ---------- */
