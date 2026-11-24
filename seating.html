@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Seating and groups · If Leaves Weave</title>
+<link rel="icon" href="logo.png" type="image/png"><link rel="stylesheet" href="fonts/fonts.css"><link rel="stylesheet" href="kit.css">
+<style>
+.room{display:grid;gap:10px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}.front{text-align:center;font-weight:800;letter-spacing:.08em;font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;padding:6px}
+.desks{display:grid;gap:8px}.tables{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}.table{display:grid;grid-template-columns:repeat(2,minmax(90px,1fr));gap:6px;padding:10px;border:2px solid var(--line);border-radius:16px;background:var(--card)}
+.table h4{grid-column:1/-1;margin:0;font-size:12px;color:var(--muted);text-align:center}
+.seat{min-height:46px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-weight:650;font-size:14px;padding:6px;cursor:grab;display:grid;place-items:center;text-align:center}
+.seat.empty{color:var(--muted);font-weight:400;border-style:dashed}.seat.sel{outline:3px solid var(--acc);outline-offset:1px}.seat.over{background:var(--soft)}
+.flip .desks,.flip .tables{transform:rotate(180deg)}.flip .seat{transform:rotate(180deg)}.flip .room{display:flex;flex-direction:column-reverse}
+.groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}.grp{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--card)}.grp ol{margin:6px 0 0;padding-left:20px}
+.tag{font-size:11px;color:var(--muted)}
+</style></head>
+<body>
+<header class="top"><a class="brand" href="home.html"><img src="logo.png" alt="" width="26" height="26">If Leaves Weave</a><b>Seating and groups</b><span class="sp"></span>
+  <select id="plans" aria-label="My classes" style="width:auto"></select><button class="btn" id="newP">New class</button><button class="btn danger" id="delP">Delete</button><a class="btn" href="home.html">All tools</a></header>
+<main class="kit">
+  <section class="card noprint" aria-labelledby="h1">
+    <h1 id="h1">Seating and groups</h1>
+    <label class="fld">Class name <input id="cls" placeholder="e.g. 3 Kindness, Period 2"></label>
+    <label class="fld">Students: one per line, optionally with a tag after a comma <textarea id="names" rows="7" placeholder="Aisyah, girl&#10;Ben, boy&#10;Chen Wei, girl&#10;Devi, girl"></textarea></label>
+    <label class="fld">Keep apart (one pair per line, joined by +) <textarea id="apart" rows="2" placeholder="Ben + Devi"></textarea></label>
+    <h2>Room</h2>
+    <div class="row"><button class="chip" id="lRows" aria-pressed="true">Rows of desks</button><button class="chip" id="lTables" aria-pressed="false">Tables</button></div>
+    <div class="row" id="rowsOpts"><label class="fld">Rows <input type="number" id="rows" min="1" max="12" value="5" style="width:5em"></label><label class="fld">Desks per row <input type="number" id="cols" min="1" max="12" value="6" style="width:5em"></label></div>
+    <div class="row" id="tablesOpts" hidden><label class="fld">Tables <input type="number" id="tables" min="1" max="20" value="6" style="width:5em"></label><label class="fld">Seats per table <input type="number" id="per" min="2" max="10" value="4" style="width:5em"></label></div>
+    <div class="row"><button class="btn pri" id="random">Random seating</button><button class="btn" id="alpha">A to Z</button><button class="btn" id="clear">Empty seats</button></div>
+    <h2>Groups</h2>
+    <div class="row"><label class="fld"><select id="gBy" aria-label="Make groups by" style="width:auto"><option value="count">Number of groups</option><option value="size">People per group</option></select></label><input type="number" id="gN" min="2" max="30" value="4" style="width:5em" aria-label="Number"><label class="chk"><input type="checkbox" id="spread" checked> Spread tags evenly</label></div>
+    <button class="btn pri" id="makeGroups">Make groups</button>
+    <p class="note">Class lists stay on this device.</p>
+  </section>
+  <section class="card" aria-labelledby="h2">
+    <div class="row noprint"><h2 id="h2" class="grow">Seating plan</h2><label class="chk"><input type="checkbox" id="flip"> Student view</label><button class="btn" id="png">PNG</button><button class="btn" onclick="print()">Print</button></div>
+    <p class="hint noprint" id="msg" aria-live="polite">Drag a name onto another seat to swap, or select two seats in turn with Enter.</p>
+    <div id="plan"></div>
+    <h2 id="gh" hidden>Groups</h2><div class="groups" id="groups"></div>
+  </section>
+</main>
+<script src="kit.js"></script>
+<script>
+let all = store.get("seating", []), P, sel = null;
+const blank = () => ({ kind: "ilw-seating", v: 1, id: uid(), cls: "", names: "", apart: "", layout: "rows", rows: 5, cols: 6, tables: 6, per: 4, seats: [], groups: [] });
+if (!all.length) all = [blank()]; P = all[0];
+const save = () => { const i = all.findIndex(x => x.id === P.id); all[i] = P; store.set("seating", all); list(); };
+function list() { $("#plans").innerHTML = all.map(x => `<option value="${x.id}" ${x.id === P.id ? "selected" : ""}>${esc(x.cls || "Untitled class")}</option>`).join(""); }
+const people = () => P.names.split(/\n+/).map(l => l.trim()).filter(Boolean).map(l => { const [n, ...t] = l.split(","); return { n: n.trim(), tag: t.join(",").trim() }; }).filter(p => p.n);
+const pairs = () => P.apart.split(/\n+/).map(l => l.split("+").map(s => s.trim().toLowerCase())).filter(p => p.length === 2 && p[0] && p[1]);
+const seatCount = () => P.layout === "rows" ? P.rows * P.cols : P.tables * P.per;
+const shuffle = a => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+// neighbours: beside each other in a row, or at the same table
+function neighbours(i, j) { if (P.layout === "rows") { const ri = Math.floor(i / P.cols), rj = Math.floor(j / P.cols); return ri === rj && Math.abs(i - j) === 1; } return Math.floor(i / P.per) === Math.floor(j / P.per); }
+function breaks(seats) { const pos = {}; seats.forEach((n, i) => { if (n) pos[n.toLowerCase()] = i; }); return pairs().filter(([a, b]) => pos[a] != null && pos[b] != null && neighbours(pos[a], pos[b])).length; }
+function fill(order) { const n = seatCount(), names = order.map(p => p.n); if (names.length > n) toast(`${names.length - n} student${names.length - n === 1 ? "" : "s"} won’t fit: add more seats.`); P.seats = Array.from({ length: n }, (_, i) => names[i] || ""); }
+$("#random").onclick = () => { const ps = people(); if (!ps.length) return toast("Add your students first."); let best = null, bestB = Infinity;
+  for (let t = 0; t < 400 && bestB > 0; t++) { fill(shuffle(ps)); const b = breaks(P.seats); if (b < bestB) { bestB = b; best = [...P.seats]; } } // try arrangements until every "keep apart" pair is apart
+  P.seats = best; save(); draw(); $("#msg").textContent = bestB ? `Couldn’t keep every pair apart (${bestB} together): try more seats or tables.` : pairs().length ? "Seated at random, with every “keep apart” pair apart." : "Seated at random."; };
+$("#alpha").onclick = () => { fill(people().sort((a, b) => a.n.localeCompare(b.n))); save(); draw(); $("#msg").textContent = `Seated A to Z${breaks(P.seats) ? ` (${breaks(P.seats)} “keep apart” pair${breaks(P.seats) === 1 ? " is" : "s are"} together)` : ""}.`; };
+$("#clear").onclick = () => { P.seats = []; save(); draw(); };
+function seatHTML(i) { const n = P.seats[i] || "", tag = people().find(p => p.n === n)?.tag; return `<button class="seat ${n ? "" : "empty"} ${sel === i ? "sel" : ""}" data-i="${i}" draggable="${!!n}" aria-label="Seat ${i + 1}: ${esc(n || "empty")}">${n ? `${esc(n)}${tag ? `<span class="tag">${esc(tag)}</span>` : ""}` : "empty"}</button>`; }
+function draw() { const n = seatCount(); if (P.seats.length !== n) P.seats = Array.from({ length: n }, (_, i) => P.seats[i] || "");
+  const inner = P.layout === "rows" ? `<div class="desks" style="grid-template-columns:repeat(${P.cols},minmax(70px,1fr))">${P.seats.map((_, i) => seatHTML(i)).join("")}</div>`
+    : `<div class="tables">${Array.from({ length: P.tables }, (_, t) => `<div class="table"><h4>Table ${t + 1}</h4>${Array.from({ length: P.per }, (_, k) => seatHTML(t * P.per + k)).join("")}</div>`).join("")}</div>`;
+  $("#plan").innerHTML = `<div class="room ${$("#flip").checked ? "flip" : ""}" id="room"><div class="front">FRONT OF THE ROOM${P.cls ? " · " + esc(P.cls) : ""}</div>${inner}</div>`;
+  $("#gh").hidden = !P.groups.length; $("#groups").innerHTML = P.groups.map((g, i) => `<div class="grp"><b>Group ${i + 1}</b><ol>${g.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`).join(""); }
+// swapping: drag and drop, or select two seats with the keyboard
+function swap(a, b) { [P.seats[a], P.seats[b]] = [P.seats[b], P.seats[a]]; sel = null; save(); draw(); $(`#plan [data-i="${b}"]`)?.focus(); const br = breaks(P.seats); $("#msg").textContent = br ? `Swapped. Note: ${br} “keep apart” pair${br === 1 ? " is" : "s are"} now together.` : "Swapped."; }
+$("#plan").addEventListener("click", e => { const s = e.target.closest(".seat"); if (!s) return; const i = +s.dataset.i; if (sel == null) { sel = i; draw(); $(`#plan [data-i="${i}"]`).focus(); $("#msg").textContent = "Now choose the seat to swap with."; } else if (sel === i) { sel = null; draw(); } else swap(sel, i); });
+$("#plan").addEventListener("dragstart", e => { const s = e.target.closest(".seat"); if (s) e.dataTransfer.setData("text/plain", s.dataset.i); });
+$("#plan").addEventListener("dragover", e => { const s = e.target.closest(".seat"); if (s) { e.preventDefault(); s.classList.add("over"); } });
+$("#plan").addEventListener("dragleave", e => e.target.closest(".seat")?.classList.remove("over"));
+$("#plan").addEventListener("drop", e => { const s = e.target.closest(".seat"); if (!s) return; e.preventDefault(); const from = +e.dataTransfer.getData("text/plain"); if (!isNaN(from) && from !== +s.dataset.i) swap(from, +s.dataset.i); });
+// groups: a number of groups or a size, keeping pairs apart, and spreading tags evenly if asked
+$("#makeGroups").onclick = () => { const ps = people(); if (ps.length < 2) return toast("Add your students first."); const v = Math.max(1, +$("#gN").value || 2), k = $("#gBy").value === "count" ? Math.min(v, ps.length) : Math.ceil(ps.length / v);
+  const bad = g => pairs().some(([a, b]) => g.some(x => x.n.toLowerCase() === a) && g.some(x => x.n.toLowerCase() === b));
+  let best = null, score = Infinity;
+  for (let t = 0; t < 300 && score > 0; t++) { let order = shuffle(ps); if ($("#spread").checked) { const byTag = {}; order.forEach(p => (byTag[p.tag || ""] ||= []).push(p)); order = Object.values(byTag).flat(); }
+    const gs = Array.from({ length: k }, () => []); order.forEach((p, i) => gs[i % k].push(p)); const s = gs.filter(bad).length; if (s < score) { score = s; best = gs; } }
+  P.groups = best.map(g => g.map(p => p.n + (p.tag ? ` (${p.tag})` : ""))); save(); draw(); $("#msg").textContent = `${k} groups made${score ? `; ${score} still contain a “keep apart” pair` : pairs().length ? ", with every “keep apart” pair in different groups" : ""}.`; $("#gh").scrollIntoView({ block: "nearest" }); };
+// settings and files
+const setLayout = l => { P.layout = l; $("#lRows").setAttribute("aria-pressed", String(l === "rows")); $("#lTables").setAttribute("aria-pressed", String(l === "tables")); $("#rowsOpts").hidden = l !== "rows"; $("#tablesOpts").hidden = l !== "tables"; save(); draw(); };
+$("#lRows").onclick = () => setLayout("rows"); $("#lTables").onclick = () => setLayout("tables");
+for (const k of ["rows", "cols", "tables", "per"]) $("#" + k).oninput = e => { P[k] = Math.max(1, Math.min(+e.target.max, +e.target.value || 1)); save(); draw(); };
+for (const k of ["cls", "names", "apart"]) $("#" + k).oninput = e => { P[k] = e.target.value; save(); draw(); };
+$("#flip").onchange = draw;
+$("#png").onclick = async () => { const room = $("#room"), r = room.getBoundingClientRect(), clone = room.cloneNode(true), cs = getComputedStyle(document.body);
+  const css = [...document.styleSheets].flatMap(s => { try { return [...s.cssRules].map(x => x.cssText); } catch { return []; } }).join("\n");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${r.width}" height="${r.height}" viewBox="0 0 ${r.width} ${r.height}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="font-family:${cs.fontFamily};color:${cs.color}"><style>${css}</style>${clone.outerHTML}</div></foreignObject></svg>`;
+  const img = new Image(); img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); try { await img.decode(); } catch { return toast("This browser couldn’t make an image: use Print instead."); }
+  const c = document.createElement("canvas"); c.width = r.width * 2; c.height = r.height * 2; const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height);
+  c.toBlob(b => download(b, `${(P.cls || "seating-plan").replace(/[^\w-]+/g, "-")}.png`)); };
+function load(x) { P = x; for (const k of ["cls", "names", "apart"]) $("#" + k).value = P[k] || ""; for (const k of ["rows", "cols", "tables", "per"]) $("#" + k).value = P[k]; sel = null; list(); setLayout(P.layout); }
+$("#plans").onchange = e => load(all.find(x => x.id === e.target.value));
+$("#newP").onclick = () => { const x = blank(); all.unshift(x); store.set("seating", all); load(x); $("#cls").focus(); };
+$("#delP").onclick = () => { if (!confirm("Delete this class from this device?")) return; all = all.filter(x => x.id !== P.id); if (!all.length) all = [blank()]; store.set("seating", all); load(all[0]); };
+load(P);
+</script>
+</body></html>

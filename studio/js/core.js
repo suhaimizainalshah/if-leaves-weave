@@ -121,6 +121,12 @@ const INKS = ["#1E2A2F", "#0E7C7B", "#2F6DB5", "#7A4FC2", "#C2413A", "#B86E00", 
 // Inline icons (simple strokes, currentColor)
 const IC = (d, extra = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${d}</svg>`;
 const ICONS = {
+  bank: IC('<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'),
+  ecomap: IC('<circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="9" stroke-dasharray="2.6 2.4"/><circle cx="12" cy="3" r="1.6"/><circle cx="20" cy="15.5" r="1.6"/><circle cx="4" cy="15.5" r="1.6"/>'),
+  cards: IC('<rect x="3" y="7" width="14" height="12" rx="2"/><path d="M7 4h12a2 2 0 0 1 2 2v10"/><path d="M7 13h6"/>'),
+  rubric: IC('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16M15 4v16"/>'),
+  seating: IC('<rect x="3" y="3" width="18" height="3" rx="1"/><rect x="4" y="10" width="5" height="4" rx="1"/><rect x="15" y="10" width="5" height="4" rx="1"/><rect x="4" y="17" width="5" height="4" rx="1"/><rect x="15" y="17" width="5" height="4" rx="1"/>'),
+  chronology: IC('<path d="M3 12h18"/><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/><path d="M6 10V6M12 14v4M18 10V6"/>'),
   maths: IC('<path d="M18 5H7l6 7-6 7h11"/>'),
   cite: IC('<path d="M7 7h4v4c0 3-2 5-4 6"/><path d="M14 7h4v4c0 3-2 5-4 6"/>'),
   mark: IC('<path d="M5 13l4 4L19 7"/><path d="M4 20h7"/>'),
@@ -142,11 +148,16 @@ const TYPES = {
   whiteboard: { name: "Whiteboard", family: "If Leaves Weave Canvas", page: "canvas.html", blurb: "Sticky notes, shapes and connectors on an endless canvas", icon: "whiteboard" },
   mindmap: { name: "Mind and concept map", family: "If Leaves Weave Maps", page: "maps.html", blurb: "Branch ideas fast, then link concepts with labelled relationships", icon: "mindmap" },
   sociogram: { name: "Sociogram", family: "If Leaves Weave Sociogram", page: "sociogram.html", blurb: "Map who connects with whom, with accurate network measures", icon: "sociogram" },
+  genogram: { name: "Genogram", family: "If Leaves Weave Genogram", page: "genogram.html", blurb: "Family structure and relationships with standard symbols", icon: "genogram" },
+  ecomap: { name: "Ecomap", family: "If Leaves Weave Ecomap", page: "ecomap.html", blurb: "Map a person’s supports and stresses: strong, weak or stressful ties", icon: "ecomap" },
   maths: { name: "Maths", family: "If Leaves Weave Maths", page: "maths.html", blurb: "Write maths without code, solve and graph it, and copy it as an image, LaTeX or MathML", icon: "maths" },
   cite: { name: "Cite", family: "If Leaves Weave Cite", page: "cite.html", blurb: "Turn titles, DOIs or a PDF’s reference list into APA, Harvard, MLA, Chicago, IEEE or Vancouver", icon: "cite" },
-  questions: { name: "Question bank", family: "If Leaves Weave Question bank", page: "questions.html", blurb: "Turn question papers and answer keys into a question bank spreadsheet", icon: "mark" },
+  cards: { name: "Study cards", family: "If Leaves Weave Study cards", page: "cards.html", blurb: "Flashcards that come back just before you’d forget them", icon: "cards" },
+  questions: { name: "Question bank", family: "If Leaves Weave Question bank", page: "questions.html", blurb: "Turn question papers and answer keys into a question bank spreadsheet", icon: "bank" },
   marking: { name: "Mark", family: "If Leaves Weave Mark", page: "marking.html", blurb: "Mark work with ticks, comments, marks and audio feedback", icon: "mark" },
-  genogram: { name: "Genogram", family: "If Leaves Weave Genogram", page: "genogram.html", blurb: "Family structure and relationships with standard symbols", icon: "genogram" },
+  rubric: { name: "Rubric", family: "If Leaves Weave Rubric", page: "rubric.html", blurb: "Build a rubric, then mark with it in clicks, with totals and feedback", icon: "rubric" },
+  seating: { name: "Seating and groups", family: "If Leaves Weave Seating", page: "seating.html", blurb: "Seating plans and fair groups, keeping chosen pairs apart", icon: "seating" },
+  chronology: { name: "Chronology", family: "If Leaves Weave Chronology", page: "chronology.html", blurb: "A dated record of significant events, for casework and safeguarding", icon: "chronology" },
   prototype: { name: "Prototype", family: "If Leaves Weave Prototype", page: "prototype.html", blurb: "Clickable app screens you can play and export", icon: "prototype" },
 };
 const Modules = {};

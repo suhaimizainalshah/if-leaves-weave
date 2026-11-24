@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Study cards · If Leaves Weave</title>
+<link rel="icon" href="logo.png" type="image/png"><link rel="stylesheet" href="fonts/fonts.css"><link rel="stylesheet" href="kit.css">
+<style>
+.decks{display:grid;gap:6px}.deck{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:8px 10px;cursor:pointer;background:var(--card);color:inherit;font:inherit;text-align:left}.deck[aria-current=true]{border-color:var(--acc);background:var(--soft)}
+.due{font-size:12.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--acc);color:var(--acc-ink)}.due.zero{background:var(--line);color:var(--muted)}
+.study{display:grid;gap:14px;justify-items:center;text-align:center;padding:22px}.face{width:100%;max-width:720px;min-height:170px;display:grid;place-items:center;border:1px solid var(--line);border-radius:18px;padding:22px;font-size:22px;line-height:1.45;background:var(--bg)}
+.face.back{border-color:var(--acc)}.rates{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.rates .btn{display:grid;gap:2px;min-width:110px}.rates small{font-weight:600;color:var(--muted);font-size:12px}
+.rates .r1{border-color:#e03131}.rates .r2{border-color:#e67700}.rates .r3{border-color:#2f9e44}.rates .r4{border-color:#1971c2}
+.cardlist td:nth-child(3){white-space:nowrap;color:var(--muted);font-size:13px}.stats{display:flex;gap:16px;flex-wrap:wrap}.stats div{display:grid}.stats b{font-size:22px}
+</style></head>
+<body>
+<header class="top"><a class="brand" href="home.html"><img src="logo.png" alt="" width="26" height="26">If Leaves Weave</a><b>Study cards</b><span class="sp"></span><a class="btn" href="home.html">All tools</a></header>
+<main class="kit">
+  <section class="card" aria-labelledby="h1">
+    <h1 id="h1">Study cards</h1>
+    <p class="hint">Test yourself, and the cards come back just before you’d forget them. Practice testing and spacing out study are the two techniques with the strongest evidence for helping learners (Dunlosky et al., 2013).</p>
+    <div class="decks" id="decks"></div>
+    <div class="row"><input id="deckName" class="grow" placeholder="New deck, e.g. Biology: cells" aria-label="New deck name"><button class="btn" id="addDeck">Add deck</button></div>
+    <p class="note">Your cards and progress stay in this browser. Download a copy to move them to another device.</p>
+  </section>
+  <section class="card" aria-labelledby="h2" id="deckView">
+    <div class="row"><h2 id="h2" class="grow"></h2><button class="btn pri" id="studyBtn">Study now</button><button class="btn" id="renameDeck">Rename</button><button class="btn danger" id="delDeck">Delete deck</button></div>
+    <div class="stats" id="stats"></div>
+    <div id="studyBox" hidden></div>
+    <div id="editBox">
+      <h3>Add a card</h3>
+      <div class="row" style="align-items:stretch"><label class="fld grow">Front (question) <textarea id="front" rows="2" placeholder="What does a mitochondrion do?"></textarea></label><label class="fld grow">Back (answer) <textarea id="back" rows="2" placeholder="Releases energy from food (respiration)."></textarea></label></div>
+      <div class="row"><button class="btn pri" id="addCard">Add card</button><span class="hint">Maths: put it between dollar signs, such as $x^2+1$. Ctrl+Enter adds the card.</span></div>
+      <details><summary>Add many at once, or import</summary>
+        <p class="hint">One card per line, with the front and back separated by <b>|</b> or a tab. Or open a CSV file, such as one exported from the Question bank.</p>
+        <textarea id="bulk" rows="5" placeholder="Capital of Malaysia | Kuala Lumpur&#10;7 × 8 | 56"></textarea>
+        <div class="row"><button class="btn" id="addBulk">Add these</button><button class="btn" id="csvIn">Open a CSV file</button><button class="btn" id="csvOut">Download as CSV</button><button class="btn" id="jsonOut">Download everything</button><button class="btn" id="jsonIn">Open a download</button></div>
+      </details>
+      <table class="grid cardlist"><thead><tr><th>Front</th><th>Back</th><th>Next review</th><th><span class="sr">Remove</span></th></tr></thead><tbody id="cards"></tbody></table>
+    </div>
+  </section>
+</main>
+<script src="kit.js"></script>
+<script src="vendor/ts-fsrs/ts-fsrs.umd.js"></script>
+<script src="vendor/mathlive/mathlive.min.js"></script>
+<script>
+MathfieldElement.fontsDirectory = "vendor/mathlive/fonts"; MathfieldElement.soundsDirectory = null;
+const F = window.FSRS, sched = F.fsrs({ enable_fuzz: true }), R = F.Rating;
+let decks = store.get("cards", null);
+if (!decks) decks = [{ id: uid(), name: "Getting started", cards: [["What two study techniques have the strongest evidence?", "Practice testing (quizzing yourself) and distributed practice (spacing study out over time)."], ["Is rereading an effective way to revise?", "Not on its own: research rates it low. Test yourself instead."], ["$\\frac{1}{2}+\\frac{1}{3}=$ ?", "$\\frac{5}{6}$"]].map(([f, b]) => newCard(f, b)) }];
+let D = decks[0], queue = [], cur = null, shown = false, session = { done: 0, again: 0 };
+function newCard(front, back) { return { id: uid(), front: String(front).slice(0, 2000), back: String(back).slice(0, 4000), s: F.createEmptyCard(new Date()) }; }
+const save = () => store.set("cards", decks);
+const revive = c => { const s = c.s; for (const k of ["due", "last_review"]) if (s[k]) s[k] = new Date(s[k]); return c; };
+decks.forEach(d => d.cards.forEach(revive));
+const dueNow = d => d.cards.filter(c => new Date(c.s.due) <= new Date());
+// text with $maths$ shown properly
+const show = t => esc(t).replace(/\$([^$]+)\$/g, (_, m) => { try { return MathLive.convertLatexToMarkup(m.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")); } catch { return m; } }).replace(/\n/g, "<br>");
+const when = d => { const ms = new Date(d) - new Date(), m = Math.round(ms / 60000); if (ms <= 0) return "Now"; if (m < 60) return `${m} min`; const h = Math.round(m / 60); if (h < 24) return `${h} h`; const days = Math.round(h / 24); return days < 31 ? `${days} day${days === 1 ? "" : "s"}` : `${Math.round(days / 30)} month${Math.round(days / 30) === 1 ? "" : "s"}`; };
+
+/* ---------- decks and cards ---------- */
+function drawDecks() { $("#decks").innerHTML = decks.map(d => { const n = dueNow(d).length; return `<button class="deck" data-d="${d.id}" aria-current="${d.id === D.id}"><span><b>${esc(d.name)}</b><br><span class="hint">${d.cards.length} card${d.cards.length === 1 ? "" : "s"}</span></span><span class="due ${n ? "" : "zero"}">${n} due</span></button>`; }).join(""); }
+function drawDeck() { $("#h2").textContent = D.name; const n = dueNow(D).length, learned = D.cards.filter(c => c.s.reps > 0).length;
+  $("#studyBtn").textContent = n ? `Study now (${n})` : "Nothing due"; $("#studyBtn").disabled = !n;
+  $("#stats").innerHTML = `<div><b>${D.cards.length}</b><span class="hint">cards</span></div><div><b>${n}</b><span class="hint">due now</span></div><div><b>${learned}</b><span class="hint">studied</span></div>`;
+  $("#cards").innerHTML = D.cards.slice().sort((a, b) => new Date(a.s.due) - new Date(b.s.due)).map(c => `<tr><td>${show(c.front)}</td><td>${show(c.back)}</td><td>${when(c.s.due)}</td><td><button class="btn sm danger" data-del="${c.id}" aria-label="Remove card">✕</button></td></tr>`).join("") || `<tr><td colspan="4" class="hint">No cards yet.</td></tr>`; drawDecks(); }
+$("#decks").onclick = e => { const b = e.target.closest("[data-d]"); if (!b) return; D = decks.find(d => d.id === b.dataset.d); stopStudy(); drawDeck(); };
+$("#addDeck").onclick = () => { const n = $("#deckName").value.trim(); if (!n) return $("#deckName").focus(); D = { id: uid(), name: n.slice(0, 60), cards: [] }; decks.push(D); $("#deckName").value = ""; save(); drawDeck(); $("#front").focus(); };
+$("#renameDeck").onclick = () => { const n = prompt("Deck name:", D.name); if (n && n.trim()) { D.name = n.trim().slice(0, 60); save(); drawDeck(); } };
+$("#delDeck").onclick = () => { if (!confirm(`Delete the deck “${D.name}” and its ${D.cards.length} cards?`)) return; decks = decks.filter(d => d !== D); if (!decks.length) decks.push({ id: uid(), name: "My deck", cards: [] }); D = decks[0]; save(); drawDeck(); };
+$("#addCard").onclick = () => { const f = $("#front").value.trim(), b = $("#back").value.trim(); if (!f || !b) return toast("Add both a front and a back."); D.cards.push(newCard(f, b)); $("#front").value = $("#back").value = ""; save(); drawDeck(); $("#front").focus(); toast("Card added"); };
+for (const id of ["#front", "#back"]) $(id).onkeydown = e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) $("#addCard").click(); };
+$("#cards").onclick = e => { const b = e.target.closest("[data-del]"); if (!b) return; D.cards = D.cards.filter(c => c.id !== b.dataset.del); save(); drawDeck(); };
+function addPairs(pairs) { let n = 0; for (const [f, b] of pairs) if (f?.trim() && b?.trim()) { D.cards.push(newCard(f.trim(), b.trim())); n++; } save(); drawDeck(); toast(`Added ${n} card${n === 1 ? "" : "s"}`); }
+$("#addBulk").onclick = () => { addPairs($("#bulk").value.split(/\n+/).map(l => l.split(/\s*[|\t]\s*/))); $("#bulk").value = ""; };
+$("#csvIn").onclick = () => { const i = document.createElement("input"); i.type = "file"; i.accept = ".csv,text/csv,.txt"; i.onchange = async () => { const rows = parseCSV(await i.files[0].text()); if (!rows.length) return;
+  const h = rows[0].map(x => x.toLowerCase()), qi = h.findIndex(x => /question|front|term|prompt/.test(x)), ai = h.findIndex(x => /answer|back|definition/.test(x)); // a Question bank export has Question and Answer columns
+  addPairs(qi >= 0 && ai >= 0 ? rows.slice(1).map(r => [r[qi], r[ai]]) : rows.map(r => [r[0], r[1]])); }; i.click(); };
+$("#csvOut").onclick = () => download(new Blob([toCSV([["Front", "Back"], ...D.cards.map(c => [c.front, c.back])])], { type: "text/csv" }), `${D.name.replace(/[^\w-]+/g, "-")}.csv`);
+$("#jsonOut").onclick = () => download(new Blob([JSON.stringify({ kind: "ilw-cards", v: 1, decks }, null, 1)], { type: "application/json" }), "study-cards.json");
+$("#jsonIn").onclick = () => openJSON("ilw-cards", j => { for (const d of j.decks || []) { d.id = uid(); d.cards.forEach(revive); decks.push(d); } save(); drawDeck(); toast("Opened"); });
+
+/* ---------- studying: recall, reveal, rate ---------- */
+function startStudy() { queue = dueNow(D).sort(() => Math.random() - .5); session = { done: 0, again: 0 }; $("#editBox").hidden = true; $("#studyBox").hidden = false; next(); }
+function stopStudy() { $("#studyBox").hidden = true; $("#editBox").hidden = false; cur = null; }
+function next() { cur = queue.shift(); shown = false;
+  if (!cur) { const later = D.cards.map(c => new Date(c.s.due)).sort((a, b) => a - b)[0]; $("#studyBox").innerHTML = `<div class="study"><h3>Well done!</h3><p>You reviewed ${session.done} card${session.done === 1 ? "" : "s"}${session.again ? `, and ${session.again} will come back soon` : ""}.</p><p class="hint">${later ? `Next review: in ${when(later)}.` : ""} Coming back later is what makes it stick.</p><button class="btn pri" id="doneBtn">Back to the deck</button></div>`; $("#doneBtn").onclick = () => { stopStudy(); drawDeck(); }; $("#doneBtn").focus(); return; }
+  $("#studyBox").innerHTML = `<div class="study"><p class="hint">${queue.length + 1} to go · try to recall the answer before you look</p><div class="face" aria-live="polite">${show(cur.front)}</div><div id="ans"></div>
+    <div class="row"><button class="btn pri" id="reveal">Show answer <small>(Space)</small></button><button class="btn" id="stop">Stop</button></div></div>`;
+  $("#reveal").onclick = reveal; $("#stop").onclick = () => { stopStudy(); drawDeck(); }; $("#reveal").focus(); }
+function reveal() { if (!cur || shown) return; shown = true; const pre = sched.repeat(cur.s, new Date());
+  $("#ans").innerHTML = `<div class="face back">${show(cur.back)}</div><p class="hint">How well did you remember it?</p><div class="rates">${[[R.Again, "Again", "r1"], [R.Hard, "Hard", "r2"], [R.Good, "Good", "r3"], [R.Easy, "Easy", "r4"]].map(([r, n, c], i) => `<button class="btn ${c}" data-r="${r}"><span>${i + 1} · ${n}</span><small>${when(pre[r].card.due)}</small></button>`).join("")}</div>`;
+  $("#reveal").remove(); $(".rates .r3").focus(); $(".rates").onclick = e => { const b = e.target.closest("[data-r]"); if (b) rate(+b.dataset.r); }; }
+function rate(r) { if (!cur || !shown) return; cur.s = sched.next(cur.s, new Date(), r).card; session.done++; if (r === R.Again) session.again++;
+  if (new Date(cur.s.due) - Date.now() < 20 * 60000 && !queue.includes(cur)) queue.push(cur); // still being learnt: it comes back before this session ends
+  save(); drawDecks(); next(); }
+$("#studyBtn").onclick = startStudy;
+addEventListener("keydown", e => { if ($("#studyBox").hidden || /INPUT|TEXTAREA/.test(document.activeElement?.tagName)) return;
+  if (e.key === " " && !shown) { e.preventDefault(); reveal(); } else if (shown && "1234".includes(e.key)) { e.preventDefault(); rate(+e.key); } });
+drawDeck(); window.__cards = { get deck() { return D; }, decks: () => decks };
+</script>
+</body></html>

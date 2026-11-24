@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ecomap · If Leaves Weave</title>
+<link rel="icon" href="logo.png" type="image/png"><link rel="stylesheet" href="fonts/fonts.css"><link rel="stylesheet" href="kit.css">
+<style>
+#map{width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:14px;touch-action:none;user-select:none}
+.ties{display:grid;gap:8px}.tie{border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:grid;gap:6px}.tie .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tie select,.tie input{font-size:13.5px;padding:5px 8px}body.big .tie select,body.big .tie input,body.big .btn,body.big .chip{font-size:18px;padding:10px 14px}body.big #map{min-height:70vh}
+.node{cursor:grab}.node:focus{outline:none}.node:focus circle{stroke:#1f5f4a;stroke-width:4}
+</style></head>
+<body>
+<header class="top"><a class="brand" href="home.html"><img src="logo.png" alt="" width="26" height="26">If Leaves Weave</a><b>Ecomap</b><span class="sp"></span>
+  <select id="maps" aria-label="My ecomaps" style="width:auto"></select><button class="btn" id="newMap">New</button><button class="btn" id="delMap">Delete</button><a class="btn" href="home.html">All tools</a></header>
+<main class="kit">
+  <section class="card noprint" aria-labelledby="h1">
+    <h1 id="h1">Ecomap</h1>
+    <p class="hint">A person or family in the middle, and the people, groups and services in their life around them, showing which ties are strong, weak or stressful, and which way support flows (Hartman, 1978).</p>
+    <label class="fld">Title <input id="title" placeholder="e.g. A.K.’s support network"></label>
+    <label class="fld">In the middle <input id="centre" placeholder="The person or family, e.g. A.K."></label>
+    <div class="row"><button class="chip" id="vEco" aria-pressed="true">Ecomap</button><button class="chip" id="vCircles" aria-pressed="false">Circles of closeness</button><label class="chk"><input type="checkbox" id="big"> Draw it together (large controls)</label></div>
+    <h2>Add a connection</h2>
+    <div class="chips" id="quick"></div>
+    <div class="row"><input id="newName" class="grow" placeholder="Or type a name, e.g. Gran, Youth club" aria-label="New connection"><button class="btn pri" id="add">Add</button></div>
+    <h2>Connections</h2><div class="ties" id="ties"></div>
+    <p class="note">Everything stays on this device. For casework, use initials or first names, and follow your organisation’s data-protection rules.</p>
+  </section>
+  <section class="card" aria-labelledby="h2">
+    <div class="row noprint"><h2 id="h2" class="grow">The map</h2><button class="btn" id="png">PNG</button><button class="btn" id="svgDl">SVG</button><button class="btn" id="save">Save file</button><button class="btn" id="open">Open file</button><button class="btn" onclick="print()">Print</button></div>
+    <svg id="map" viewBox="0 0 900 640" role="img" aria-labelledby="mapDesc"><desc id="mapDesc"></desc></svg>
+    <p class="hint noprint">Drag the circles to arrange them. The list is the full editor, and works with a keyboard and screen reader.</p>
+  </section>
+</main>
+<script src="kit.js"></script>
+<script>
+const CATS = { family: ["Family", "#e8590c"], friends: ["Friends", "#d6336c"], school: ["School or college", "#1971c2"], work: ["Work", "#5f3dc4"], health: ["Health", "#2b8a3e"], faith: ["Faith or culture", "#a87b00"], services: ["Social care and services", "#0b7285"], community: ["Community and leisure", "#7048e8"], online: ["Online", "#495057"], other: ["Other", "#868e96"] };
+const TIES = { strong: "Strong", normal: "Normal", weak: "Weak", stress: "Stressful" }, FLOWS = { none: "No direction", in: "Towards the person", out: "From the person", both: "Both ways" };
+const QUICK = [["Family", "family"], ["Friends", "friends"], ["School", "school"], ["Work", "work"], ["GP and health", "health"], ["Faith community", "faith"], ["Social worker", "services"], ["Youth club", "community"], ["Neighbours", "community"], ["Online friends", "online"], ["Housing", "services"], ["Money and benefits", "services"]];
+let all = store.get("ecomaps", []), M;
+const blank = () => ({ kind: "ilw-ecomap", v: 1, id: uid(), title: "", centre: "", view: "eco", nodes: [] });
+if (!all.length) all = [blank()]; M = all[0];
+const save = () => { const i = all.findIndex(m => m.id === M.id); all[i] = M; store.set("ecomaps", all); listMaps(); };
+function listMaps() { $("#maps").innerHTML = all.map(m => `<option value="${m.id}" ${m.id === M.id ? "selected" : ""}>${esc(m.title || m.centre || "Untitled ecomap")}</option>`).join(""); }
+function place(n, i, total) { const a = -Math.PI / 2 + i * 2 * Math.PI / Math.max(total, 1); n.x = 450 + Math.cos(a) * 250; n.y = 320 + Math.sin(a) * 215; }
+function respace() { M.nodes.forEach((x, i) => { if (!x.moved) place(x, i, M.nodes.length); }); } // circles placed by hand stay where they are
+function addNode(label, cat = "other") { label = label.trim(); if (!label) return; const n = { id: uid(), label: label.slice(0, 40), cat, tie: "normal", flow: "none", ring: 2, note: "" }; M.nodes.push(n); respace(); save(); draw(); drawList(); toast(`Added ${n.label}`); }
+
+/* ---------- drawing: Hartman's lines (strong, normal, weak, stressful) and arrows for the flow of energy ---------- */
+function zigzag(x1, y1, x2, y2) { const d = Math.hypot(x2 - x1, y2 - y1), n = Math.max(4, Math.round(d / 14)), ux = (x2 - x1) / d, uy = (y2 - y1) / d; let p = `M${x1},${y1}`;
+  for (let i = 1; i < n; i++) { const t = i / n, s = i % 2 ? 7 : -7; p += ` L${x1 + (x2 - x1) * t - uy * s},${y1 + (y2 - y1) * t + ux * s}`; } return p + ` L${x2},${y2}`; }
+function pos(n) { if (M.view !== "circles") return [n.x, n.y]; const same = M.nodes.filter(x => x.ring === n.ring), i = same.indexOf(n), r = [0, 110, 190, 270][n.ring] || 190, a = -Math.PI / 2 + i * 2 * Math.PI / Math.max(same.length, 1) + n.ring * .4; return [450 + Math.cos(a) * r * 1.35, 320 + Math.sin(a) * r]; }
+function draw() {
+  const svg = $("#map"), cx = 450, cy = 320, R = 62, r = 42, parts = [];
+  parts.push(`<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#343a40"/></marker></defs><rect width="900" height="640" fill="#fff"/>`);
+  if (M.title) parts.push(`<text x="20" y="34" font-size="20" font-weight="800" font-family="system-ui,sans-serif" fill="#16191f">${esc(M.title)}</text>`);
+  if (M.view === "circles") [270, 190, 110].forEach((rr, i) => parts.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rr * 1.35}" ry="${rr}" fill="${["#f8f9fa", "#f1f3f5", "#e9ecef"][i]}" stroke="#dee2e6"/><text x="${cx}" y="${cy - rr + 16}" text-anchor="middle" font-size="11" fill="#868e96" font-family="system-ui">${["Outer circle", "Middle circle", "Inner circle"][i]}</text>`));
+  for (const n of M.nodes) { const [x, y] = pos(n), a = Math.atan2(y - cy, x - cx), x1 = cx + Math.cos(a) * R, y1 = cy + Math.sin(a) * R, x2 = x - Math.cos(a) * r, y2 = y - Math.sin(a) * r;
+    if (M.view === "circles") continue;
+    const mk = (n.flow === "in" ? `marker-start="url(#ah)"` : n.flow === "out" ? `marker-end="url(#ah)"` : n.flow === "both" ? `marker-start="url(#ah)" marker-end="url(#ah)"` : "");
+    if (n.tie === "stress") parts.push(`<path d="${zigzag(x1, y1, x2, y2)}" fill="none" stroke="#c92a2a" stroke-width="2.5"/>`, mk ? `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="transparent" ${mk}/>` : "");
+    else parts.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#343a40" stroke-width="${n.tie === "strong" ? 6 : 2.5}" ${n.tie === "weak" ? `stroke-dasharray="8 7"` : ""} stroke-linecap="round" ${mk}/>`); }
+  parts.push(`<circle cx="${cx}" cy="${cy}" r="${R}" fill="#fff" stroke="#16191f" stroke-width="3"/><text x="${cx}" y="${cy + 5}" text-anchor="middle" font-size="16" font-weight="800" font-family="system-ui,sans-serif" fill="#16191f">${esc((M.centre || "The person").slice(0, 18))}</text>`);
+  for (const n of M.nodes) { const [x, y] = pos(n), c = (CATS[n.cat] || CATS.other)[1], words = n.label.split(/\s+/), l1 = words.slice(0, Math.ceil(words.length / 2)).join(" "), l2 = words.slice(Math.ceil(words.length / 2)).join(" ");
+    parts.push(`<g class="node" data-id="${n.id}" tabindex="0" role="button" aria-label="${esc(n.label)}: ${TIES[n.tie].toLowerCase()}, ${FLOWS[n.flow].toLowerCase()}"><circle cx="${x}" cy="${y}" r="${r}" fill="${c}22" stroke="${c}" stroke-width="2.5"/><text x="${x}" y="${y + (l2 ? -2 : 5)}" text-anchor="middle" font-size="13" font-weight="700" font-family="system-ui,sans-serif" fill="#16191f">${esc(l1.slice(0, 16))}</text>${l2 ? `<text x="${x}" y="${y + 14}" text-anchor="middle" font-size="13" font-weight="700" font-family="system-ui,sans-serif" fill="#16191f">${esc(l2.slice(0, 16))}</text>` : ""}</g>`); }
+  // the key, so a printed or exported map explains itself
+  const ky = 600; parts.push(`<g font-family="system-ui,sans-serif" font-size="12" fill="#343a40">${M.view === "circles" ? `<text x="20" y="${ky + 4}">Circles of closeness: the closer to the middle, the closer the person feels (Antonucci, 1986).</text>` :
+    `<line x1="20" y1="${ky}" x2="60" y2="${ky}" stroke="#343a40" stroke-width="6"/><text x="68" y="${ky + 4}">Strong</text><line x1="130" y1="${ky}" x2="170" y2="${ky}" stroke="#343a40" stroke-width="2.5"/><text x="178" y="${ky + 4}">Normal</text>
+     <line x1="240" y1="${ky}" x2="280" y2="${ky}" stroke="#343a40" stroke-width="2.5" stroke-dasharray="8 7"/><text x="288" y="${ky + 4}">Weak</text><path d="${zigzag(340, ky, 380, ky)}" fill="none" stroke="#c92a2a" stroke-width="2.5"/><text x="388" y="${ky + 4}">Stressful</text>
+     <line x1="470" y1="${ky}" x2="510" y2="${ky}" stroke="#343a40" stroke-width="2" marker-end="url(#ah)"/><text x="518" y="${ky + 4}">Direction of support or energy</text>`}
+     <text x="20" y="${ky + 26}" fill="#868e96" font-size="11">Ecomap after Hartman (1978). Made with If Leaves Weave on ${new Date().toLocaleDateString("en-GB")}.</text></g>`);
+  svg.innerHTML = `<desc id="mapDesc">${esc(summary())}</desc>` + parts.join("");
+}
+const summary = () => `Ecomap of ${M.centre || "the person"}: ` + (M.nodes.map(n => `${n.label}, ${TIES[n.tie].toLowerCase()}${n.flow !== "none" ? ", " + FLOWS[n.flow].toLowerCase() : ""}`).join("; ") || "no connections yet") + ".";
+
+/* ---------- the list: the full, accessible editor ---------- */
+const opts = (o, v) => Object.entries(o).map(([k, t]) => `<option value="${k}" ${k === v ? "selected" : ""}>${Array.isArray(t) ? t[0] : t}</option>`).join("");
+function drawList() { $("#ties").innerHTML = M.nodes.map(n => `<div class="tie" data-id="${n.id}"><div class="row"><input data-k="label" value="${esc(n.label)}" aria-label="Name" class="grow"><button class="btn sm danger" data-del aria-label="Remove ${esc(n.label)}">✕</button></div>
+   <div class="two"><select data-k="cat" aria-label="Kind">${opts(CATS, n.cat)}</select><select data-k="tie" aria-label="Tie">${opts(TIES, n.tie)}</select><select data-k="flow" aria-label="Direction">${opts(FLOWS, n.flow)}</select><select data-k="ring" aria-label="Closeness"><option value="1" ${n.ring == 1 ? "selected" : ""}>Inner circle</option><option value="2" ${n.ring == 2 ? "selected" : ""}>Middle circle</option><option value="3" ${n.ring == 3 ? "selected" : ""}>Outer circle</option></select></div>
+   <input data-k="note" value="${esc(n.note)}" placeholder="Note (optional)" aria-label="Note"></div>`).join("") || `<p class="hint">No connections yet. Add some above.</p>`; }
+$("#ties").addEventListener("input", e => { const d = e.target.closest(".tie"), k = e.target.dataset.k; if (!d || !k) return; const n = M.nodes.find(x => x.id === d.dataset.id); n[k] = k === "ring" ? +e.target.value : e.target.value; save(); draw(); });
+$("#ties").addEventListener("click", e => { if (!e.target.closest("[data-del]")) return; const id = e.target.closest(".tie").dataset.id, n = M.nodes.find(x => x.id === id); M.nodes = M.nodes.filter(x => x.id !== id); respace(); save(); draw(); drawList(); toast(`Removed ${n.label}`); });
+
+/* ---------- dragging, and moving with the keyboard ---------- */
+let drag = null;
+$("#map").addEventListener("pointerdown", e => { const g = e.target.closest(".node"); if (!g || M.view === "circles") return; drag = M.nodes.find(n => n.id === g.dataset.id); e.preventDefault(); });
+addEventListener("pointermove", e => { if (!drag) return; const r = $("#map").getBoundingClientRect(), k = 900 / r.width; drag.x = Math.max(45, Math.min(855, (e.clientX - r.left) * k)); drag.y = Math.max(60, Math.min(520, (e.clientY - r.top) * k)); drag.moved = true; draw(); });
+addEventListener("pointerup", () => { if (drag) { drag = null; save(); } });
+$("#map").addEventListener("keydown", e => { const g = e.target.closest(".node"); if (!g || M.view === "circles") return; const n = M.nodes.find(x => x.id === g.dataset.id), d = e.shiftKey ? 30 : 8, m = { ArrowLeft: [-d, 0], ArrowRight: [d, 0], ArrowUp: [0, -d], ArrowDown: [0, d] }[e.key];
+  if (!m) return; e.preventDefault(); n.x += m[0]; n.y += m[1]; n.moved = true; save(); draw(); $(`#map [data-id="${n.id}"]`).focus(); });
+
+/* ---------- views, maps, files ---------- */
+$("#quick").innerHTML = QUICK.map(([l, c]) => `<button class="chip" data-q="${esc(l)}" data-c="${c}">+ ${esc(l)}</button>`).join("");
+$("#quick").onclick = e => { const b = e.target.closest("[data-q]"); if (b) addNode(b.dataset.q, b.dataset.c); };
+$("#add").onclick = () => { addNode($("#newName").value); $("#newName").value = ""; $("#newName").focus(); }; $("#newName").onkeydown = e => { if (e.key === "Enter") $("#add").click(); };
+for (const k of ["title", "centre"]) $("#" + k).oninput = e => { M[k] = e.target.value.slice(0, 60); save(); draw(); };
+const view = v => { M.view = v; $("#vEco").setAttribute("aria-pressed", String(v === "eco")); $("#vCircles").setAttribute("aria-pressed", String(v === "circles")); save(); draw(); };
+$("#vEco").onclick = () => view("eco"); $("#vCircles").onclick = () => view("circles");
+$("#big").onchange = e => document.body.classList.toggle("big", e.target.checked);
+function load(m) { M = m; $("#title").value = M.title; $("#centre").value = M.centre; view(M.view || "eco"); drawList(); listMaps(); }
+$("#maps").onchange = e => load(all.find(m => m.id === e.target.value));
+$("#newMap").onclick = () => { const m = blank(); all.unshift(m); store.set("ecomaps", all); load(m); $("#centre").focus(); };
+$("#delMap").onclick = () => { if (!confirm("Delete this ecomap from this device?")) return; all = all.filter(m => m.id !== M.id); if (!all.length) all = [blank()]; store.set("ecomaps", all); load(all[0]); toast("Deleted"); };
+const fname = ext => `${(M.title || M.centre || "ecomap").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "ecomap"}.${ext}`;
+$("#png").onclick = async () => download(await svgToPng($("#map")), fname("png"));
+$("#svgDl").onclick = () => download(new Blob([new XMLSerializer().serializeToString($("#map"))], { type: "image/svg+xml" }), fname("svg"));
+$("#save").onclick = () => download(new Blob([JSON.stringify(M, null, 1)], { type: "application/json" }), fname("ecomap.json"));
+$("#open").onclick = () => openJSON("ilw-ecomap", j => { j.id = uid(); all.unshift(j); store.set("ecomaps", all); load(j); toast("Opened"); });
+load(M);
+</script>
+</body></html>

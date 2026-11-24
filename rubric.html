@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Rubric · If Leaves Weave</title>
+<link rel="icon" href="logo.png" type="image/png"><link rel="stylesheet" href="fonts/fonts.css"><link rel="stylesheet" href="kit.css">
+<style>
+.rub{border-collapse:collapse;width:100%;font-size:14px;table-layout:fixed}.rub th,.rub td{border:1px solid var(--line);padding:6px;vertical-align:top}.rub th{background:var(--soft)}.rub th:first-child{width:18%}
+.rub textarea,.rub input{border:0;background:transparent;padding:4px;font-size:13.5px;resize:vertical}.rub input.pts{width:4.5em;text-align:center;font-weight:700}
+.rub td.pick{cursor:pointer}.rub td.pick:hover{background:var(--soft)}.rub td.chosen{background:var(--acc);color:var(--acc-ink)}.rub td.chosen *{color:var(--acc-ink)}
+.students{display:flex;flex-wrap:wrap;gap:6px}.total{font-size:26px;font-weight:800}.wrap{overflow-x:auto}
+</style></head>
+<body>
+<header class="top"><a class="brand" href="home.html"><img src="logo.png" alt="" width="26" height="26">If Leaves Weave</a><b>Rubric</b><span class="sp"></span>
+  <select id="rubs" aria-label="My rubrics" style="width:auto"></select><button class="btn" id="newR">New</button><button class="btn danger" id="delR">Delete</button><a class="btn" href="home.html">All tools</a></header>
+<main class="kit one">
+  <section class="card" aria-labelledby="h1">
+    <div class="row"><h1 id="h1" class="grow">Rubric</h1><button class="chip" id="mBuild" aria-pressed="true">Build</button><button class="chip" id="mMark" aria-pressed="false">Mark</button></div>
+    <div class="row noprint"><label class="fld grow">Title <input id="title" placeholder="e.g. Year 9 persuasive essay"></label><label class="fld">Start from <select id="tpl"><option value="">Choose a template…</option><option value="essay">Essay</option><option value="presentation">Presentation</option><option value="lab">Lab report</option><option value="group">Group work</option></select></label></div>
+    <div id="build">
+      <div class="wrap"><table class="rub" id="rub"></table></div>
+      <div class="row noprint"><button class="btn" id="addCrit">+ Criterion</button><button class="btn" id="addLvl">+ Level</button><button class="btn" id="delLvl">− Level</button><span class="sp"></span><button class="btn" id="copyTable">Copy as a table</button><button class="btn" onclick="print()">Print</button><button class="btn" id="save">Save file</button><button class="btn" id="open">Open file</button></div>
+      <p class="hint noprint">Click any heading or cell to edit it. Rubrics are kept in this browser.</p>
+    </div>
+    <div id="mark" hidden>
+      <label class="fld">Students (one per line, or separated by commas) <textarea id="names" rows="2" placeholder="Aisyah&#10;Ben&#10;Chen Wei"></textarea></label>
+      <div class="students" id="studs" role="group" aria-label="Choose a student"></div>
+      <div id="markArea"></div>
+      <div class="row"><button class="btn pri" id="marksCsv">Download all marks (CSV)</button><span class="hint" id="progress"></span></div>
+    </div>
+  </section>
+</main>
+<script src="kit.js"></script>
+<script>
+const TPL = {
+  essay: { levels: [["Excellent", 4], ["Good", 3], ["Developing", 2], ["Beginning", 1]], crit: [["Argument", ["A clear, convincing argument throughout", "A clear argument, mostly sustained", "An argument that is sometimes unclear", "No clear argument"]], ["Evidence", ["Well-chosen evidence, fully explained", "Relevant evidence, mostly explained", "Some evidence, little explanation", "Little or no evidence"]], ["Structure", ["Logical, with smooth links", "Organised, with some links", "Some organisation", "Hard to follow"]], ["Language", ["Precise and accurate", "Mostly accurate", "Errors sometimes get in the way", "Frequent errors"]]] },
+  presentation: { levels: [["Excellent", 4], ["Good", 3], ["Developing", 2], ["Beginning", 1]], crit: [["Content", ["Accurate, insightful and complete", "Accurate and mostly complete", "Some gaps or errors", "Many gaps or errors"]], ["Delivery", ["Confident, clear and engaging", "Clear, mostly confident", "Sometimes unclear", "Hard to hear or follow"]], ["Visual aids", ["Clear and well designed", "Helpful", "Cluttered or partly helpful", "Missing or distracting"]], ["Answering questions", ["Thoughtful, accurate answers", "Mostly accurate answers", "Some difficulty", "Unable to answer"]]] },
+  lab: { levels: [["Excellent", 4], ["Good", 3], ["Developing", 2], ["Beginning", 1]], crit: [["Hypothesis", ["Testable and well justified", "Testable", "Vague", "Missing"]], ["Method", ["Clear, repeatable, variables controlled", "Mostly clear and repeatable", "Some steps missing", "Unclear"]], ["Results", ["Accurate, well presented data", "Mostly accurate and clear", "Some errors in presentation", "Incomplete"]], ["Conclusion", ["Fully supported by data, with limitations", "Supported by data", "Partly supported", "Not supported"]]] },
+  group: { levels: [["Excellent", 4], ["Good", 3], ["Developing", 2], ["Beginning", 1]], crit: [["Contribution", ["Consistently leads and contributes", "Contributes regularly", "Contributes sometimes", "Rarely contributes"]], ["Listening", ["Builds on others’ ideas", "Listens respectfully", "Sometimes interrupts", "Rarely listens"]], ["Reliability", ["Always completes their part", "Usually completes their part", "Sometimes needs reminders", "Often incomplete"]], ["Problem solving", ["Finds solutions for the group", "Helps solve problems", "Some help with problems", "Little help with problems"]]] } };
+const fromTpl = (k, title = "") => { const t = TPL[k]; return { kind: "ilw-rubric", v: 1, id: uid(), title, levels: t.levels.map(([n, p]) => ({ n, p })), crit: t.crit.map(([n, d]) => ({ id: uid(), n, d: [...d] })), names: "", marks: {} }; };
+let all = store.get("rubrics", []), Rb, mode = "build", student = null;
+if (!all.length) all = [fromTpl("essay", "My rubric")]; Rb = all[0];
+const save = () => { const i = all.findIndex(x => x.id === Rb.id); all[i] = Rb; store.set("rubrics", all); list(); };
+function list() { $("#rubs").innerHTML = all.map(x => `<option value="${x.id}" ${x.id === Rb.id ? "selected" : ""}>${esc(x.title || "Untitled rubric")}</option>`).join(""); }
+const max = () => Rb.crit.length * Math.max(...Rb.levels.map(l => +l.p || 0), 0);
+
+/* ---------- building ---------- */
+function drawBuild() { const L = Rb.levels;
+  $("#rub").innerHTML = `<thead><tr><th>Criterion</th>${L.map((l, i) => `<th><input data-ln="${i}" value="${esc(l.n)}" aria-label="Level ${i + 1} name"><br><input class="pts" type="number" data-lp="${i}" value="${l.p}" aria-label="Level ${i + 1} points"> pts</th>`).join("")}</tr></thead>
+   <tbody>${Rb.crit.map((c, r) => `<tr><th><textarea data-cn="${r}" rows="2" aria-label="Criterion ${r + 1}">${esc(c.n)}</textarea><button class="btn sm danger noprint" data-delc="${r}" aria-label="Remove ${esc(c.n)}">✕</button></th>${L.map((_, i) => `<td><textarea data-d="${r},${i}" rows="3" aria-label="${esc(c.n)}, ${esc(L[i].n)}">${esc(c.d[i] || "")}</textarea></td>`).join("")}</tr>`).join("")}</tbody>
+   <tfoot><tr><th colspan="${L.length + 1}" style="text-align:right">Total available: ${max()} points</th></tr></tfoot>`; }
+$("#rub").addEventListener("input", e => { const t = e.target, d = t.dataset;
+  if (d.ln != null) Rb.levels[+d.ln].n = t.value; if (d.lp != null) Rb.levels[+d.lp].p = +t.value || 0; if (d.cn != null) Rb.crit[+d.cn].n = t.value; if (d.d) { const [r, i] = d.d.split(",").map(Number); Rb.crit[r].d[i] = t.value; }
+  save(); if (d.lp != null) $("#rub tfoot th").textContent = `Total available: ${max()} points`; });
+$("#rub").addEventListener("click", e => { const b = e.target.closest("[data-delc]"); if (!b) return; if (!confirm("Remove this criterion?")) return; Rb.crit.splice(+b.dataset.delc, 1); save(); drawBuild(); });
+$("#addCrit").onclick = () => { Rb.crit.push({ id: uid(), n: "New criterion", d: Rb.levels.map(() => "") }); save(); drawBuild(); $$("#rub [data-cn]").pop().select(); };
+$("#addLvl").onclick = () => { if (Rb.levels.length >= 6) return toast("Up to six levels."); Rb.levels.push({ n: "Level " + (Rb.levels.length + 1), p: 0 }); Rb.crit.forEach(c => c.d.push("")); save(); drawBuild(); };
+$("#delLvl").onclick = () => { if (Rb.levels.length <= 2) return toast("A rubric needs at least two levels."); Rb.levels.pop(); Rb.crit.forEach(c => c.d.pop()); save(); drawBuild(); };
+$("#tpl").onchange = e => { if (!e.target.value) return; if (Rb.crit.some(c => c.d.some(Boolean)) && !confirm("Replace this rubric’s criteria with the template?")) { e.target.value = ""; return; } const t = fromTpl(e.target.value, Rb.title); Rb.levels = t.levels; Rb.crit = t.crit; Rb.marks = {}; e.target.value = ""; save(); drawBuild(); toast("Template applied"); };
+$("#copyTable").onclick = async () => { const html = `<table border="1" cellpadding="6" style="border-collapse:collapse"><tr><th>${esc(Rb.title || "Rubric")}</th>${Rb.levels.map(l => `<th>${esc(l.n)} (${l.p})</th>`).join("")}</tr>${Rb.crit.map(c => `<tr><th>${esc(c.n)}</th>${c.d.map(x => `<td>${esc(x)}</td>`).join("")}</tr>`).join("")}</table>`,
+  text = [["Criterion", ...Rb.levels.map(l => `${l.n} (${l.p})`)], ...Rb.crit.map(c => [c.n, ...c.d])].map(r => r.join("\t")).join("\n");
+  try { await navigator.clipboard.write([new ClipboardItem({ "text/html": new Blob([html], { type: "text/html" }), "text/plain": new Blob([text], { type: "text/plain" }) })]); toast("Copied: paste it into Word or Google Docs."); } catch { await navigator.clipboard.writeText(text); toast("Copied as text."); } };
+
+/* ---------- marking ---------- */
+const names = () => [...new Set(Rb.names.split(/[\n,]+/).map(s => s.trim()).filter(Boolean))];
+function scoreOf(n) { const m = Rb.marks[n] || {}; let s = 0, k = 0; for (const c of Rb.crit) if (m[c.id] != null) { s += +Rb.levels[m[c.id]]?.p || 0; k++; } return { s, k }; }
+function comment(n) { const m = Rb.marks[n] || {}; return Rb.crit.filter(c => m[c.id] != null).map(c => `${c.n}: ${c.d[m[c.id]] || Rb.levels[m[c.id]].n}.`).join(" "); }
+function drawMark() { const N = names(); if (student && !N.includes(student)) student = null; if (!student) student = N[0] || null;
+  $("#studs").innerHTML = N.map(n => { const { k } = scoreOf(n); return `<button class="chip" data-s="${esc(n)}" aria-pressed="${n === student}">${esc(n)}${k === Rb.crit.length && k ? " ✓" : ""}</button>`; }).join("") || `<p class="hint">Add your students above.</p>`;
+  const done = N.filter(n => scoreOf(n).k === Rb.crit.length).length; $("#progress").textContent = N.length ? `${done} of ${N.length} marked` : "";
+  if (!student) { $("#markArea").innerHTML = ""; return; } const m = Rb.marks[student] || {}, { s, k } = scoreOf(student), mx = max();
+  $("#markArea").innerHTML = `<h2>${esc(student)}</h2><p class="hint">Click the description that fits best for each criterion.</p><div class="wrap"><table class="rub"><thead><tr><th>Criterion</th>${Rb.levels.map(l => `<th>${esc(l.n)} (${l.p})</th>`).join("")}</tr></thead><tbody>${Rb.crit.map(c => `<tr><th>${esc(c.n)}</th>${Rb.levels.map((l, i) => `<td class="pick ${m[c.id] === i ? "chosen" : ""}" tabindex="0" role="button" aria-pressed="${m[c.id] === i}" data-c="${c.id}" data-i="${i}">${esc(c.d[i] || l.n)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    <div class="row"><span class="total">${s} / ${mx}</span><span class="hint">${mx ? Math.round(s / mx * 100) : 0}%${k < Rb.crit.length ? ` · ${Rb.crit.length - k} criteria still to mark` : ""}</span></div>
+    <label class="fld">Feedback (written from your choices; add your own words) <textarea id="fb" rows="3">${esc((Rb.marks[student]?.__note) ?? comment(student))}</textarea></label>`;
+  $("#fb").oninput = e => { (Rb.marks[student] ||= {}).__note = e.target.value; save(); }; }
+$("#markArea").addEventListener("click", e => pick(e.target.closest(".pick"))); $("#markArea").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.closest(".pick")) { e.preventDefault(); pick(e.target.closest(".pick")); } });
+function pick(td) { if (!td || !student) return; const m = (Rb.marks[student] ||= {}), hadNote = m.__note != null && m.__note !== comment(student); m[td.dataset.c] = +td.dataset.i; if (!hadNote) delete m.__note; save(); drawMark(); $(`#markArea [data-c="${td.dataset.c}"][data-i="${td.dataset.i}"]`)?.focus(); }
+$("#studs").onclick = e => { const b = e.target.closest("[data-s]"); if (b) { student = b.dataset.s; drawMark(); } };
+$("#names").oninput = e => { Rb.names = e.target.value; save(); drawMark(); };
+$("#marksCsv").onclick = () => { const N = names(); download(new Blob([toCSV([["Student", ...Rb.crit.map(c => c.n), "Total", "Out of", "Percent", "Feedback"], ...N.map(n => { const m = Rb.marks[n] || {}, { s } = scoreOf(n); return [n, ...Rb.crit.map(c => m[c.id] != null ? `${Rb.levels[m[c.id]].n} (${Rb.levels[m[c.id]].p})` : ""), s, max(), max() ? Math.round(s / max() * 100) : "", m.__note ?? comment(n)]; })])], { type: "text/csv" }), `${(Rb.title || "rubric").replace(/[^\w-]+/g, "-")}-marks.csv`); };
+
+/* ---------- modes and files ---------- */
+const setMode = m => { mode = m; $("#build").hidden = m !== "build"; $("#mark").hidden = m !== "mark"; $("#mBuild").setAttribute("aria-pressed", String(m === "build")); $("#mMark").setAttribute("aria-pressed", String(m === "mark")); m === "build" ? drawBuild() : drawMark(); };
+$("#mBuild").onclick = () => setMode("build"); $("#mMark").onclick = () => setMode("mark");
+$("#title").oninput = e => { Rb.title = e.target.value.slice(0, 80); save(); };
+function load(x) { Rb = x; $("#title").value = Rb.title; $("#names").value = Rb.names || ""; student = null; list(); setMode(mode); }
+$("#rubs").onchange = e => load(all.find(x => x.id === e.target.value));
+$("#newR").onclick = () => { const x = fromTpl("essay", ""); all.unshift(x); store.set("rubrics", all); load(x); $("#title").focus(); };
+$("#delR").onclick = () => { if (!confirm("Delete this rubric and its marks from this device?")) return; all = all.filter(x => x.id !== Rb.id); if (!all.length) all = [fromTpl("essay", "My rubric")]; store.set("rubrics", all); load(all[0]); };
+$("#save").onclick = () => download(new Blob([JSON.stringify(Rb, null, 1)], { type: "application/json" }), `${(Rb.title || "rubric").replace(/[^\w-]+/g, "-")}.rubric.json`);
+$("#open").onclick = () => openJSON("ilw-rubric", j => { j.id = uid(); all.unshift(j); store.set("rubrics", all); load(j); toast("Opened"); });
+load(Rb);
+</script>
+</body></html>

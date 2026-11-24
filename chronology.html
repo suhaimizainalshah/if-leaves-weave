@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Chronology · If Leaves Weave</title>
+<link rel="icon" href="logo.png" type="image/png"><link rel="stylesheet" href="fonts/fonts.css"><link rel="stylesheet" href="kit.css">
+<style>
+#strip{width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:12px}
+.sig{display:inline-block;font-size:12px;font-weight:800;padding:1px 8px;border-radius:999px}.sig.high{background:#c92a2a;color:#fff}.sig.medium{background:#f59f00;color:#1b1b1b}.sig.low{background:var(--line);color:var(--ink)}
+table.grid td.d{white-space:nowrap;font-weight:700}table.grid td .src{color:var(--muted);font-size:13px}.entry-form .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media print{#strip{border:0}.sig{border:1px solid #000}}
+</style></head>
+<body>
+<header class="top"><a class="brand" href="home.html"><img src="logo.png" alt="" width="26" height="26">If Leaves Weave</a><b>Chronology</b><span class="sp"></span>
+  <select id="chrons" aria-label="My chronologies" style="width:auto"></select><button class="btn" id="newC">New</button><button class="btn danger" id="delC">Delete</button><a class="btn" href="home.html">All tools</a></header>
+<main class="kit">
+  <section class="card noprint entry-form" aria-labelledby="h1">
+    <h1 id="h1">Case chronology</h1>
+    <p class="hint">A dated record of significant events, in order, so patterns over time are easy to see.</p>
+    <p class="note"><b>Sensitive information stays on this device.</b> Use initials or a case reference, record facts and their source, and follow your organisation’s recording and data-protection policies.</p>
+    <label class="fld">Case or person (initials or reference) <input id="cname" placeholder="e.g. A.K., ref 2026/114"></label>
+    <h2>Add an event</h2>
+    <div class="two"><label class="fld">Date <input type="date" id="date"></label><label class="fld">Time (optional) <input type="time" id="time"></label></div>
+    <label class="chk"><input type="checkbox" id="approx"> The date is approximate</label>
+    <div class="two"><label class="fld">Category <select id="cat"></select></label><label class="fld">Significance <select id="sig"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label></div>
+    <label class="fld">What happened <textarea id="what" rows="3" placeholder="Facts: what, where, who was involved"></textarea></label>
+    <label class="fld">Source of the information <input id="src" placeholder="e.g. School DSL, police report, parent"></label>
+    <label class="fld">Action taken or outcome (optional) <input id="act" placeholder="e.g. Referral made; home visit arranged"></label>
+    <div class="row"><button class="btn pri" id="addE">Add to the chronology</button><button class="btn" id="cancelEdit" hidden>Cancel editing</button></div>
+  </section>
+  <section class="card" aria-labelledby="h2">
+    <div class="row noprint"><h2 id="h2" class="grow">Timeline</h2><button class="btn" id="csv">CSV</button><button class="btn" id="save">Save file</button><button class="btn" id="open">Open file</button><button class="btn" onclick="print()">Print</button></div>
+    <h2 class="print-title" id="ptitle"></h2>
+    <svg id="strip" viewBox="0 0 900 120" role="img" aria-labelledby="stripDesc"><desc id="stripDesc"></desc></svg>
+    <div class="row noprint"><select id="fCat" aria-label="Show category" style="width:auto"></select><select id="fSig" aria-label="Show significance" style="width:auto"><option value="">All significance</option><option value="high">High only</option><option value="medium">Medium and high</option></select><input id="fText" class="grow" placeholder="Search the chronology" aria-label="Search"></div>
+    <p class="hint" id="count" aria-live="polite"></p>
+    <table class="grid"><thead><tr><th>Date</th><th>Category</th><th>What happened</th><th>Significance</th><th>Action or outcome</th><th class="noprint"><span class="sr">Edit</span></th></tr></thead><tbody id="rows"></tbody></table>
+  </section>
+</main>
+<script src="kit.js"></script>
+<script>
+const CATS = { home: "Home and family", education: "Education", health: "Health", police: "Police and justice", social: "Social care", meeting: "Meeting or review", contact: "Contact or visit", disclosure: "Disclosure or concern", other: "Other" };
+$("#cat").innerHTML = Object.entries(CATS).map(([k, v]) => `<option value="${k}">${v}</option>`).join(""); $("#fCat").innerHTML = `<option value="">All categories</option>` + $("#cat").innerHTML;
+let all = store.get("chronologies", []), C, editing = null;
+const blank = () => ({ kind: "ilw-chronology", v: 1, id: uid(), name: "", entries: [] });
+if (!all.length) all = [blank()]; C = all[0];
+const save = () => { const i = all.findIndex(x => x.id === C.id); all[i] = C; store.set("chronologies", all); list(); };
+function list() { $("#chrons").innerHTML = all.map(x => `<option value="${x.id}" ${x.id === C.id ? "selected" : ""}>${esc(x.name || "Untitled chronology")} (${x.entries.length})</option>`).join(""); }
+const key = e => (e.date || "0000-00-00") + "T" + (e.time || "00:00");
+const fmtD = e => { if (!e.date) return "No date"; const d = new Date(e.date + "T12:00"); return `${e.approx ? "c. " : ""}${d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}${e.time ? ", " + e.time : ""}`; };
+function shown() { const c = $("#fCat").value, s = $("#fSig").value, t = $("#fText").value.trim().toLowerCase();
+  return C.entries.slice().sort((a, b) => key(a).localeCompare(key(b))).filter(e => (!c || e.cat === c) && (!s || (s === "high" ? e.sig === "high" : e.sig !== "low")) && (!t || [e.what, e.src, e.act].join(" ").toLowerCase().includes(t))); }
+function draw() {
+  $("#ptitle").textContent = `Chronology: ${C.name || "untitled"} (printed ${new Date().toLocaleDateString("en-GB")})`;
+  const E = shown(); $("#count").textContent = `${E.length} of ${C.entries.length} event${C.entries.length === 1 ? "" : "s"} shown${E.filter(e => e.sig === "high").length ? `, ${E.filter(e => e.sig === "high").length} of high significance` : ""}.`;
+  $("#rows").innerHTML = E.map(e => `<tr><td class="d">${esc(fmtD(e))}</td><td>${esc(CATS[e.cat] || e.cat)}</td><td>${esc(e.what)}${e.src ? `<br><span class="src">Source: ${esc(e.src)}</span>` : ""}</td><td><span class="sig ${e.sig}">${e.sig[0].toUpperCase() + e.sig.slice(1)}</span></td><td>${esc(e.act || "")}</td>
+    <td class="noprint"><button class="btn sm" data-edit="${e.id}" aria-label="Edit this event">Edit</button> <button class="btn sm danger" data-del="${e.id}" aria-label="Remove this event">✕</button></td></tr>`).join("") || `<tr><td colspan="6" class="hint">No events yet.</td></tr>`;
+  // the strip: one mark per dated event, so clusters stand out
+  const dated = E.filter(e => e.date), svg = $("#strip"); if (!dated.length) { svg.innerHTML = `<desc id="stripDesc">No dated events.</desc><text x="450" y="64" text-anchor="middle" fill="#868e96" font-family="system-ui" font-size="14">Dated events appear here</text>`; return; }
+  const t = dated.map(e => +new Date(key(e))), lo = Math.min(...t), hi = Math.max(...t), span = Math.max(hi - lo, 864e5), X = v => 40 + (v - lo) / span * 820, col = { high: "#c92a2a", medium: "#f59f00", low: "#adb5bd" };
+  let p = `<desc id="stripDesc">Timeline of ${dated.length} events from ${fmtD(dated[0])} to ${fmtD(dated[dated.length - 1])}.</desc><line x1="40" y1="70" x2="860" y2="70" stroke="#343a40" stroke-width="2"/>`;
+  const ticks = 5; for (let i = 0; i <= ticks; i++) { const v = lo + span * i / ticks; p += `<line x1="${X(v)}" y1="66" x2="${X(v)}" y2="74" stroke="#343a40"/><text x="${X(v)}" y="96" text-anchor="middle" font-size="11" fill="#495057" font-family="system-ui">${new Date(v).toLocaleDateString("en-GB", { month: "short", year: "2-digit" })}</text>`; }
+  dated.forEach((e, i) => { const x = X(+new Date(key(e))), r = e.sig === "high" ? 8 : e.sig === "medium" ? 6 : 4.5; p += `<circle cx="${x}" cy="${70 - (i % 3) * 14 - 8}" r="${r}" fill="${col[e.sig]}" stroke="#fff" stroke-width="1.5"><title>${esc(fmtD(e) + ": " + e.what.slice(0, 80))}</title></circle>`; });
+  p += `<g font-family="system-ui" font-size="11" fill="#495057"><circle cx="48" cy="112" r="5" fill="#c92a2a"/><text x="58" y="116">High</text><circle cx="100" cy="112" r="5" fill="#f59f00"/><text x="110" y="116">Medium</text><circle cx="168" cy="112" r="5" fill="#adb5bd"/><text x="178" y="116">Low</text></g>`;
+  svg.innerHTML = p;
+}
+function form(e) { $("#date").value = e?.date || ""; $("#time").value = e?.time || ""; $("#approx").checked = !!e?.approx; $("#cat").value = e?.cat || "other"; $("#sig").value = e?.sig || "medium"; $("#what").value = e?.what || ""; $("#src").value = e?.src || ""; $("#act").value = e?.act || ""; }
+$("#addE").onclick = () => { const what = $("#what").value.trim(); if (!what) return $("#what").focus(), toast("Describe what happened.");
+  const e = { id: editing || uid(), date: $("#date").value, time: $("#time").value, approx: $("#approx").checked, cat: $("#cat").value, sig: $("#sig").value, what: what.slice(0, 2000), src: $("#src").value.trim().slice(0, 200), act: $("#act").value.trim().slice(0, 500) };
+  if (editing) C.entries = C.entries.map(x => x.id === editing ? e : x); else C.entries.push(e);
+  toast(editing ? "Event updated" : "Event added"); editing = null; $("#addE").textContent = "Add to the chronology"; $("#cancelEdit").hidden = true; form(null); save(); draw(); $("#date").focus(); };
+$("#cancelEdit").onclick = () => { editing = null; form(null); $("#addE").textContent = "Add to the chronology"; $("#cancelEdit").hidden = true; };
+$("#rows").onclick = e => { const ed = e.target.closest("[data-edit]"), del = e.target.closest("[data-del]");
+  if (ed) { const x = C.entries.find(y => y.id === ed.dataset.edit); editing = x.id; form(x); $("#addE").textContent = "Save changes"; $("#cancelEdit").hidden = false; $("#what").focus(); }
+  if (del && confirm("Remove this event from the chronology?")) { C.entries = C.entries.filter(y => y.id !== del.dataset.del); save(); draw(); } };
+for (const id of ["#fCat", "#fSig", "#fText"]) $(id).addEventListener("input", draw);
+$("#cname").oninput = e => { C.name = e.target.value.slice(0, 80); save(); draw(); };
+function load(x) { C = x; $("#cname").value = C.name; editing = null; form(null); list(); draw(); }
+$("#chrons").onchange = e => load(all.find(x => x.id === e.target.value));
+$("#newC").onclick = () => { const x = blank(); all.unshift(x); store.set("chronologies", all); load(x); $("#cname").focus(); };
+$("#delC").onclick = () => { if (!confirm("Delete this whole chronology from this device?")) return; all = all.filter(x => x.id !== C.id); if (!all.length) all = [blank()]; store.set("chronologies", all); load(all[0]); toast("Deleted"); };
+const fn = ext => `chronology-${(C.name || "case").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "case"}.${ext}`;
+$("#csv").onclick = () => download(new Blob([toCSV([["Date", "Time", "Approximate", "Category", "What happened", "Source", "Significance", "Action or outcome"], ...shown().map(e => [e.date, e.time, e.approx ? "Yes" : "", CATS[e.cat] || e.cat, e.what, e.src, e.sig, e.act])])], { type: "text/csv" }), fn("csv"));
+$("#save").onclick = () => download(new Blob([JSON.stringify(C, null, 1)], { type: "application/json" }), fn("chronology.json"));
+$("#open").onclick = () => openJSON("ilw-chronology", j => { j.id = uid(); all.unshift(j); store.set("chronologies", all); load(j); toast("Opened"); });
+load(C);
+</script>
+</body></html>

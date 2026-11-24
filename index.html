@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>/* one-time move of settings and saved signatures stored under the old name (Folio) */try{for(let i=localStorage.length;i--;){const k=localStorage.key(i);if(k&&/^folio/.test(k)){const n=k.replace(/^folio/,"ifleavesweave");if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>If Leaves Weave PDF: free PDF editor that works in your browser</title>
+<meta name="description" content="Merge, split, reorder, sign, fill, annotate, compress and convert PDFs for free. Files never leave your device.">
+<meta name="theme-color" content="#E7EBEE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161A1F" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="logo.png" type="image/png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{
+  --desk:#E7EBEE; --panel:#FFFFFF; --sheet:#FFFFFF; --ink:#18202A; --muted:#57616C; --line:#D6DCE1; --soft:#EEF1F4;
+  --blue:#2453D6; --blue-hover:#1C43B4; --on-blue:#FFFFFF; --hi:#FFE066; --danger:#C2362B; --sel:#2453D6;
+  --ui:"Hanken Grotesk","Segoe UI",system-ui,-apple-system,sans-serif;
+  --r:10px; --rail:88px; --side:300px; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --desk:#161A1F; --panel:#1F242A; --sheet:#FFFFFF; --ink:#E9EDF1; --muted:#9AA4AF; --line:#323941; --soft:#283037;
+  --blue:#6E95FF; --blue-hover:#89A8FF; --on-blue:#0D1530; --hi:#F2CF45; --danger:#FF7A6E; --sel:#6E95FF; color-scheme:dark}}
+*,*::before,*::after{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{background:var(--desk);color:var(--ink);font:400 15px/1.45 var(--ui);-webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+svg{flex:none}
+
+.app{height:100%;display:grid;grid-template-rows:auto 1fr}
+.top{display:flex;align-items:center;gap:.4rem;padding:.55rem .8rem;background:var(--panel);border-bottom:1px solid var(--line);min-width:0}
+.brand{display:flex;align-items:center;gap:.5rem;font-weight:800;font-size:1.22rem;letter-spacing:-.02em;margin-right:.5rem}
+.docname{flex:1;min-width:60px;max-width:360px;height:36px;border:1px solid transparent;border-radius:8px;background:transparent;padding:0 .6rem;font-weight:600;text-overflow:ellipsis}
+.docname:hover{border-color:var(--line)}
+.docname:focus{outline:none;border-color:var(--blue);background:var(--desk)}
+.spacer{flex:1}
+.ib{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;height:38px;min-width:38px;padding:0 .65rem;border:1px solid transparent;border-radius:8px;background:transparent;font-weight:600;font-size:.92rem}
+.ib:hover:not(:disabled){background:var(--soft)}
+.ib:disabled{opacity:.35;cursor:default}
+.ib svg{width:19px;height:19px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;min-height:40px;padding:0 1rem;border-radius:8px;border:1px solid var(--line);background:var(--panel);font-weight:600;text-align:center}
+.btn:hover:not(:disabled){background:var(--soft)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn svg{width:18px;height:18px}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.btn.primary:hover:not(:disabled){background:var(--blue-hover);border-color:var(--blue-hover)}
+.btn.danger{color:var(--danger)}
+.btn.block{width:100%}
+a.btn{text-decoration:none;color:inherit}
+a.btn.primary{color:var(--on-blue)}
+
+.work{display:grid;grid-template-columns:var(--rail) 1fr var(--side);min-height:0}
+.work.bare{grid-template-columns:1fr}
+.rail{background:var(--panel);border-right:1px solid var(--line);padding:.5rem .4rem;display:flex;flex-direction:column;gap:.15rem;overflow:auto}
+.tool{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.55rem .2rem;border:0;border-radius:var(--r);background:transparent;color:var(--muted);font-size:.74rem;font-weight:600;line-height:1.2;text-align:center}
+.tool svg{width:22px;height:22px}
+.tool:hover{background:var(--soft);color:var(--ink)}
+.tool[aria-selected=true]{background:var(--ink);color:var(--panel)}
+.side{background:var(--panel);border-left:1px solid var(--line);overflow:auto;min-height:0}
+.pane{padding:1.1rem;display:grid;gap:1rem;align-content:start}
+.pane h2{margin:0;font-size:1.12rem;letter-spacing:-.01em}
+.pane .hint{margin:-.55rem 0 0;color:var(--muted);font-size:.88rem}
+.group{display:grid;gap:.45rem}
+.lbl{font-size:.82rem;font-weight:600;color:var(--muted)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem}
+.chip{min-height:34px;padding:0 .75rem;border:1px solid var(--line);border-radius:999px;background:var(--panel);font-weight:600;font-size:.86rem}
+.chip:hover{background:var(--soft)}
+.chip[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--panel)}
+.field{display:grid;gap:.3rem}
+.field label{font-size:.82rem;font-weight:600;color:var(--muted)}
+input[type=text],input[type=number],select,textarea{width:100%;height:40px;padding:0 .7rem;border:1px solid var(--line);border-radius:8px;background:var(--desk)}
+textarea{height:auto;padding:.55rem .7rem;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 22%,transparent)}
+input[type=range]{width:100%;accent-color:var(--blue)}
+.check{display:flex;align-items:center;gap:.55rem;font-weight:600;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--blue)}
+.note{margin:0;font-size:.85rem;color:var(--muted)}
+.stat{display:flex;justify-content:space-between;background:var(--desk);border-radius:8px;padding:.6rem .75rem;font-size:.9rem;font-variant-numeric:tabular-nums}
+.stat b{font-weight:700}
+.progress{height:8px;border-radius:9px;background:var(--soft);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--blue);transition:width .2s}
+
+/* Stage */
+.stage{position:relative;min-width:0;min-height:0;overflow:auto;background:var(--desk)}
+.stage.drag::after{content:"Drop to add";position:fixed;inset:70px 14px 14px;border:3px dashed var(--blue);border-radius:18px;display:grid;place-items:center;font-size:1.4rem;font-weight:700;color:var(--blue);background:color-mix(in srgb,var(--desk) 82%,transparent);z-index:30;pointer-events:none}
+
+/* Empty */
+.empty{min-height:100%;display:grid;place-items:center;padding:2rem 1.2rem}
+.empty-in{width:min(760px,100%);display:grid;gap:1.6rem}
+.tray{position:relative;display:grid;justify-items:center;gap:1rem;padding:2.6rem 1.5rem 2.2rem;border:2px dashed var(--line);border-radius:20px;background:color-mix(in srgb,var(--panel) 70%,transparent);text-align:center}
+.tray:hover{border-color:var(--blue)}
+.sheets{position:relative;width:120px;height:96px;margin-bottom:.4rem}
+.sheets i{position:absolute;left:30px;top:6px;width:62px;height:82px;background:var(--sheet);border:1px solid #CDD4DA;border-radius:4px;box-shadow:0 8px 18px -10px rgba(0,0,0,.35)}
+.sheets i:nth-child(1){transform:rotate(-12deg) translate(-16px,4px)}
+.sheets i:nth-child(2){transform:rotate(7deg) translate(14px,0)}
+.sheets i:nth-child(3){background:var(--sheet) linear-gradient(transparent 22px,#DCE2E8 22px 25px,transparent 25px 33px,#DCE2E8 33px 36px,transparent 36px 44px,#DCE2E8 44px 47px,transparent 47px) no-repeat 9px 0/44px 100%}
+.sheets svg{position:absolute;left:44px;top:58px}
+.tray h1{margin:0;font-size:clamp(1.6rem,3.6vw,2.35rem);letter-spacing:-.03em;line-height:1.1;font-weight:800}
+.tray p{margin:0;color:var(--muted);max-width:46ch}
+.tasks{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+.task{display:flex;align-items:center;gap:.6rem;padding:.75rem .8rem;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-align:left;font-weight:600;font-size:.92rem}
+.task:hover{border-color:var(--blue)}
+.task svg{width:22px;height:22px;color:var(--blue)}
+
+/* Page grid */
+.gridwrap{padding:1.4rem 1.4rem 5rem}
+.gridbar{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.gridbar .count{color:var(--muted);font-size:.9rem;margin-right:auto}
+.pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--thumb,170px),1fr));gap:1.4rem 1.1rem;align-items:end}
+.pg{position:relative;display:grid;gap:.45rem;justify-items:center;user-select:none;-webkit-user-select:none}
+.pg .paper{position:relative;width:100%;display:grid;place-items:end center;border-radius:6px;padding:6px;border:2px solid transparent;cursor:pointer}
+.pg .paper canvas,.pg .paper .ph{display:block;max-width:100%;background:var(--sheet);box-shadow:0 1px 2px rgba(0,0,0,.12),0 8px 20px -12px rgba(0,0,0,.35)}
+.pg .ph{aspect-ratio:1/1.414;width:100%}
+.pg.sel .paper{border-color:var(--sel);background:color-mix(in srgb,var(--sel) 10%,transparent)}
+.pg .num{font-size:.82rem;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.pg .tick{position:absolute;left:10px;top:10px;width:24px;height:24px;border-radius:50%;border:2px solid #fff;background:rgba(24,32,42,.35);display:grid;place-items:center;color:#fff;opacity:0;transition:opacity .15s}
+.pg:hover .tick,.pg.sel .tick,.selecting .pg .tick{opacity:1}
+.pg.sel .tick{background:var(--sel);border-color:var(--sel)}
+.pg .acts{position:absolute;right:10px;top:10px;display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.pg:hover .acts,.pg:focus-within .acts{opacity:1}
+.pg .acts button{width:32px;height:32px;border-radius:8px;border:0;background:rgba(24,32,42,.82);color:#fff;display:grid;place-items:center}
+.pg .acts button:hover{background:var(--blue)}
+.pg .acts svg{width:16px;height:16px}
+.pg .ov-num{position:absolute;left:0;right:0;bottom:12%;text-align:center;font-size:9px;color:#333;pointer-events:none}
+.pg .ov-wm{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;overflow:hidden}
+.pg .ov-wm span{transform:rotate(-40deg);font-weight:800;color:rgba(80,90,100,.22);font-size:22px;white-space:nowrap}
+.pg .badge{position:absolute;left:12px;bottom:34px;background:var(--hi);color:#18202A;font-size:.72rem;font-weight:700;padding:.1rem .45rem;border-radius:99px;pointer-events:none}
+.pg.dragging{opacity:.35}
+.pg.drop-before::before,.pg.drop-after::after{content:"";position:absolute;top:6px;bottom:30px;width:4px;border-radius:4px;background:var(--blue)}
+.pg.drop-before::before{left:-12px}.pg.drop-after::after{right:-12px}
+
+/* Editor */
+.editor{min-height:100%;display:grid;grid-template-rows:auto 1fr auto}
+.efloat{position:sticky;bottom:calc(14px + env(safe-area-inset-bottom,0px));justify-self:center;display:flex;align-items:center;gap:.1rem;padding:.25rem .35rem;margin-bottom:14px;background:var(--panel);border:1px solid var(--line);border-radius:999px;box-shadow:0 10px 30px -12px rgba(0,0,0,.4);z-index:6}
+.efloat .ib{border-radius:999px}
+.efloat .div{width:1px;height:22px;background:var(--line);margin:0 .2rem}
+.pgl{font-variant-numeric:tabular-nums;font-weight:600;font-size:.9rem;min-width:52px;text-align:center}
+.ebar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:.3rem;padding:.45rem .7rem;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.etool{display:inline-flex;align-items:center;gap:.4rem;height:38px;padding:0 .7rem;border:1px solid transparent;border-radius:8px;background:transparent;font-weight:600;font-size:.88rem;white-space:nowrap}
+.etool:hover{background:var(--soft)}
+.etool[aria-pressed=true]{background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue);border-color:color-mix(in srgb,var(--blue) 40%,transparent)}
+.etool svg{width:18px;height:18px}
+.ebar .div{width:1px;height:24px;background:var(--line);margin:0 .25rem;flex:none}
+.pager{display:flex;align-items:center;gap:.2rem;font-variant-numeric:tabular-nums;font-weight:600;font-size:.9rem;white-space:nowrap}
+.estage{display:grid;place-items:start center;padding:1.4rem 1.4rem .6rem;overflow:auto}
+.sheet{position:relative;background:var(--sheet);box-shadow:0 1px 3px rgba(0,0,0,.15),0 18px 40px -20px rgba(0,0,0,.45);touch-action:none}
+.sheet canvas{display:block;width:100%;height:100%}
+.layer{position:absolute;inset:0}
+.layer.draw{cursor:crosshair}
+.layer.place{cursor:copy}
+.layer.text{cursor:text}
+.an{position:absolute;touch-action:none}
+.an.sel{outline:2px solid var(--sel);outline-offset:2px}
+.an.text{white-space:pre;line-height:1.2;cursor:move;min-width:4px;padding:0 1px}
+.an.text.editing{cursor:text;outline-style:dashed;background:rgba(36,83,214,.05)}
+.an.text:empty::before{content:"Type here";color:#9AA4AF}
+.an.img{cursor:move}.an.img img{width:100%;height:100%;display:block;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.an.rect{cursor:move}
+.an.mark{cursor:move}.an.mark svg{width:100%;height:100%;display:block}
+.an .rs{position:absolute;right:-9px;bottom:-9px;width:18px;height:18px;border-radius:50%;background:var(--sel);border:2px solid #fff;cursor:nwse-resize;display:none}
+.an.sel .rs{display:block}
+.layer svg.ink{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.layer svg.ink path{pointer-events:stroke;cursor:move}
+.layer svg.ink path.sel{filter:drop-shadow(0 0 2px var(--sel)) drop-shadow(0 0 2px var(--sel))}
+.layer.draw svg.ink path{pointer-events:none}
+.drawrect{position:absolute;border:2px dashed var(--blue);pointer-events:none}
+
+.props{display:grid;gap:.8rem}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.sigs button{position:relative;height:64px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px}
+.sigs img{max-width:100%;max-height:100%;object-fit:contain}
+.sigs .del{position:absolute;right:-6px;top:-6px;width:22px;height:22px;border-radius:50%;border:0;background:var(--ink);color:var(--panel);font-size:13px;line-height:1;display:grid;place-items:center;padding:0}
+.swatch{width:32px;height:32px;border-radius:50%;border:1px solid var(--line)}
+.swatch[aria-pressed=true]{outline:3px solid var(--blue);outline-offset:2px}
+
+/* Dialogs */
+dialog{border:0;padding:0;border-radius:16px;background:var(--panel);color:var(--ink);width:min(520px,94vw);box-shadow:0 30px 80px -20px rgba(0,0,0,.5)}
+dialog::backdrop{background:rgba(12,16,20,.55)}
+.dlg{padding:1.3rem;display:grid;gap:1rem}
+.dlg header{display:flex;justify-content:space-between;align-items:center}
+.dlg h2{margin:0;font-size:1.25rem}
+.tabs{display:flex;gap:.3rem;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:.55rem .8rem;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--blue)}
+.pad{width:100%;height:180px;background:#fff;border:1px solid var(--line);border-radius:10px;touch-action:none;cursor:crosshair;display:block}
+.typed{display:grid;gap:.4rem}
+.typed button{height:64px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#1a1a1a;font-size:2rem;line-height:1;overflow:hidden;white-space:nowrap}
+.typed button[aria-pressed=true]{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue)}
+.actions{display:flex;gap:.5rem;justify-content:flex-end;flex-wrap:wrap}
+
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);opacity:0;pointer-events:none;background:var(--ink);color:var(--panel);padding:.7rem 1.1rem;border-radius:10px;font-weight:600;font-size:.92rem;z-index:60;transition:.25s;max-width:92vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.busy{position:fixed;inset:0;z-index:55;display:grid;place-items:center;background:rgba(12,16,20,.45)}
+.busy div{background:var(--panel);padding:1.2rem 1.4rem;border-radius:14px;display:grid;gap:.7rem;min-width:260px;font-weight:600}
+
+/* Home link, a11y */
+a.brand{color:inherit;text-decoration:none;border-radius:8px;padding:.15rem .35rem .15rem .15rem;margin-left:-.15rem}
+a.brand:hover{background:var(--soft)}
+.skip{position:absolute;left:-999px;top:8px;z-index:99;background:var(--ink);color:var(--panel);padding:.6rem 1rem;border-radius:8px}
+.skip:focus{left:8px}
+.privacy{font-size:.8rem;color:var(--muted);margin:0;text-align:center}
+
+/* Signature fields */
+.an.field{border:2px dashed var(--fc);background:color-mix(in srgb,var(--fc) 10%,transparent);border-radius:4px;display:grid;place-items:center;overflow:hidden;cursor:move}
+.an.field .fl{font:600 11px/1.15 var(--ui);color:var(--fc);text-align:center;padding:0 4px;pointer-events:none}
+.an.field img{max-width:100%;max-height:100%;object-fit:contain;pointer-events:none}
+.an.field{container-type:size}
+.an.field .fv{font:min(14px,62cqh)/1 Helvetica,Arial,sans-serif;color:#111;white-space:nowrap;pointer-events:none}
+.an.field.mine{cursor:pointer;border-style:solid}
+.an.field.mine:not(.done){animation:pulse 1.8s ease-in-out infinite}
+.an.field.mine.done{border-style:dotted;background:transparent}
+.an.field.other{cursor:default;opacity:.55}
+.an.field:focus-visible{outline:3px solid var(--fc);outline-offset:3px}
+@keyframes pulse{50%{background:color-mix(in srgb,var(--fc) 24%,transparent)}}
+.signers{display:grid;gap:.6rem}
+.signer{display:grid;grid-template-columns:14px 1fr auto;gap:.4rem .6rem;align-items:center;padding:.6rem;border:1px solid var(--line);border-radius:10px}
+.signer .dot{width:14px;height:14px;border-radius:50%}
+.signer .two{grid-column:1/-1;display:grid;gap:.4rem}
+.fieldbtns{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.fieldbtns .btn{justify-content:flex-start}
+.whochips .chip{display:inline-flex;align-items:center;gap:.4rem}
+.whochips .chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.flist{list-style:none;margin:0;padding:0;display:grid;gap:.35rem}
+.flist button{width:100%;display:flex;align-items:center;gap:.6rem;padding:.55rem .7rem;border:1px solid var(--line);border-radius:8px;background:var(--panel);text-align:left;font-weight:600}
+.flist button .st{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;flex:none}
+.flist button.done .st{background:#1E7B4C;border-color:#1E7B4C;color:#fff}
+.reqbox{background:var(--desk);border-radius:10px;padding:.8rem .9rem;display:grid;gap:.3rem}
+.reqbox p{margin:0}
+.reqbox blockquote{margin:.3rem 0 0;padding-left:.7rem;border-left:3px solid var(--blue);color:var(--muted);white-space:pre-wrap}
+.app.signing .rail,.app.signing #ebar,.app.signing #addBtn,.app.signing #undoBtn,.app.signing #redoBtn,.app.signing #dlBtn{display:none!important}
+.app.signing .work{grid-template-columns:1fr var(--side)}
+.stats{display:grid;gap:.4rem}.stats div{display:flex;justify-content:space-between;padding:.5rem .7rem;background:var(--desk);border-radius:8px;font-variant-numeric:tabular-nums}
+
+@media (max-width:900px){
+  .app.signing .work{grid-template-columns:1fr}
+  .tasks{grid-template-columns:repeat(2,1fr)}
+  .brand span{display:none}
+  .ib .t,.top .btn .t{display:none}
+  .top .btn{padding:0 .7rem}
+  .top{gap:.15rem;padding:.45rem .5rem}
+  .docname{min-width:0}
+  .work,.work.bare{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto auto}
+  .stage{grid-row:1}
+  .side{grid-row:2;border-left:0;border-top:1px solid var(--line);max-height:40vh}
+  .rail{grid-row:3;flex-direction:row;border-right:0;border-top:1px solid var(--line);padding:.3rem .3rem calc(.3rem + env(safe-area-inset-bottom,0px));overflow-x:auto}
+  .tool{flex:1 0 66px}
+  .pages{--thumb:130px;gap:1rem .7rem}
+  .gridwrap{padding:1rem .8rem 2rem}
+  .pg .acts{opacity:1}
+  .pg .acts button{width:30px;height:30px}
+  .estage{padding:.8rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.w2p{position:fixed;left:0;top:0;z-index:-1;width:680px;padding:0;background:#fff;color:#111;font:15px/1.5 Helvetica,Arial,sans-serif}.w2p .title{font-size:30px;font-weight:700;margin:0 0 .4em}.w2p .subtitle{font-size:18px;color:#444}.w2p h1{font-size:26px}.w2p h2{font-size:21px}.w2p h3{font-size:18px}.w2p table{border-collapse:collapse;width:100%}.w2p td,.w2p th{border:1px solid #999;padding:4px 6px;vertical-align:top}.w2p img{max-width:100%;height:auto}
+</style>
+</head>
+<body>
+<a class="skip" href="#stage">Skip to the document</a>
+<div class="app">
+  <header class="top">
+    <a class="brand" href="home.html" id="homeLink" aria-label="All If Leaves Weave tools"><img src="logo.png" alt="" width="26" height="26"><span>If Leaves Weave</span></a>
+    <button class="ib" id="famBtn" aria-haspopup="true" title="All If Leaves Weave tools"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg><span class="t">Tools</span></button>
+    <button class="ib" id="addBtn" title="Add PDFs or images"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="t">Add files</span></button>
+    <button class="ib" id="undoBtn" disabled title="Undo (Ctrl+Z)" aria-label="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button class="ib" id="redoBtn" disabled title="Redo (Ctrl+Shift+Z)" aria-label="Redo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+    <input class="docname" id="docName" value="document" aria-label="File name" hidden>
+    <div class="spacer"></div>
+    <button class="ib" id="closeBtn" hidden title="Close and start again"><span class="t">Close</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <button class="btn primary" id="dlBtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="t">Download PDF</span></button>
+  </header>
+
+  <div class="work bare" id="work">
+    <nav class="rail" id="rail" role="tablist" aria-label="Tools" hidden>
+      <button class="tool" role="tab" data-tool="pages" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="9" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="9" rx="1.5"/><rect x="3" y="14.5" width="7.5" height="6.5" rx="1.5"/><rect x="13.5" y="14.5" width="7.5" height="6.5" rx="1.5"/></svg>Pages</button>
+      <button class="tool" role="tab" data-tool="edit" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>Edit and sign</button>
+      <button class="tool" role="tab" data-tool="request" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9 6 9-6"/><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M14 17c1.2-1.6 2-2.6 2.5-1.4s1-.4 1.8-1" opacity=".7"/></svg>Get it signed</button>
+      <button class="tool" role="tab" data-tool="split" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg>Split</button>
+      <button class="tool" role="tab" data-tool="numbers" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M10.5 17v-5l-1.5 1"/></svg>Page numbers</button>
+      <button class="tool" role="tab" data-tool="watermark" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="m9 16 6-6" opacity=".55"/></svg>Watermark</button>
+      <button class="tool" role="tab" data-tool="compress" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>Compress</button>
+      <button class="tool" role="tab" data-tool="convert" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11l-3-3M20 17H9l3 3"/></svg>Convert</button>
+      <button class="tool" role="tab" data-tool="form" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h5M8 16h3"/><path d="m14 16 1.5 1.5L18 15"/></svg>Fill form</button>
+      <button class="tool" role="tab" data-tool="compare" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H4v18h4M16 3h4v18h-4M12 3v18"/></svg>Compare</button>
+      <button class="tool" role="tab" data-tool="autored" aria-selected="false" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/><rect x="7" y="9" width="7" height="3" rx=".5" fill="currentColor"/></svg>Find and redact</button>
+      <button class="tool" role="tab" data-tool="bates" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h6M17 15l3 3-3 3"/></svg>Bates</button>
+      <button class="tool" role="tab" data-tool="flip" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-3-2-6-2-9 0v13c3-2 6-2 9 0 3-2 6-2 9 0V6c-3-2-6-2-9 0zM12 6v13"/></svg>Flipbook</button>
+      <button class="tool" role="tab" data-tool="ocr" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M8 12h8"/></svg>Read text</button>
+      <button class="tool" role="tab" data-tool="class" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2zM8 7h6M8 11h8"/></svg>Classroom</button>
+    </nav>
+
+    <main class="stage" id="stage">
+      <!-- Empty state -->
+      <section class="empty" id="empty">
+        <div class="empty-in">
+          <div class="tray" id="tray">
+            <div class="sheets" aria-hidden="true"><i></i><i></i><i></i><svg width="34" height="20" viewBox="0 0 34 20"><path d="M2 14c5-9 9 6 15-3 3-4 5 0 8-3" stroke="var(--blue)" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg></div>
+            <h1>Edit, sign and organise PDFs</h1>
+            <p>Free, with no limits, watermarks or sign-up. Your files are processed on this device and never uploaded.</p>
+            <button class="btn primary" id="openBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3M12 4v12M7 9l5-5 5 5"/></svg>Choose PDFs or images</button>
+            <p class="note">Or drop files anywhere on this page. Got a file to sign from someone? Open it here.</p>
+          </div>
+          <div class="tasks" id="tasks"></div>
+          <p class="note more-tools">More free tools: <a href="boards.html">Boards</a> · <a href="canvas.html">Canvas</a> · <a href="maps.html">Maps</a> · <a href="sociogram.html">Sociogram</a> · <a href="genogram.html">Genogram</a> · <a href="prototype.html">Prototype</a> · <a href="home.html">All tools</a></p>
+          <p class="privacy">If Leaves Weave counts visits and downloads as anonymous totals: no cookies, no names and nothing about your documents. Turn on Do Not Track or Global Privacy Control in your browser to opt out.</p>
+        </div>
+      </section>
+
+      <!-- Page grid -->
+      <section class="gridwrap" id="gridView" hidden>
+        <div class="gridbar">
+          <span class="count" id="pageCount"></span>
+          <button class="btn" id="selAll">Select all</button>
+          <button class="btn" id="addBlank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M12 10v6M9 13h6"/></svg>Blank page</button>
+          <button class="btn" id="addMore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add files</button>
+        </div>
+        <div class="pages" id="pages"></div>
+      </section>
+
+      <!-- Editor -->
+      <section class="editor" id="editView" hidden>
+        <div class="ebar" id="ebar" role="toolbar" aria-label="Editing tools">
+          <button class="etool" data-et="select" aria-pressed="true" title="Select and move (V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 3l14 8-6 1.5L10 19z"/></svg>Select</button>
+          <button class="etool" data-et="text" aria-pressed="false" title="Add text (T)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg>Text</button>
+          <button class="etool" data-et="sign" aria-pressed="false" title="Add signature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 17c3-6 5-10 6-7s-2 8 1 8 4-6 6-6 1 4 3 4 2-1 2-1"/><path d="M3 21h18" opacity=".5"/></svg>Sign</button>
+          <button class="etool" data-et="image" aria-pressed="false" title="Add image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>Image</button>
+          <button class="etool" data-et="tick" aria-pressed="false" title="Tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m4 13 5 5L20 6"/></svg>Tick</button>
+          <button class="etool" data-et="cross" aria-pressed="false" title="Cross"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>Cross</button>
+          <button class="etool" data-et="highlight" aria-pressed="false" title="Highlight an area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m9 15 6-11 5 3-6 11z"/><path d="M9 15l-2 4h4l1-2" /><path d="M3 21h9" stroke="var(--hi)" stroke-width="3"/></svg>Highlight</button>
+          <button class="etool" data-et="whiteout" aria-pressed="false" title="Cover with white"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 12h10" stroke-linecap="round" opacity=".4"/></svg>Whiteout</button>
+          <button class="etool" data-et="redact" aria-pressed="false" title="Permanently remove sensitive content"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="7" width="18" height="10" rx="1.5"/></svg>Redact</button>
+          <button class="etool" data-et="pen" aria-pressed="false" title="Draw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z"/><circle cx="11" cy="11" r="2"/></svg>Draw</button>
+          <span class="div"></span>
+          <button class="etool" id="dateBtn" title="Insert today's date">Date</button>
+        </div>
+        <div class="estage" id="estage">
+          <div class="sheet" id="sheet"><canvas id="pageCanvas"></canvas><div class="layer" id="layer"></div></div>
+        </div>
+        <div class="efloat" role="toolbar" aria-label="Page and zoom">
+          <button class="ib" id="prevPg" aria-label="Previous page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 5 8 12l7 7"/></svg></button><span class="pgl" id="pgLabel"></span><button class="ib" id="nextPg" aria-label="Next page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 5 7 7-7 7"/></svg></button>
+          <span class="div"></span>
+          <button class="ib" id="zoomOut" aria-label="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+          <button class="ib" id="zoomFit" title="Fit page" style="min-width:54px;font-variant-numeric:tabular-nums">Fit</button>
+          <button class="ib" id="zoomIn" aria-label="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
+
+      </section>
+    </main>
+
+    <aside class="side" id="side" hidden>
+      <!-- Pages -->
+      <section class="pane" data-pane="pages">
+        <h2>Pages</h2>
+        <p class="hint" id="pagesHint">Drag pages to reorder. Click to select.</p>
+        <div class="group" id="selActs">
+          <span class="lbl" id="selLabel">Nothing selected</span>
+          <div class="row2">
+            <button class="btn" data-sa="rotl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v6h6"/><path d="M3.5 10A8.5 8.5 0 1 1 6 16.5"/></svg>Rotate left</button>
+            <button class="btn" data-sa="rotr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4v6h-6"/><path d="M20.5 10A8.5 8.5 0 1 0 18 16.5"/></svg>Rotate right</button>
+            <button class="btn" data-sa="up">Move earlier</button>
+            <button class="btn" data-sa="down">Move later</button>
+            <button class="btn" data-sa="dup">Duplicate</button>
+            <button class="btn danger" data-sa="del">Delete</button>
+          </div>
+          <button class="btn" data-sa="edit">Edit this page</button>
+          <button class="btn" data-sa="extract">Download selected as PDF</button>
+          <button class="btn" data-sa="clear">Clear selection</button>
+        </div>
+        <div class="group">
+          <span class="lbl">Thumbnail size</span>
+          <div class="chips" id="thumbSize"><button class="chip" data-ts="120" aria-pressed="false">Small</button><button class="chip" data-ts="170" aria-pressed="true">Medium</button><button class="chip" data-ts="240" aria-pressed="false">Large</button></div>
+        </div>
+        <details class="group" id="propsBox"><summary class="lbl" style="cursor:pointer">Document properties</summary>
+          <div class="group" style="margin-top:.5rem">
+            <div class="field"><label for="mTitle">Title</label><input type="text" id="mTitle" placeholder="Uses the file name if empty"></div>
+            <div class="field"><label for="mAuthor">Author</label><input type="text" id="mAuthor"></div>
+            <div class="field"><label for="mSubject">Subject</label><input type="text" id="mSubject"></div>
+            <div class="field"><label for="mKeywords">Keywords</label><input type="text" id="mKeywords" placeholder="Separate with commas"></div>
+            <p class="note">Saved inside the PDF when you download.</p>
+          </div>
+        </details>
+              <details class="opt-tools"><summary>Optional tools</summary>
+          <label class="check"><input type="checkbox" id="optAutored"> Show <b>Find and redact</b>: searches the text for NRIC numbers, phone numbers and other personal details</label>
+          <p class="note">Your choice is remembered on this device.</p>
+        </details>
+      </section>
+
+      <!-- Edit -->
+      <section class="pane" data-pane="edit" hidden>
+        <h2 id="propTitle">Edit and sign</h2>
+        <p class="hint" id="propHint">Pick a tool above, then click on the page.</p>
+        <div class="props" id="props"></div>
+        <div class="group" id="sigGroup">
+          <span class="lbl">Your signatures</span>
+          <div class="sigs" id="sigs"></div>
+          <button class="btn" id="newSig">Create a signature</button>
+        </div>
+      </section>
+
+      <!-- Request signatures -->
+      <section class="pane" data-pane="request" hidden>
+        <h2>Get it signed</h2>
+        <p class="hint">Add the people who need to sign, mark where they sign, then email them the file. Nothing is uploaded.</p>
+        <ol class="steps">
+          <li id="rq1"><h3>Who needs to sign?</h3><div class="body">
+            <div class="signers" id="signers"></div>
+            <button class="btn" id="addSigner">Add another signer</button>
+            <details><summary class="lbl" style="cursor:pointer">Your details, so signers can send it back</summary>
+              <div class="group" style="margin-top:.5rem"><div class="field"><label for="meName">Your name</label><input type="text" id="meName" autocomplete="name"></div><div class="field"><label for="meEmail">Your email</label><input type="text" id="meEmail" inputmode="email" autocomplete="email"></div></div>
+            </details>
+          </div></li>
+          <li id="rq2"><h3>Mark where they sign</h3><div class="body">
+            <div class="chips whochips" id="whoFor" role="radiogroup" aria-label="Field is for"></div>
+            <div class="fieldbtns" id="fieldBtns">
+              <button class="btn" data-fk="sign">Signature</button><button class="btn" data-fk="initials">Initials</button>
+              <button class="btn" data-fk="date">Date signed</button><button class="btn" data-fk="name">Full name</button>
+              <button class="btn" data-fk="text">Text box</button>
+            </div>
+            <p class="note" id="fieldCount"></p>
+          </div></li>
+          <li id="rq3"><h3>Send</h3><div class="body">
+            <div class="field"><label for="reqMsg">Message to signers</label><textarea id="reqMsg" rows="3">Hi, please sign this document. It only takes a minute.</textarea></div>
+            <p class="form-err note" id="reqErr" role="alert" style="color:var(--danger)"></p>
+            <button class="btn primary" id="reqCreate">Download file for signing</button>
+            <div class="group" id="reqSend" hidden>
+              <p class="note">Now email it. Attach the file you just downloaded.</p>
+              <a class="btn" id="reqMail" href="#">Write the email</a>
+              <button class="btn" id="reqCopy">Copy message</button>
+            </div>
+          </div></li>
+        </ol>
+      </section>
+
+      <!-- Signing -->
+      <section class="pane" data-pane="signing" hidden>
+        <h2>Signature request</h2>
+        <div class="reqbox" id="reqInfo"></div>
+        <div class="group" id="whoAmI"><span class="lbl" id="whoL">Who are you?</span><div class="signers" id="whoList" role="radiogroup" aria-labelledby="whoL"></div></div>
+        <div class="group" id="myFields" hidden>
+          <span class="lbl" id="progressL" aria-live="polite"></span>
+          <div class="progress" aria-hidden="true"><i id="sigBar"></i></div>
+          <ul class="flist" id="flist"></ul>
+          <button class="btn primary" id="nextField">Go to next field</button>
+          <label class="check" style="margin-top:.4rem"><input type="checkbox" id="consent">I agree to sign this document electronically.</label>
+          <button class="btn primary" id="finishSign" disabled>Finish and download signed PDF</button>
+        </div>
+        <div class="group" id="signDone" hidden></div>
+        <button class="btn" id="exitSign">Open as an ordinary PDF instead</button>
+      </section>
+
+      <!-- Split -->
+      <section class="pane" data-pane="split" hidden>
+        <h2>Split</h2>
+        <p class="hint">Save parts of this PDF as separate files.</p>
+        <div class="group"><span class="lbl">How to split</span>
+          <div class="chips" id="splitMode"><button class="chip" data-sm="each" aria-pressed="true">Every page</button><button class="chip" data-sm="every" aria-pressed="false">Every few pages</button><button class="chip" data-sm="ranges" aria-pressed="false">Page ranges</button></div>
+        </div>
+        <div class="field" id="splitEvery" hidden><label for="splitN">Pages per file</label><input type="number" id="splitN" value="2" min="1"></div>
+        <div class="field" id="splitRanges" hidden><label for="splitR">Ranges</label><input type="text" id="splitR" placeholder="1-3, 4, 5-8"><p class="note">Each range becomes one file.</p></div>
+        <p class="note" id="splitInfo"></p>
+        <button class="btn primary" id="splitGo">Split and download</button>
+      </section>
+
+      <!-- Numbers -->
+      <section class="pane" data-pane="numbers" hidden>
+        <h2>Page numbers</h2>
+        <label class="check"><input type="checkbox" id="numOn">Add page numbers</label>
+        <div class="group"><span class="lbl">Position</span>
+          <div class="chips" id="numPos"><button class="chip" data-np="left" aria-pressed="false">Bottom left</button><button class="chip" data-np="center" aria-pressed="true">Bottom centre</button><button class="chip" data-np="right" aria-pressed="false">Bottom right</button></div>
+        </div>
+        <div class="field"><label for="numFmt">Style</label><select id="numFmt"><option value="n">1</option><option value="pn">Page 1</option><option value="nof">1 of 12</option><option value="pnof">Page 1 of 12</option></select></div>
+        <div class="row2">
+          <div class="field"><label for="numStart">Start at</label><input type="number" id="numStart" value="1" min="0"></div>
+          <div class="field"><label for="numSkip">Skip first</label><select id="numSkip"><option value="0">No pages</option><option value="1">1 page</option><option value="2">2 pages</option></select></div>
+        </div>
+        <p class="note">Added when you download.</p>
+      </section>
+
+      <!-- Watermark -->
+      <section class="pane" data-pane="watermark" hidden>
+        <h2>Watermark</h2>
+        <label class="check"><input type="checkbox" id="wmOn">Add a watermark</label>
+        <div class="field"><label for="wmText">Text</label><input type="text" id="wmText" value="CONFIDENTIAL"></div>
+        <div class="field"><label for="wmOpacity">Strength</label><input type="range" id="wmOpacity" min="5" max="60" value="18"></div>
+        <div class="group"><span class="lbl">Angle</span><div class="chips" id="wmAngle"><button class="chip" data-wa="45" aria-pressed="true">Diagonal</button><button class="chip" data-wa="0" aria-pressed="false">Straight</button></div></div>
+        <p class="note">Added when you download.</p>
+      </section>
+
+      <!-- Compress -->
+      <section class="pane" data-pane="compress" hidden>
+        <h2>Compress</h2>
+        <p class="hint">Makes the file smaller by turning each page into an image. Best for scans and photo-heavy PDFs.</p>
+        <div class="group"><span class="lbl">Level</span>
+          <div class="chips" id="cmpLevel"><button class="chip" data-cl="strong" aria-pressed="false">Smallest</button><button class="chip" data-cl="balanced" aria-pressed="true">Balanced</button><button class="chip" data-cl="light" aria-pressed="false">Sharpest</button></div>
+        </div>
+        <div class="stat"><span>Current size</span><b id="cmpNow">–</b></div>
+        <div class="stat" id="cmpAfterRow" hidden><span>Compressed</span><b id="cmpAfter">–</b></div>
+        <p class="note">Text in the compressed file can’t be selected or searched.</p>
+        <button class="btn primary" id="cmpGo">Compress and download</button>
+      </section>
+
+      <!-- Images -->
+      <section class="pane" data-pane="convert" hidden>
+        <h2>Convert</h2>
+        <p class="hint">Save this PDF as Word, PowerPoint or images. Everything happens on this device.</p>
+        <div class="group"><span class="lbl" id="cvL">Convert to</span><div class="chips" id="cvFmt" role="radiogroup" aria-labelledby="cvL"><button class="chip" role="radio" data-cf="docx" aria-pressed="true">Word</button><button class="chip" role="radio" data-cf="pptx" aria-pressed="false">PowerPoint</button><button class="chip" role="radio" data-cf="img" aria-pressed="false">Images</button></div></div>
+        <div class="group" id="cvDocx"><span class="lbl" id="cvDL">Layout</span><div class="chips" id="cvDocxMode" role="radiogroup" aria-labelledby="cvDL"><button class="chip" role="radio" data-dm="text" aria-pressed="true">Editable text</button><button class="chip" role="radio" data-dm="image" aria-pressed="false">Exact look</button></div>
+          <p class="note" id="cvDocxNote">Text, headings and paragraphs you can edit in Word. Complex layouts and images are simplified.</p></div>
+        <div class="group" id="cvPptx" hidden><p class="note">Each page becomes one slide, looking exactly like the PDF.</p><label class="check"><input type="checkbox" id="cvNotes" checked>Copy each page’s text into the speaker notes</label></div>
+        <div class="group" id="cvImg" hidden>
+          <div class="group"><span class="lbl">Format</span><div class="chips" id="imgFmt"><button class="chip" data-if="jpg" aria-pressed="true">JPG</button><button class="chip" data-if="png" aria-pressed="false">PNG</button></div></div>
+          <div class="group"><span class="lbl">Quality</span><div class="chips" id="imgDpi"><button class="chip" data-id="96" aria-pressed="false">Screen</button><button class="chip" data-id="150" aria-pressed="true">Standard</button><button class="chip" data-id="300" aria-pressed="false">Print</button></div></div>
+          <p class="note">Several pages download together as a ZIP file.</p>
+        </div>
+        <label class="check"><input type="checkbox" id="imgSelOnly">Only selected pages</label>
+        <p class="note">Scanned PDFs have no text to extract. Use “Exact look” for those.</p>
+        <button class="btn primary" id="cvGo">Convert and download</button>
+      </section>
+
+      <!-- Fill form -->
+      <section class="pane" data-pane="form" hidden>
+        <h2>Fill form</h2>
+        <p class="hint" id="formHint">Fill in the PDF’s own form fields. Your answers are added when you download.</p>
+        <div class="group" id="formFields"></div>
+        <label class="check" id="flatWrap"><input type="checkbox" id="formFlat" checked>Lock answers so they can’t be changed</label>
+      </section>
+      <!-- Compare -->
+      <section class="pane" data-pane="compare" hidden>
+        <h2>Compare two versions</h2>
+        <p class="hint">Finds every word added, removed or changed between two PDFs, such as two drafts of a contract or policy.</p>
+        <div class="group"><span class="lbl">Original</span><div class="chips" id="cmpASrc"><button class="chip" data-ca="open" aria-pressed="true">The open document</button><button class="chip" data-ca="file" aria-pressed="false">Choose a file</button></div><p class="note" id="cmpAName">Uses the document you have open.</p></div>
+        <div class="group"><span class="lbl">Revised version</span><button class="btn" id="cmpBPick">Choose the revised PDF</button><p class="note" id="cmpBName">No file chosen yet.</p></div>
+        <button class="btn primary" id="cmpRun" disabled>Compare</button>
+        <div id="cmpOut" class="group" aria-live="polite"></div>
+      </section>
+
+      <!-- Bates numbering -->
+      <section class="pane" data-pane="autored" hidden>
+        <h2>Find and redact</h2>
+        <p class="hint">Finds personal details in the text and marks them for redaction. Check the list, then download: marked pages are flattened so the hidden text is permanently removed.</p>
+        <div class="group"><span class="lbl">Look for</span>
+          <label class="check"><input type="checkbox" data-ar="nric" checked> Singapore NRIC and FIN numbers</label>
+          <label class="check"><input type="checkbox" data-ar="mykad" checked> Malaysian MyKad numbers</label>
+          <label class="check"><input type="checkbox" data-ar="ukni" checked> UK National Insurance numbers</label>
+          <label class="check"><input type="checkbox" data-ar="phone" checked> Phone numbers</label>
+          <label class="check"><input type="checkbox" data-ar="email" checked> Email addresses</label>
+          <label class="check"><input type="checkbox" data-ar="card" checked> Card numbers</label>
+          <label class="check"><input type="checkbox" data-ar="long"> Long account or reference numbers (8 or more digits)</label>
+          <label class="check"><input type="checkbox" data-ar="date"> Dates, such as dates of birth</label>
+          <label class="check"><input type="checkbox" data-ar="postal"> Singapore postal codes</label>
+        </div>
+        <div class="field"><label for="arWords">Also find these words or names (one per line or separated by commas)</label><textarea id="arWords" rows="3" placeholder="Tan Wei Ming&#10;Blk 123 Ang Mo Kio"></textarea></div>
+        <button class="btn primary" id="arFind">Find</button>
+        <div id="arOut" aria-live="polite"></div>
+        <div class="group" style="margin-top:1rem;border-top:1px solid var(--line);padding-top:.8rem"><span class="lbl">Redaction report</span>
+          <p class="note">A record of what was removed, on which pages and when, with a fingerprint of the redacted PDF. It never includes the removed details.</p>
+          <div class="field"><label for="rrBy">Redacted by (optional)</label><input type="text" id="rrBy" placeholder="Your name or role"></div>
+          <div class="field"><label for="rrWhy">Reason (optional)</label><input type="text" id="rrWhy" placeholder="For example: sharing with the school, PDPA access request"></div>
+          <p class="note" id="rrState">Download the redacted PDF first, so the report can include its fingerprint.</p>
+          <button class="btn" id="rrDl">Download redaction report</button>
+        </div>
+      </section>
+
+      <section class="pane" data-pane="bates" hidden>
+        <h2>Bates numbering and stamps</h2>
+        <p class="hint">Gives every page a unique number, such as ABC000001, for legal, audit and compliance documents. Number one file or many in sequence.</p>
+        <div class="row2"><div class="field"><label for="btPrefix">Prefix</label><input type="text" id="btPrefix" value="ABC"></div><div class="field"><label for="btSuffix">Suffix</label><input type="text" id="btSuffix" value=""></div></div>
+        <div class="row2"><div class="field"><label for="btStart">Start at</label><input type="number" id="btStart" value="1" min="0"></div><div class="field"><label for="btDigits">Digits</label><input type="number" id="btDigits" value="6" min="1" max="12"></div></div>
+        <div class="group"><span class="lbl">Position</span><div class="chips" id="btPos"><button class="chip" data-bp="br" aria-pressed="true">Bottom right</button><button class="chip" data-bp="bc" aria-pressed="false">Bottom centre</button><button class="chip" data-bp="bl" aria-pressed="false">Bottom left</button><button class="chip" data-bp="tr" aria-pressed="false">Top right</button></div></div>
+        <div class="field"><label for="btStamp">Stamp text (optional)</label><input type="text" id="btStamp" placeholder="For example: CONFIDENTIAL. Produced under agreement"></div>
+        <div class="row2"><div class="field"><label for="btSize">Text size</label><input type="number" id="btSize" value="9" min="5" max="24"></div><div class="field"><label>&nbsp;</label><label class="check"><input type="checkbox" id="btBox" checked>White box behind</label></div></div>
+        <p class="note" id="btPreview"></p>
+        <button class="btn primary" id="btOne">Number this document</button>
+        <button class="btn" id="btMany">Number several PDFs in sequence</button>
+        <p class="note">For several files, If Leaves Weave numbers them in name order and downloads a ZIP with an index of the number range in each file.</p>
+      </section>
+
+      <!-- Flipbook -->
+      <section class="pane" data-pane="flip" hidden>
+        <h2>Flipbook</h2>
+        <p class="hint">Turns your PDF into a page-turning book: a single web page you can email, put on a website or open offline.</p>
+        <div class="field"><label for="fbTitle">Title</label><input type="text" id="fbTitle" placeholder="Annual report 2026"></div>
+        <div class="group"><span class="lbl">Quality</span><div class="chips" id="fbQ"><button class="chip" data-fq="900" aria-pressed="false">Smaller file</button><button class="chip" data-fq="1300" aria-pressed="true">Balanced</button><button class="chip" data-fq="1800" aria-pressed="false">Sharpest</button></div></div>
+        <div class="row2"><div class="field"><label for="fbBg">Background</label><input type="color" id="fbBg" value="#2D3748"></div><div class="field"><label>&nbsp;</label><label class="check"><input type="checkbox" id="fbCover" checked>Cover on its own</label></div></div>
+        <label class="check"><input type="checkbox" id="fbPdf">Let readers download the PDF too (makes the file bigger)</label>
+        <label class="check"><input type="checkbox" id="fbTts">Add a Listen button that reads the pages aloud (text to speech, with the reader’s own device voices)</label>
+        <div id="fbIntroWrap" hidden style="margin:4px 0 8px 26px">
+          <div class="field"><label for="fbIntro">Spoken introduction (optional)</label><textarea id="fbIntro" rows="3" placeholder="For example: This is the report of …, written in 2026. It looks at … Let it keep reading, or turn the pages with the arrow keys."></textarea></div>
+          <p class="hint" style="margin:4px 0">Heard once, before the cover, when someone starts listening from the first page. It isn’t shown on the pages.</p>
+          <div class="field"><label>Recorded version (optional)</label><div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn" id="fbRec">● Record</button><button type="button" class="btn" id="fbRecUp">Upload audio</button><button type="button" class="btn" id="fbRecPlay" hidden>▶ Play</button><button type="button" class="btn" id="fbRecRm" hidden>Remove</button><input type="file" id="fbRecIn" accept="audio/*" hidden></div><p class="hint" id="fbRecSt" style="margin:4px 0"></p></div>
+        </div>
+        <label class="check"><input type="checkbox" id="fbSite">Make a website folder (best for GitHub Pages and sharing on LinkedIn)</label>
+        <div class="field" id="fbUrlWrap"><label for="fbUrl">Where it will live (web address, for link previews)</label><input type="url" id="fbUrl" placeholder="https://yourname.github.io/my-flipbook/"></div>
+        <button class="btn primary" id="fbGo">Make flipbook</button><button class="btn" id="fbPrev" title="See the flipbook in a new tab before saving it">Preview first</button>
+        <p class="note">Readers turn pages by clicking, swiping or using the arrow keys, can search the text and jump to any page, and can link to a page (for example …#page-12). To share it as a link, put the file on a website.</p>
+      </section>
+
+
+      <!-- Classroom (Kami-style) -->
+      <section class="pane" data-pane="class" hidden>
+        <h2>Classroom tools</h2>
+        <details class="sec" open><summary>Read aloud</summary><div class="group">
+          <p class="hint">Reads the document out loud, which helps learners who prefer listening or are still building reading confidence.</p>
+          <div class="field"><label for="raVoice">Voice</label><select id="raVoice"></select></div>
+          <div class="row2"><div class="field"><label for="raRate">Speed</label><input type="range" id="raRate" min="0.6" max="1.6" step="0.1" value="1"></div><div class="field"><label for="raFrom">Start at page</label><input type="number" id="raFrom" min="1" value="1"></div></div>
+          <div class="row3"><button class="btn primary" id="raPlay">Read aloud</button><button class="btn" id="raPause">Pause</button><button class="btn" id="raStop">Stop</button></div>
+          <p class="note" id="raNow" aria-live="polite"></p>
+        </div></details>
+        <details class="sec"><summary>Add paper pages</summary><div class="group">
+          <p class="hint">Insert writing or maths paper after the selected page, or at the end.</p>
+          <div class="field"><label for="ppType">Paper</label><select id="ppType"><option value="lined">Lined</option><option value="narrow">Narrow lined</option><option value="handwriting">Handwriting practice (three lines)</option><option value="grid">Squared, 5 mm</option><option value="graph">Graph paper, 1 cm with 2 mm</option><option value="dots">Dotted</option><option value="iso">Isometric dots</option><option value="cornell">Cornell notes</option><option value="music">Music staves</option><option value="blank">Blank</option></select></div>
+          <div class="row2"><div class="field"><label for="ppSize">Size</label><select id="ppSize"><option value="a4">A4</option><option value="letter">US Letter</option></select></div><div class="field"><label for="ppCount">How many</label><input type="number" id="ppCount" min="1" max="30" value="1"></div></div>
+          <button class="btn" id="ppAdd">Add paper</button>
+        </div></details>
+        <details class="sec"><summary>Voice notes</summary><div class="group">
+          <p class="hint">Record spoken feedback or instructions and save them inside the PDF.</p>
+          <div class="row2"><button class="btn primary" id="vnRec">Start recording</button><button class="btn" id="vnStop" disabled>Stop</button></div>
+          <div id="vnList" class="group"></div>
+          <label class="check"><input type="checkbox" id="vnLabel" checked>Add a small label on page 1 saying a voice note is attached</label>
+          <button class="btn" id="vnSave" disabled>Download PDF with voice notes</button>
+          <p class="note">Voice notes play in PDF apps that show attachments, such as Adobe Acrobat Reader. Browsers’ built-in viewers usually don’t show them.</p>
+        </div></details>
+      </section>
+      <!-- Text recognition -->
+      <section class="pane" data-pane="ocr" hidden>
+        <h2>Read text (OCR)</h2>
+        <p class="hint">Recognises the words in scanned pages and photos, so you can search, select and copy them.</p>
+        <div class="field"><label for="ocrLang">Language of the text</label><select id="ocrLang"><option value="eng">English</option><option value="msa">Malay</option><option value="ind">Indonesian</option><option value="fra">French</option><option value="spa">Spanish</option><option value="deu">German</option><option value="ita">Italian</option><option value="por">Portuguese</option><option value="nld">Dutch</option><option value="vie">Vietnamese</option><option value="ara">Arabic (text file only)</option><option value="chi_sim">Chinese, simplified (text file only)</option></select></div>
+        <label class="check"><input type="checkbox" id="ocrSkip" checked>Skip pages that already have text</label>
+        <button class="btn primary" id="ocrPdf">Make a searchable PDF</button>
+        <button class="btn" id="ocrTxt">Get the text as a file</button>
+        <p class="note">The first time, your browser downloads the text-recognition engine and language data (about 5 to 15 MB). Your document itself never leaves your device.</p>
+        <div class="progress" id="ocrBarWrap" hidden><i id="ocrBar"></i></div>
+      </section>
+
+    </aside>
+  </div>
+</div>
+
+<input type="file" id="fileIn" accept="application/pdf,image/*,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" multiple hidden>
+<input type="file" id="imgIn" accept="image/*" hidden>
+
+<dialog id="fieldDlg" aria-labelledby="fdTitle">
+  <form class="dlg" method="dialog" id="fdForm">
+    <header><h2 id="fdTitle">Fill in</h2></header>
+    <div class="field"><label for="fdInput" id="fdLabel">Text</label><input type="text" id="fdInput" autocomplete="off"></div>
+    <div class="actions"><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="ok" id="fdOk">Save</button></div>
+  </form>
+</dialog>
+<dialog id="statsDlg" aria-labelledby="statsTitle">
+  <div class="dlg">
+    <header><h2 id="statsTitle">Usage counts</h2><button class="ib" id="statsClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+    <p class="note">Anonymous totals. Only you know this page exists.</p>
+    <div class="stats" id="statsList">Loading…</div>
+    <label class="check" style="margin-top:.8rem"><input type="checkbox" id="noCountMe"> Don’t count my own visits on this browser</label>
+    <p class="note" style="margin-top:.3rem">Counts are visits and actions, not unique people: each browser session counts once as a visit. People who turn on “Do Not Track” or Global Privacy Control are never counted, so real use is a little higher.</p>
+    <script>(() => { const c = document.getElementById("noCountMe"); try { c.checked = localStorage.getItem("ifleavesweave-nocount") === "1"; } catch {} c.onchange = () => { try { c.checked ? localStorage.setItem("ifleavesweave-nocount", "1") : localStorage.removeItem("ifleavesweave-nocount"); } catch {} }; })();</script>
+  </div>
+</dialog>
+<dialog id="sigDlg" aria-labelledby="sigTitle">
+  <div class="dlg">
+    <header><h2 id="sigTitle">Create your signature</h2><button class="ib" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+    <div class="group" id="sigSaved" hidden><span class="lbl">Use a saved signature</span><div class="sigs" id="sigSavedList"></div></div>
+    <div class="tabs" role="tablist"><button role="tab" data-st="draw" aria-selected="true">Draw</button><button role="tab" data-st="type" aria-selected="false">Type</button><button role="tab" data-st="upload" aria-selected="false">Upload</button></div>
+    <div data-sp="draw"><canvas class="pad" id="pad"></canvas>
+      <div class="actions" style="justify-content:space-between;margin-top:.6rem"><div class="chips" id="inkColors"><button class="swatch" data-ink="#111111" aria-pressed="true" style="background:#111" aria-label="Black"></button><button class="swatch" data-ink="#1F3FBF" aria-pressed="false" style="background:#1F3FBF" aria-label="Blue"></button></div><button class="btn" id="padClear">Clear</button></div>
+    </div>
+    <div data-sp="type" hidden class="typed">
+      <input type="text" id="typedName" placeholder="Type your name" autocomplete="name">
+      <div class="typed" id="typedOpts"></div>
+    </div>
+    <div data-sp="upload" hidden class="group">
+      <button class="btn" id="sigUpload">Choose a photo of your signature</button>
+      <p class="note">White paper becomes see-through automatically.</p>
+      <img id="sigPreview" alt="" style="max-height:120px;max-width:100%;justify-self:center" hidden>
+    </div>
+    <label class="check"><input type="checkbox" id="sigRemember" checked>Remember on this device</label>
+    <div class="actions"><button class="btn" data-close>Cancel</button><button class="btn primary" id="sigUse">Add to page</button></div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+<div class="busy" id="busy" hidden><div><span id="busyMsg">Working…</span><div class="progress"><i id="busyBar"></i></div></div></div>
+
+
+<style>
+.fam-pop{position:fixed;z-index:90;min-width:270px;padding:.35rem;border-radius:12px;border:1px solid var(--line);background:var(--panel);box-shadow:0 18px 40px -18px rgba(0,0,0,.45)}
+.fam-pop a{display:flex;gap:.6rem;align-items:center;padding:.5rem .65rem;border-radius:8px;text-decoration:none;color:var(--ink);font-size:.9rem;font-weight:600}
+.fam-pop a:hover,.fam-pop a:focus-visible{background:var(--soft);outline:none}.fam-pop a[aria-current=page]{background:color-mix(in srgb,var(--blue) 14%,transparent)}
+.task.task-hl{outline:3px solid var(--blue);outline-offset:2px}
+.opt-tools{margin-top:1rem;border-top:1px solid var(--line);padding-top:.6rem}.opt-tools summary{cursor:pointer;font-weight:600;font-size:.88rem;color:var(--muted)}
+.fam-pop small{display:block;font-weight:500;color:var(--muted);font-size:.78rem}.fam-pop b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--soft);color:var(--blue);font-size:.95rem;flex-shrink:0}
+</style>
+<script>
+/* If Leaves Weave family switcher */
+(() => {
+  const T = [["home.html", "All tools", "The If Leaves Weave home page", "⌂"], ["index.html", "If Leaves Weave PDF", "Edit, sign, convert and redact PDFs", "▤"], ["boards.html", "If Leaves Weave Boards", "Kanban, Table and Timeline", "▥"], ["canvas.html", "If Leaves Weave Canvas", "Whiteboard with notes and shapes", "✎"], ["maps.html", "If Leaves Weave Maps", "Mind and concept maps", "✳"], ["sociogram.html", "If Leaves Weave Sociogram", "Who connects with whom", "◎"], ["marking.html", "If Leaves Weave Mark", "Mark work: ticks, comments, marks and audio", "✓"], ["questions.html", "If Leaves Weave Question bank", "Papers and answer keys into a question bank", "?"], ["maths.html", "If Leaves Weave Maths", "Write, solve and graph maths, then copy it anywhere", "∑"], ["cite.html", "If Leaves Weave Cite", "References in APA, Harvard, MLA, Chicago, IEEE or Vancouver", "“"], ["ecomap.html", "If Leaves Weave Ecomap", "Supports and stresses around a person", "◎"], ["cards.html", "If Leaves Weave Study cards", "Flashcards that come back before you forget", "▤"], ["rubric.html", "If Leaves Weave Rubric", "Build a rubric and mark with it", "▦"], ["seating.html", "If Leaves Weave Seating", "Seating plans and fair groups", "▥"], ["chronology.html", "If Leaves Weave Chronology", "Dated events for casework", "⋯"], ["genogram.html", "If Leaves Weave Genogram", "Family maps for casework", "⌂"], ["prototype.html", "If Leaves Weave Prototype", "Clickable app screens", "▯"]];
+  const btn = document.getElementById("famBtn"); if (!btn) return;
+  btn.onclick = () => { document.querySelector(".fam-pop")?.remove(); const p = document.createElement("div"); p.className = "fam-pop"; p.setAttribute("role", "menu"); p.setAttribute("aria-label", "If Leaves Weave tools");
+    p.innerHTML = T.map(([href, n, d, ic], i) => `<a role="menuitem" href="${href}" ${href === "index.html" ? 'aria-current="page"' : ""}><b aria-hidden="true">${ic}</b><span>${n}<small>${d}</small></span></a>`).join("");
+    document.body.append(p); const r = btn.getBoundingClientRect(); p.style.top = r.bottom + 6 + "px"; p.style.left = Math.max(8, Math.min(r.left, innerWidth - p.offsetWidth - 8)) + "px"; p.querySelector("a").focus();
+    const off = e => { if (!p.contains(e.target) && e.target !== btn) { p.remove(); removeEventListener("pointerdown", off, true); } }; setTimeout(() => addEventListener("pointerdown", off, true));
+    p.addEventListener("keydown", e => { const as = [...p.querySelectorAll("a")], i = as.indexOf(document.activeElement); if (e.key === "Escape") { p.remove(); btn.focus(); } if (e.key === "ArrowDown") { e.preventDefault(); as[(i + 1) % as.length].focus(); } if (e.key === "ArrowUp") { e.preventDefault(); as[(i - 1 + as.length) % as.length].focus(); } }); };
+})();
+</script>
+<script>/* optional tools: shown only when switched on */(() => { const KEY = "ifleavesweave-opt-autored", btn = document.querySelector('.tool[data-tool="autored"]'), box = document.getElementById("optAutored"); if (!btn || !box) return; let on = false; try { on = localStorage.getItem(KEY) === "1"; } catch {} const apply = () => { btn.hidden = !on; box.checked = on; if (!on && btn.getAttribute("aria-selected") === "true") document.querySelector('.tool[data-tool="pages"]')?.click(); }; box.onchange = () => { on = box.checked; try { on ? localStorage.setItem(KEY, "1") : localStorage.removeItem(KEY); } catch {} apply(); }; apply(); })();</script>
+<script src="compact.js" data-app="ifleavesweave"></script>
+<script src="vendor/pdf-lib.min.js"></script>
+<script src="vendor/jszip.min.js"></script>
+<script type="module" src="app.js"></script>
+<input type="file" id="cmpIn" accept="application/pdf" hidden>
+<input type="file" id="batesIn" accept="application/pdf" multiple hidden>
+<script type="module" src="extras.js"></script>
+</body>
+</html>
