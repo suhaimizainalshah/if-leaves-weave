@@ -858,6 +858,8 @@ const TASKS = [
   ["Word to PDF", "pages", "M7 3h8l5 5v13H7zM10 12l1.5 5 1.5-4 1.5 4 1.5-5", "docx"],
   ["PowerPoint to PDF", "pages", "M4 5h16v11H4zM9 20h6M12 16v4M8 9h5", "pptx"],
   ["Mark work", "pages", "M5 13l4 4L19 7", "mark"],
+  ["Write maths", "pages", "M18 5H7l6 7-6 7h11", "maths"],
+  ["Cite references", "pages", "M7 7h4v4c0 3-2 5-4 6M14 7h4v4c0 3-2 5-4 6", "cite"],
   ["Question bank", "pages", "M9 9a3 3 0 1 1 4 2.8c-.7.4-1 1-1 1.7V15M12 18h.01", "qbank"],
   ["Split a PDF", "split", "M6 3v18M18 3v18M6 12h12"],
   ["Sign a PDF", { tool: "edit", sign: true }, "M3 17c3-6 5-10 6-7s-2 8 1 8 4-6 6-6 1 4 3 4 2-1 2-1"],
@@ -873,7 +875,7 @@ const TASKS = [
   ["Read aloud, paper and voice notes", "class", "M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2zM8 7h6M8 11h8"],
 ];
 $("#tasks").innerHTML = TASKS.map(([n, , d], i) => `<button class="task" data-task="${i}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>${n}</button>`).join("");
-$("#tasks").onclick = e => { const b = e.target.closest("[data-task]"); if (!b) return; const [, t, , extra] = TASKS[+b.dataset.task]; if (extra === "mark") { location.href = "marking.html"; return; } if (extra === "qbank") { location.href = "questions.html"; return; } pick(extra === "image/*" ? "image/*" : extra === "docx" ? ".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" : extra === "pptx" ? ".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" : "application/pdf,image/*,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation", t); };
+$("#tasks").onclick = e => { const b = e.target.closest("[data-task]"); if (!b) return; const [, t, , extra] = TASKS[+b.dataset.task]; if (extra === "mark") { location.href = "marking.html"; return; } if (extra === "qbank") { location.href = "questions.html"; return; } if (extra === "cite") { location.href = "cite.html"; return; } if (extra === "maths") { location.href = "maths.html"; return; } pick(extra === "image/*" ? "image/*" : extra === "docx" ? ".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" : extra === "pptx" ? ".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" : "application/pdf,image/*,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation", t); };
 $("#tray").addEventListener("click", e => { if (e.target === e.currentTarget) pick(); });
 $("#numOn").addEventListener("change", () => { if ($("#numOn").checked) toast("Page numbers will be added when you download"); });
 

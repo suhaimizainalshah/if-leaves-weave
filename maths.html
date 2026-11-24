@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Maths · If Leaves Weave</title>
+<link rel="icon" href="logo.png" type="image/png"><link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#16191f;--muted:#5a6272;--line:#e1e4ec;--acc:#1f5f4a;--acc-ink:#fff;--soft:#eef4f1;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#12141a;--card:#1b1e26;--ink:#edf0f6;--muted:#a3abbb;--line:#2d323e;--acc:#7fd4b2;--acc-ink:#062018;--soft:#1f2a26;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Hanken Grotesk",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--line);background:var(--card);flex-wrap:wrap}header a.brand{display:flex;gap:8px;align-items:center;color:inherit;text-decoration:none;font-weight:800}.sp{flex:1}
+main{max-width:1180px;margin:0 auto;padding:18px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px}@media (max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:12px;align-content:start}h1{font-size:22px;margin:0}h2{font-size:16px;margin:0}.hint{color:var(--muted);font-size:13.5px;margin:0}
+math-field{font-size:30px;width:100%;padding:14px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);--caret-color:var(--acc);--selection-background-color:var(--soft)}math-field:focus-within{border-color:var(--acc)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{font:inherit;font-weight:650;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 14px;cursor:pointer;text-decoration:none}.btn:hover{border-color:var(--acc)}.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.res{display:grid;gap:8px}.res div{display:grid;grid-template-columns:7.5em 1fr;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg)}.res b{font-size:13px;color:var(--muted)}.res math-span,.res .m{font-size:20px;overflow-x:auto}
+#graph{width:100%;min-height:300px;border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}#graph svg{max-width:100%}
+.formats{display:grid;gap:6px}.formats label{font-size:13px;font-weight:700;color:var(--muted)}.formats textarea{font:12.5px/1.45 ui-monospace,monospace;width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--bg);color:var(--ink);resize:vertical;min-height:38px}
+.recent{display:flex;flex-wrap:wrap;gap:6px}.recent button{font-size:15px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 12px;cursor:pointer;max-width:100%;overflow:hidden}
+.note{border-left:3px solid var(--acc);padding:6px 10px;background:var(--soft);border-radius:6px;font-size:13px;color:var(--muted)}:focus-visible{outline:3px solid var(--acc);outline-offset:2px}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<header><a class="brand" href="home.html"><img src="logo.png" alt="" width="26" height="26">If Leaves Weave</a><b>Maths</b><span class="sp"></span><a class="btn" href="index.html">PDF tool</a><a class="btn" href="home.html">All tools</a></header>
+<main>
+  <section class="card" aria-labelledby="h1">
+    <h1 id="h1">Write maths</h1>
+    <p class="hint">Type naturally: <b>x^2</b>, <b>sqrt</b>, <b>1/2</b>, <b>pi</b>, <b>int</b> and <b>sum</b> become proper notation as you go. Or use the on-screen keyboard. No maths code to learn.</p>
+    <math-field id="mf" aria-label="Equation" math-virtual-keyboard-policy="manual">x^2-5x+6=0</math-field>
+    <div class="row"><button class="btn" id="kbd" aria-pressed="false">⌨ Maths keyboard</button><button class="btn" id="say">🔊 Read aloud</button><button class="btn" id="clear">Clear</button></div>
+    <h2>Calculate</h2>
+    <div class="res" id="res" aria-live="polite"></div>
+    <h2>Graph</h2>
+    <div id="graph" role="img" aria-label="Graph of the expression"></div>
+    <p class="hint" id="graphNote"></p>
+  </section>
+  <section class="card" aria-labelledby="h2">
+    <h2 id="h2">Use it elsewhere</h2>
+    <div class="row"><button class="btn pri" id="copyImg">Copy as an image</button><button class="btn" id="dlPng">Download PNG</button><button class="btn" id="dlSvg">Download SVG</button></div>
+    <p class="hint">Images paste into Google Docs, Slides, Word and most other tools. Each carries a description for screen readers.</p>
+    <div class="formats">
+      <label for="fLatex">LaTeX</label><textarea id="fLatex" readonly rows="2"></textarea>
+      <label for="fAscii">ASCIIMath</label><textarea id="fAscii" readonly rows="1"></textarea>
+      <label for="fMathml">MathML (for Word and accessible web pages)</label><textarea id="fMathml" readonly rows="3"></textarea>
+      <label for="fSpoken">Spoken</label><textarea id="fSpoken" readonly rows="2"></textarea>
+    </div>
+    <div class="row"><button class="btn" data-copy="fLatex">Copy LaTeX</button><button class="btn" data-copy="fAscii">Copy ASCIIMath</button><button class="btn" data-copy="fMathml">Copy MathML</button><a class="btn" id="wa" target="_blank" rel="noopener">Open in Wolfram|Alpha ↗</a></div>
+    <p class="note">Everything here works on your device, offline. Nothing is sent anywhere, unless you choose to open Wolfram|Alpha, which opens its website with your expression.</p>
+    <h2>Recent</h2><div class="recent" id="recent"><p class="hint">Equations you work on appear here (kept in this browser).</p></div>
+    <p class="hint">Built with MathLive, the CortexJS Compute Engine, MathJax and function-plot, all open source: see <a href="vendor/MATHS-NOTICES.md">notices</a>.</p>
+  </section>
+</main>
+<p class="sr" id="live" aria-live="polite"></p>
+<script src="vendor/mathlive/mathlive.min.js"></script>
+<script>window.MathJax = { svg: { fontCache: "none" }, startup: { typeset: false } };</script>
+<script src="vendor/mathjax/tex-svg.js"></script>
+<script src="vendor/function-plot/function-plot.js"></script>
+<script type="module">
+import { ComputeEngine } from "./vendor/compute-engine/compute-engine.js";
+import { compile } from "./vendor/compute-engine/compile.js";
+const $ = s => document.querySelector(s), ce = new ComputeEngine(), mf = $("#mf");
+const say = t => { $("#live").textContent = ""; setTimeout(() => $("#live").textContent = t, 30); };
+MathfieldElement.fontsDirectory = "vendor/mathlive/fonts"; MathfieldElement.soundsDirectory = null;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const row = (label, latex) => `<div><b>${label}</b><math-span>${esc(latex)}</math-span></div>`;
+
+/* ---------- calculating: simplify, value, expand, solve ---------- */
+function calculate(latex) {
+  const out = []; if (!latex.trim()) { $("#res").innerHTML = `<p class="hint">Write something above.</p>`; return null; }
+  let e; try { e = ce.parse(latex); } catch { $("#res").innerHTML = `<p class="hint">That can’t be read as maths yet.</p>`; return null; }
+  if (!e.isValid) { $("#res").innerHTML = `<p class="hint">Keep going: it isn’t complete maths yet.</p>`; return e; }
+  const try1 = f => { try { return f(); } catch { return null; } };
+  const isFn = e.operator === "Equal" && (e.ops[0].symbol === "y" || e.ops[1].symbol === "y"); // y = f(x): a function, graphed below
+  if (isFn) { const rhs = e.ops[0].symbol === "y" ? e.ops[1] : e.ops[0]; const s = try1(() => rhs.simplify()); out.push(row("Function", `y=${(s || rhs).latex}`)); out.push(`<p class="hint">Its graph is below.</p>`); }
+  else if (e.operator === "Equal") {
+    const vars = [...(e.unknowns || [])], v = vars.includes("x") ? "x" : vars[0];
+    const sol = v && try1(() => e.solve(v)); if (sol?.length) out.push(row(`Solve for ${v}`, sol.map(s => `${v}=${s.latex}`).join(",\\quad "))); else if (v) out.push(row("Solve", "\\text{No exact solution found}"));
+  } else {
+    const typed = try1(() => ce.parse(latex, { canonical: false }).latex) || latex, s = try1(() => e.simplify());
+    if (s && s.latex.replace(/\s/g, "") !== typed.replace(/\s/g, "")) out.push(row(s.isNumberLiteral || !s.unknowns?.length ? "Exact" : "Simplified", s.latex));
+    const ex = try1(() => ce.box(["Expand", e]).evaluate()); if (ex && ex.latex !== typed && ex.latex !== s?.latex && ex.latex !== e.latex) out.push(row("Expanded", ex.latex));
+    const n = try1(() => e.N()); if (n && n.isNumberLiteral) out.push(row("Value", n.latex.replace(/\\,/g, "").replace(/(\.\d{10})\d+/, "$1")));
+    const dup = out.findIndex(x => x.includes(">Exact<")); if (dup >= 0 && n?.isNumberLiteral && s && n.latex === s.latex) out.splice(dup, 1); // the same number twice: show it once
+    if (!out.length) out.push(row("As written", e.latex));
+  }
+  $("#res").innerHTML = out.join(""); return e;
+}
+
+/* ---------- graphing any expression in x (or y = …) ---------- */
+function graph(e) {
+  const box = $("#graph"); box.innerHTML = ""; $("#graphNote").textContent = "";
+  if (!e || !e.isValid) return; let f = e;
+  if (e.operator === "Equal") { const [l, r] = e.ops; if (l.symbol === "y") f = r; else if (r.symbol === "y") f = l; else f = ce.box(["Subtract", l, r]).simplify(); }
+  const vars = [...(f.unknowns || [])]; if (vars.some(v => v !== "x") || !vars.length) { $("#graphNote").textContent = vars.length ? "Graphs are drawn for expressions in x." : ""; return; }
+  let fn; try { const c = compile(f); if (!c?.success) throw 0; fn = x => { const y = c.run({ x }); return typeof y === "number" ? y : Number(y); }; if (!isFinite(fn(1)) && !isFinite(fn(2))) throw 0; } catch { $("#graphNote").textContent = "This one can’t be graphed."; return; }
+  try { functionPlot({ target: box, width: Math.min(box.clientWidth || 520, 620), height: 300, grid: true, disableZoom: false, data: [{ graphType: "polyline", fn: s => fn(s.x), color: "#1f5f4a" }] });
+    $("#graphNote").textContent = e.operator === "Equal" && e.ops[0].symbol !== "y" && e.ops[1].symbol !== "y" ? "Drawn as left side minus right side: solutions are where it crosses zero. Drag to move, scroll to zoom." : "Drag to move, scroll to zoom."; } catch { $("#graphNote").textContent = "This one can’t be graphed."; }
+}
+
+/* ---------- the formats, images and recent equations ---------- */
+const val = f => { try { const v = mf.getValue(f); return f === "spoken-text" ? spoken(v) : v; } catch { return ""; } };
+const spoken = t => String(t || "").replace(/<[^>]+>/g, " ").replace(/'/g, "").replace(/\s+/g, " ").replace(/\s([,.])/g, "$1").trim(); // plain words, without the speech engine's codes
+function formats() { const l = val("latex"); $("#fLatex").value = l; $("#fAscii").value = val("ascii-math"); $("#fMathml").value = val("math-ml"); $("#fSpoken").value = val("spoken-text");
+  $("#wa").href = "https://www.wolframalpha.com/input?i=" + encodeURIComponent(val("ascii-math")); return l; }
+async function svgOf() { await MathJax.startup.promise; const node = MathJax.tex2svg(val("latex") || "\\,", { display: true }), svg = node.querySelector("svg");
+  svg.setAttribute("xmlns", "http://www.w3.org/2000/svg"); const title = document.createElementNS("http://www.w3.org/2000/svg", "title"); title.textContent = val("spoken-text"); svg.prepend(title); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", val("spoken-text"));
+  svg.style.color = "#16191f"; return new XMLSerializer().serializeToString(svg).replace(/currentColor/g, "#16191f"); }
+async function pngOf(scale = 4) { const s = await svgOf(), img = new Image(), url = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(s)));
+  await new Promise((r, j) => { img.onload = r; img.onerror = j; img.src = url; }); const pad = 12 * scale, c = document.createElement("canvas"); c.width = img.width * scale + pad * 2; c.height = img.height * scale + pad * 2;
+  const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, pad, pad, img.width * scale, img.height * scale); return new Promise(r => c.toBlob(r, "image/png")); }
+const dl = (blob, name) => { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000); };
+$("#copyImg").onclick = async () => { try { const png = await pngOf(), html = `<img src="data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(await png.arrayBuffer())))}" alt="${esc(val("spoken-text"))}">`;
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": png, "text/html": new Blob([html], { type: "text/html" }) })]); say("Copied as an image. Paste it into your document."); } catch { say("This browser couldn’t copy the image: use Download PNG instead."); } };
+$("#dlPng").onclick = async () => dl(await pngOf(), "equation.png"); $("#dlSvg").onclick = async () => dl(new Blob([await svgOf()], { type: "image/svg+xml" }), "equation.svg");
+document.querySelectorAll("[data-copy]").forEach(b => b.onclick = async () => { await navigator.clipboard.writeText($("#" + b.dataset.copy).value); say("Copied."); });
+let recent; try { recent = JSON.parse(localStorage.getItem("ilw-maths-recent")) || []; } catch { recent = []; }
+function drawRecent() { if (!recent.length) return; $("#recent").innerHTML = recent.map((l, i) => `<button data-r="${i}" aria-label="Use ${esc(l)}"><math-span>${esc(l)}</math-span></button>`).join(""); }
+$("#recent").onclick = e => { const b = e.target.closest("[data-r]"); if (b) { mf.value = recent[+b.dataset.r]; update(); mf.focus(); } };
+let saveT; function remember(l) { clearTimeout(saveT); saveT = setTimeout(() => { if (!l.trim()) return; recent = [l, ...recent.filter(x => x !== l)].slice(0, 10); try { localStorage.setItem("ilw-maths-recent", JSON.stringify(recent)); } catch {} drawRecent(); }, 1500); }
+
+/* ---------- reading aloud, the keyboard, and keeping everything in step ---------- */
+$("#say").onclick = () => { const t = val("spoken-text"); if (!t) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = .95; speechSynthesis.speak(u); say(t); };
+$("#kbd").onclick = () => { const on = $("#kbd").getAttribute("aria-pressed") !== "true"; $("#kbd").setAttribute("aria-pressed", String(on)); mf.focus(); on ? window.mathVirtualKeyboard.show() : window.mathVirtualKeyboard.hide(); };
+$("#clear").onclick = () => { mf.value = ""; update(); mf.focus(); };
+function update() { const l = formats(), e = calculate(l); graph(e); remember(l); }
+mf.addEventListener("input", update);
+const q = new URLSearchParams(location.search).get("q"); if (q) mf.value = q; // maths.html?q=… opens with an equation
+customElements.whenDefined("math-field").then(() => { update(); drawRecent(); });
+window.__maths = { ce, update, get latex() { return val("latex"); } };
+</script>
+</body>
+</html>

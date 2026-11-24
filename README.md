@@ -173,3 +173,21 @@ Turn question papers and their answer keys (PDF or Word) into a question bank sp
 - **Review:** an editable table with checks (no answer, no marks, few options, possible duplicate, figure needing a description).
 - **The bank:** kept in this browser; add batches over time, with duplicates skipped. Export a formatted **Excel** file (bold headings, frozen top row, filters, wrapped text), **CSV**, or a **Little Light Lit Course** file (multiple choice becomes quiz questions, the rest flashcards). Import a spreadsheet you exported to continue.
 - **Note:** published exam papers are copyrighted. A bank for your own teaching is usually fine; check before sharing it.
+
+## Cite (If Leaves Weave Cite)
+Turn titles, messy references or DOIs, or a PDF’s reference list, into a correct reference list.
+- **Paste** one per line, or **open a PDF**: it finds the References, Bibliography or Works cited section, joins entries that wrap onto several lines (numbered or with hanging indents), and also offers the paper itself, from the DOI on its first page.
+- **Matching:** each is matched to its official record in CrossRef, with other possible matches to choose from, a “check” flag when the title differs from yours, “No match found” rather than a guess, and repeats kept once.
+- **Six styles:** APA 7, Harvard (Cite Them Right), MLA 9, Chicago (author-date), IEEE and Vancouver, each with its in-text citation. Author-date styles are sorted alphabetically; IEEE and Vancouver are numbered in order.
+- **Output:** copy for Word or Google Docs (with italics and hanging indents) or as plain text, or download BibTeX, RIS or CSL-JSON for Zotero, Mendeley or EndNote.
+- **Privacy:** unlike most of If Leaves Weave, this tool sends the reference text (never the rest of a PDF) to CrossRef (api.crossref.org) to look it up. An optional email address, kept in this browser, gets faster service from CrossRef.
+- **Always check** each reference against its source: records can be incomplete, and capitalisation of titles may need adjusting for your style.
+
+## Maths (If Leaves Weave Maths)
+Write maths without learning any code, then solve, graph and copy it.
+- **Write:** type naturally (x^2, sqrt, 1/2, pi, int, sum become proper notation as you go) or use the on-screen maths keyboard. It can read the maths aloud.
+- **Calculate:** exact answers (½ + ⅓ = 5/6, √50 = 5√2), decimal values, expanding and simplifying, and solving equations (x² − 5x + 6 = 0 gives x = 3, x = 2).
+- **Graph:** any expression in x, or y = …, drawn as you type; drag to move and scroll to zoom.
+- **Use it elsewhere:** copy as an image (it pastes into Google Docs, Slides and Word, with a description for screen readers), download PNG or SVG, or copy LaTeX, ASCIIMath or MathML. An optional link opens Wolfram|Alpha with your expression.
+- **Private and offline:** everything runs on your device, and nothing is sent anywhere unless you choose Wolfram|Alpha. Recent equations are kept in this browser.
+- **Open source inside:** MathLive (MIT), the CortexJS Compute Engine (MIT), MathJax (Apache 2.0) and function-plot (MIT), unmodified, with their licences in `vendor/` and a summary in `vendor/MATHS-NOTICES.md`.

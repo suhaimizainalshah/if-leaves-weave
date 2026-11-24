@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Cite · If Leaves Weave</title>
+<link rel="icon" href="logo.png" type="image/png"><link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#16191f;--muted:#5a6272;--line:#e1e4ec;--acc:#1f5f4a;--acc-ink:#fff;--warn:#a4161a;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#12141a;--card:#1b1e26;--ink:#edf0f6;--muted:#a3abbb;--line:#2d323e;--acc:#7fd4b2;--acc-ink:#062018;--warn:#ff9b8f;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Hanken Grotesk",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--line);background:var(--card);flex-wrap:wrap}
+header a.brand{display:flex;gap:8px;align-items:center;color:inherit;text-decoration:none;font-weight:800}.sp{flex:1}
+main{max-width:1180px;margin:0 auto;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:18px}@media (max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:12px;align-content:start}
+h1{font-size:22px;margin:0}h2{font-size:16px;margin:0}.hint{color:var(--muted);font-size:13.5px;margin:0}
+textarea,input,select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%}
+textarea{resize:vertical;min-height:150px}input[type=checkbox]{width:auto;margin:0 6px 0 0;vertical-align:-2px;accent-color:var(--acc)}.ref label{display:flex;align-items:baseline;gap:4px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{font:inherit;font-weight:650;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 14px;cursor:pointer;text-decoration:none}.btn:hover{border-color:var(--acc)}.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}.btn[disabled]{opacity:.5;cursor:default}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font:inherit;font-size:13.5px;font-weight:650;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer}.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.refs{display:grid;gap:8px}.ref{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:4px}.ref .t{font-weight:700}.ref select{font-size:13px;padding:4px 8px}
+.check{color:var(--warn);font-weight:700}.out{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);display:grid;gap:8px;max-height:520px;overflow:auto}.out p{margin:0;padding-left:2em;text-indent:-2em}.out.num p{padding-left:2.4em;text-indent:-2.4em}
+.intext{font-size:13.5px;color:var(--muted)}.drop{border:2px dashed var(--line);border-radius:12px;padding:14px;text-align:center;cursor:pointer}.drop.over{border-color:var(--acc)}
+.note{border-left:3px solid var(--acc);padding:6px 10px;background:var(--bg);border-radius:6px;font-size:13px;color:var(--muted)}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<header><a class="brand" href="home.html"><img src="logo.png" alt="" width="26" height="26">If Leaves Weave</a><b>Cite</b><span class="sp"></span><a class="btn" href="index.html">PDF tool</a><a class="btn" href="home.html">All tools</a></header>
+<main>
+  <section class="card" aria-labelledby="h1">
+    <h1 id="h1">Cite your sources</h1>
+    <p class="hint">Paste titles, references or DOIs, one per line, or open a PDF to read its reference list. Each is matched to its official record, then written in the style you choose.</p>
+    <label for="refsIn"><b>References, titles or DOIs</b></label>
+    <textarea id="refsIn" placeholder="Educational stratification in rentier states&#10;10.1111/j.1475-4967.2011.00478.x&#10;Gewirtz, S. (1995) Markets, choice and equity in education. Open University Press."></textarea>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Open a PDF to read its references">Or drop a <b>PDF</b> here, or <u>choose one</u>, to read its reference list</div><input type="file" id="pdfIn" accept="application/pdf" hidden>
+    <div class="row"><button class="btn pri" id="go">Find citations</button><button class="btn" id="clear">Clear</button></div>
+    <details><summary>Email for faster lookups (optional)</summary><p class="hint">CrossRef, the free registry of scholarly records, gives better service when lookups include an email address. It stays in this browser.</p><input id="email" type="email" autocomplete="email" placeholder="you@university.ac.uk" aria-label="Email for CrossRef"></details>
+    <p class="note">Only the reference text is sent to CrossRef (api.crossref.org) to look it up: never the rest of a PDF. Nothing is stored anywhere but this browser.</p>
+    <p class="hint" id="status" role="status" aria-live="polite"></p>
+    <div class="refs" id="refs"></div>
+  </section>
+  <section class="card" aria-labelledby="h2">
+    <h2 id="h2">Your reference list</h2>
+    <div class="chips" id="styles" role="group" aria-label="Citation style"></div>
+    <div class="out" id="out" aria-live="polite"><p class="hint" style="text-indent:0;padding:0">Your formatted references appear here.</p></div>
+    <div class="row"><button class="btn pri" id="copyRich" disabled>Copy for Word or Docs</button><button class="btn" id="copyText" disabled>Copy as text</button></div>
+    <div class="row"><button class="btn" data-dl="bib" disabled>BibTeX</button><button class="btn" data-dl="ris" disabled>RIS</button><button class="btn" data-dl="json" disabled>CSL-JSON</button><span class="hint">For Zotero, Mendeley or EndNote</span></div>
+    <p class="hint">Always check each reference against the source: records can be incomplete.</p>
+  </section>
+</main>
+<p class="sr" id="live" aria-live="polite"></p>
+<script type="module">
+import * as pdfjsLib from "./vendor/pdf.min.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("./vendor/pdf.worker.min.mjs", import.meta.url).href;
+const $ = s => document.querySelector(s), esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const say = t => { $("#status").textContent = t; $("#live").textContent = ""; setTimeout(() => $("#live").textContent = t, 30); };
+let SELF = false, REFS = [], STYLE = localStorage.getItem("ilw-cite-style") || "apa";
+try { $("#email").value = localStorage.getItem("ilw-cite-email") || ""; } catch {}
+$("#email").onchange = e => { try { localStorage.setItem("ilw-cite-email", e.target.value.trim()); } catch {} };
+
+/* ---------- records: from CrossRef into one shape ---------- */
+const fromCrossref = w => ({ type: /book/.test(w.type) ? "book" : /chapter/.test(w.type) ? "chapter" : /proceedings/.test(w.type) ? "conference" : "article",
+  title: (w.title || [""])[0] || "", authors: (w.author || []).map(a => ({ family: a.family || a.name || "", given: a.given || "" })).filter(a => a.family),
+  year: String((((w.issued || w.published || {})["date-parts"] || [[]])[0] || [])[0] || ""), journal: (w["container-title"] || [""])[0] || "", publisher: w.publisher || "",
+  volume: w.volume || "", issue: w.issue || "", pages: String(w.page || "").replace(/-/g, "–"), doi: w.DOI || "", url: w.DOI ? "https://doi.org/" + w.DOI : (w.URL || "") });
+const words = s => new Set(String(s).toLowerCase().normalize("NFKD").replace(/[^\p{L}\p{N} ]/gu, " ").split(/\s+/).filter(w => w.length > 3));
+const overlap = (a, b) => { const A = words(a), B = words(b); if (!A.size) return 1; let n = 0; for (const w of A) if (B.has(w)) n++; return n / A.size; };
+
+/* ---------- the six styles ---------- */
+const ini = (g, dot = ". ", join = " ") => g.split(/[\s-]+/).filter(Boolean).map(x => x[0].toUpperCase() + dot.trim()).join(join);
+const list = (a, last, oxford) => a.length <= 1 ? a.join("") : a.length === 2 ? `${a[0]}${oxford ? "," : ""} ${last} ${a[1]}` : a.slice(0, -1).join(", ") + `${oxford ? "," : ""} ${last} ` + a[a.length - 1];
+const doiL = r => r.doi ? `https://doi.org/${r.doi}` : r.url;
+const it = s => s ? `<i>${esc(s)}</i>` : "";
+const STYLES = {
+  apa: { name: "APA 7", sorted: true, cite(r) { const A = r.authors.slice(0, 20).map(a => `${esc(a.family)}, ${ini(a.given, ".", " ")}`.replace(/,\s*$/, ""));
+      const where = r.type === "article" ? `${it(r.journal)}${r.volume ? `, ${it(r.volume)}` : ""}${r.issue ? `(${esc(r.issue)})` : ""}${r.pages ? `, ${esc(r.pages)}` : ""}.` : r.type === "book" ? `${esc(r.publisher)}.` : `${it(r.journal)}${r.pages ? ` (pp. ${esc(r.pages)})` : ""}. ${esc(r.publisher)}.`;
+      return `${A.length ? list(A, "&amp;", true) + " " : ""}(${esc(r.year || "n.d.")}). ${r.type === "book" ? it(r.title) : esc(r.title)}. ${where} ${esc(doiL(r))}`; },
+    intext: r => `(${r.authors.length > 2 ? esc(r.authors[0].family) + " et al." : r.authors.map(a => esc(a.family)).join(" &amp; ") || esc(r.title.slice(0, 30))}, ${esc(r.year || "n.d.")})` },
+  harvard: { name: "Harvard", sorted: true, cite(r) { const A = r.authors.map(a => `${esc(a.family)}, ${ini(a.given, ".", "")}`.replace(/,\s*$/, ""));
+      const where = r.type === "article" ? `${it(r.journal)}${r.volume ? `, ${esc(r.volume)}` : ""}${r.issue ? `(${esc(r.issue)})` : ""}${r.pages ? `, pp. ${esc(r.pages)}` : ""}.` : `${esc(r.publisher)}.`;
+      return `${A.length ? (A.length > 3 ? A[0] + " et al." : list(A, "and", false)) + " " : ""}(${esc(r.year || "n.d.")}) ${r.type === "book" ? it(r.title) + "." : `‘${esc(r.title)}’,`} ${where} ${r.doi ? `doi: ${esc(r.doi)}.` : `Available at: ${esc(r.url)}.`}`; },
+    intext: r => `(${r.authors.length > 3 ? esc(r.authors[0].family) + " et al." : list(r.authors.map(a => esc(a.family)), "and", false) || esc(r.title.slice(0, 30))}, ${esc(r.year || "n.d.")})` },
+  mla: { name: "MLA 9", sorted: true, cite(r) { const a = r.authors, A = !a.length ? "" : a.length === 1 ? `${esc(a[0].family)}, ${esc(a[0].given)}` : a.length === 2 ? `${esc(a[0].family)}, ${esc(a[0].given)}, and ${esc(a[1].given)} ${esc(a[1].family)}` : `${esc(a[0].family)}, ${esc(a[0].given)}, et al`;
+      const where = r.type === "article" ? `${it(r.journal)}${r.volume ? `, vol. ${esc(r.volume)}` : ""}${r.issue ? `, no. ${esc(r.issue)}` : ""}, ${esc(r.year)}${r.pages ? `, pp. ${esc(r.pages)}` : ""}.` : `${esc(r.publisher)}, ${esc(r.year)}.`;
+      return `${A ? A.replace(/\.$/, "") + ". " : ""}${r.type === "book" ? it(r.title) + "." : `“${esc(r.title)}.”`} ${where} ${esc(doiL(r))}.`; },
+    intext: r => `(${r.authors.length > 2 ? esc(r.authors[0].family) + " et al." : r.authors.map(a => esc(a.family)).join(" and ") || esc(r.title.slice(0, 30))})` },
+  chicago: { name: "Chicago", sorted: true, cite(r) { const a = r.authors, A = a.map((x, i) => i ? `${esc(x.given)} ${esc(x.family)}` : `${esc(x.family)}, ${esc(x.given)}`);
+      const where = r.type === "article" ? `${it(r.journal)}${r.volume ? ` ${esc(r.volume)}` : ""}${r.issue ? ` (${esc(r.issue)})` : ""}${r.pages ? `: ${esc(r.pages)}` : ""}.` : `${esc(r.publisher)}.`;
+      return `${A.length ? (A.length > 10 ? A.slice(0, 7).join(", ") + ", et al." : list(A, "and", true)) + ". " : ""}${esc(r.year || "n.d.")}. ${r.type === "book" ? it(r.title) + "." : `“${esc(r.title)}.”`} ${where} ${esc(doiL(r))}.`; },
+    intext: r => `(${r.authors.length > 3 ? esc(r.authors[0].family) + " et al." : list(r.authors.map(a => esc(a.family)), "and", false) || esc(r.title.slice(0, 30))} ${esc(r.year || "n.d.")})` },
+  ieee: { name: "IEEE", sorted: false, cite(r, n) { const A = r.authors.map(a => `${ini(a.given, ".", " ")} ${esc(a.family)}`.trim());
+      const where = r.type === "article" ? `${it(r.journal)}${r.volume ? `, vol. ${esc(r.volume)}` : ""}${r.issue ? `, no. ${esc(r.issue)}` : ""}${r.pages ? `, pp. ${esc(r.pages)}` : ""}, ${esc(r.year)}` : `${esc(r.publisher)}, ${esc(r.year)}`;
+      return `[${n}] ${A.length ? (A.length > 6 ? A[0] + " et al." : list(A, "and", A.length > 2)) + ", " : ""}${r.type === "book" ? it(r.title) + "." : `“${esc(r.title)},”`} ${where}${r.doi ? `, doi: ${esc(r.doi)}` : ""}.`; },
+    intext: (r, n) => `[${n}]` },
+  vancouver: { name: "Vancouver", sorted: false, cite(r, n) { const A = r.authors.slice(0, 6).map(a => `${esc(a.family)} ${ini(a.given, "", "")}`.trim());
+      return `${n}. ${A.join(", ")}${r.authors.length > 6 ? ", et al" : ""}${A.length ? ". " : ""}${esc(r.title)}. ${r.type === "article" ? `${esc(r.journal)}. ${esc(r.year)}${r.volume ? `;${esc(r.volume)}` : ""}${r.issue ? `(${esc(r.issue)})` : ""}${r.pages ? `:${esc(r.pages)}` : ""}.` : `${esc(r.publisher)}; ${esc(r.year)}.`}${r.doi ? ` doi:${esc(r.doi)}` : ""}`; },
+    intext: (r, n) => `(${n})` } };
+$("#styles").innerHTML = Object.entries(STYLES).map(([k, v]) => `<button class="chip" data-st="${k}" aria-pressed="${k === STYLE}">${v.name}</button>`).join("");
+$("#styles").onclick = e => { const b = e.target.closest("[data-st]"); if (!b) return; STYLE = b.dataset.st; try { localStorage.setItem("ilw-cite-style", STYLE); } catch {} document.querySelectorAll("[data-st]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); render(); };
+
+/* ---------- reading a PDF’s reference list ---------- */
+const drop = $("#drop"); drop.onclick = () => $("#pdfIn").click(); drop.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#pdfIn").click(); } };
+["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); })); ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, () => drop.classList.remove("over")));
+drop.addEventListener("drop", e => { e.preventDefault(); if (e.dataTransfer.files[0]) readPdf(e.dataTransfer.files[0]); }); $("#pdfIn").onchange = e => { if (e.target.files[0]) readPdf(e.target.files[0]); e.target.value = ""; };
+async function readPdf(f) {
+  say("Reading the PDF…"); const doc = await pdfjsLib.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise, lines = [];
+  for (let n = 1; n <= doc.numPages; n++) { const pg = await doc.getPage(n), tc = await pg.getTextContent(), rows = [];
+    for (const t of tc.items) { if (!t.str.trim()) continue; const y = Math.round(t.transform[5]), x = t.transform[4]; let r = rows.find(r => Math.abs(r.y - y) < 3); if (!r) rows.push(r = { y, x, s: [] }); r.s.push([x, t.str]); r.x = Math.min(r.x, x); }
+    rows.sort((a, b) => b.y - a.y).forEach(r => lines.push({ x: Math.round(r.x), text: r.s.sort((a, b) => a[0] - b[0]).map(z => z[1]).join(" ").replace(/\s+/g, " ").trim(), page: n })); }
+  const self = lines.slice(0, 80).map(l => l.text).join(" ").match(/10\.\d{4,9}\/[^\s"<>]+/)?.[0]?.replace(/[.,;)\]]+$/, "");
+  const head = lines.map((l, i) => /^(references|bibliography|works cited|reference list|literature cited|sources)\s*:?$/i.test(l.text) ? i : -1).filter(i => i >= 0).pop();
+  if (head == null) { say(`No “References” heading found.${self ? " Citing the paper itself from its DOI instead." : " Paste the references instead."}`); if (self) { SELF = true; $("#refsIn").value = self; go(); } return; }
+  const body = []; for (const l of lines.slice(head + 1)) { if (/^(appendix|appendices|acknowledg|notes)\b/i.test(l.text)) break; body.push(l); }
+  // entries start with a number ([1], 1.) or, in author–date lists, at the left margin, with continuation lines indented
+  const left = Math.min(...body.map(l => l.x)), entries = [];
+  for (const l of body) { const numbered = /^(\[\d+\]|\d+\.)\s/.test(l.text), starts = numbered || (l.x <= left + 2 && /^[\p{Lu}][\p{L}'’ -]+,\s*\p{Lu}/u.test(l.text));
+    if (starts || !entries.length) entries.push(l.text.replace(/^(\[\d+\]|\d+\.)\s*/, "")); else entries[entries.length - 1] += (entries[entries.length - 1].endsWith("-") ? "" : " ") + l.text; }
+  const clean = entries.map(e => e.replace(/-\s+(?=\p{Ll})/gu, "").trim()).filter(e => e.length > 15).slice(0, 80);
+  SELF = !!self; $("#refsIn").value = (self ? self + "\n" : "") + clean.join("\n"); say(`Found ${clean.length} reference${clean.length === 1 ? "" : "s"} in “${f.name}”${self ? ", plus the paper itself" : ""}. Checking them…`); go();
+}
+
+/* ---------- looking each one up ---------- */
+async function go() {
+  const lines = $("#refsIn").value.split(/\n+/).map(l => l.trim()).filter(l => l.length > 6).slice(0, 80); if (!lines.length) return say("Paste a title, a reference or a DOI first.");
+  const mail = /@/.test($("#email").value) ? `mailto=${encodeURIComponent($("#email").value.trim())}` : ""; REFS = []; $("#go").disabled = true; renderRefs();
+  for (const [i, line] of lines.entries()) { say(`Looking up ${i + 1} of ${lines.length}…`);
+    try { const doi = (line.match(/10\.\d{4,9}\/[^\s"<>]+/) || [])[0]?.replace(/[.,;)\]]+$/, "");
+      const j = await (await fetch(doi ? `https://api.crossref.org/works/${encodeURIComponent(doi)}${mail ? "?" + mail : ""}` : `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(line)}&rows=3${mail ? "&" + mail : ""}`)).json();
+      const items = (doi ? [j.message] : (j.message?.items || [])).filter(Boolean).map(fromCrossref); REFS.push({ line, items, pick: 0, use: !!items.length, byDoi: !!doi }); }
+    catch { REFS.push({ line, items: [], pick: 0, use: false }); }
+    const cur = REFS[REFS.length - 1], d = cur.items[0]?.doi?.toLowerCase(); if (d && REFS.slice(0, -1).some(r => r.use && r.items[r.pick]?.doi?.toLowerCase() === d)) { cur.use = false; cur.dup = true; } // listed twice
+    if (i === 0 && SELF && cur.byDoi) cur.self = true;
+    renderRefs(); if (i < lines.length - 1) await new Promise(r => setTimeout(r, 300)); }
+  $("#go").disabled = false; const ok = REFS.filter(r => r.items.length).length, chk = REFS.filter(r => r.items.length && !r.byDoi && overlap(r.items[r.pick].title, r.line) < .5).length;
+  const dups = REFS.filter(r => r.dup).length; say(`Matched ${ok} of ${REFS.length}${chk ? `; ${chk} marked “check”` : ""}${dups ? `; ${dups} listed twice, kept once` : ""}. Untick any that aren’t right.`); render();
+}
+function renderRefs() {
+  $("#refs").innerHTML = REFS.map((r, i) => { const m = r.items[r.pick], ok = m && (r.byDoi || overlap(m.title, r.line) >= .5);
+    return `<div class="ref"><label><input type="checkbox" data-use="${i}" ${r.use ? "checked" : ""} ${m ? "" : "disabled"}> <span class="t">${m ? esc(m.title) : "No match found"}</span></label>
+      ${m ? `<span class="hint">${esc(m.authors.slice(0, 3).map(a => a.family).join(", "))}${m.authors.length > 3 ? " et al." : ""} · ${esc(m.year || "n.d.")}${m.journal ? " · " + esc(m.journal) : ""}${ok ? "" : ` · <span class="check">check: the title differs from yours</span>`}</span>` : ""}
+      <span class="hint">${r.self ? "<b>This paper itself</b>, from the DOI on its first page" : `From: “${esc(r.line.slice(0, 140))}”`}${r.dup ? ` · <span class="check">listed twice: kept once</span>` : ""}</span>
+      ${r.items.length > 1 ? `<select data-alt="${i}" aria-label="Other matches">${r.items.map((x, k) => `<option value="${k}" ${k === r.pick ? "selected" : ""}>${esc(x.title.slice(0, 90))} (${esc(x.year)})</option>`).join("")}</select>` : ""}</div>`; }).join("");
+}
+$("#refs").addEventListener("change", e => { const u = e.target.dataset.use, a = e.target.dataset.alt; if (u != null) REFS[+u].use = e.target.checked; if (a != null) { REFS[+a].pick = +e.target.value; renderRefs(); } render(); });
+
+/* ---------- the formatted list, copying and files ---------- */
+const chosen = () => { const st = STYLES[STYLE], L = REFS.filter(r => r.use && r.items.length).map(r => r.items[r.pick]);
+  return st.sorted ? L.sort((a, b) => (a.authors[0]?.family || a.title).localeCompare(b.authors[0]?.family || b.title) || String(a.year).localeCompare(String(b.year))) : L; };
+function render() { const st = STYLES[STYLE], L = chosen(), on = !!L.length;
+  $("#out").classList.toggle("num", !st.sorted);
+  $("#out").innerHTML = on ? L.map((r, i) => `<p>${st.cite(r, i + 1)}</p><p class="intext" style="text-indent:0;padding-left:2em">In the text: ${st.intext(r, i + 1)}</p>`).join("") : `<p class="hint" style="text-indent:0;padding:0">Your formatted references appear here.</p>`;
+  document.querySelectorAll("#copyRich,#copyText,[data-dl]").forEach(b => b.disabled = !on); }
+const plain = () => chosen().map((r, i) => { const d = document.createElement("div"); d.innerHTML = STYLES[STYLE].cite(r, i + 1); return d.textContent; }).join("\n\n");
+$("#copyText").onclick = async () => { await navigator.clipboard.writeText(plain()); say("Copied as plain text."); };
+$("#copyRich").onclick = async () => { const html = chosen().map((r, i) => `<p style="margin:0 0 8pt 0;padding-left:0.5in;text-indent:-0.5in">${STYLES[STYLE].cite(r, i + 1)}</p>`).join("");
+  try { await navigator.clipboard.write([new ClipboardItem({ "text/html": new Blob([html], { type: "text/html" }), "text/plain": new Blob([plain()], { type: "text/plain" }) })]); say("Copied with italics and hanging indents: paste into Word or Google Docs."); }
+  catch { await navigator.clipboard.writeText(plain()); say("Copied as plain text (this browser doesn’t allow formatted copying)."); } };
+document.querySelectorAll("[data-dl]").forEach(b => b.onclick = () => { const L = chosen(), seen = {}, key = r => { const k = (r.authors[0]?.family || "source").normalize("NFKD").toLowerCase().replace(/[^a-z]/g, "") + (r.year || ""); seen[k] = (seen[k] || 0) + 1; return seen[k] > 1 ? k + String.fromCharCode(96 + seen[k]) : k; };
+  const t = { article: ["article", "JOUR"], book: ["book", "BOOK"], chapter: ["incollection", "CHAP"], conference: ["inproceedings", "CONF"] };
+  let body, ext = b.dataset.dl;
+  if (ext === "bib") body = L.map(r => `@${t[r.type][0]}{${key(r)},\n  title = {${r.title}},\n  author = {${r.authors.map(a => `${a.family}, ${a.given}`).join(" and ")}},\n  year = {${r.year}},\n${r.journal ? `  ${r.type === "article" ? "journal" : "booktitle"} = {${r.journal}},\n` : ""}${r.volume ? `  volume = {${r.volume}},\n` : ""}${r.issue ? `  number = {${r.issue}},\n` : ""}${r.pages ? `  pages = {${r.pages.replace("–", "--")}},\n` : ""}${r.publisher ? `  publisher = {${r.publisher}},\n` : ""}${r.doi ? `  doi = {${r.doi}},\n` : ""}}`).join("\n\n");
+  if (ext === "ris") body = L.map(r => [`TY  - ${t[r.type][1]}`, `TI  - ${r.title}`, ...r.authors.map(a => `AU  - ${a.family}, ${a.given}`), `PY  - ${r.year}`, r.journal && `T2  - ${r.journal}`, r.volume && `VL  - ${r.volume}`, r.issue && `IS  - ${r.issue}`, r.pages && `SP  - ${r.pages.split("–")[0]}`, r.pages.includes("–") && `EP  - ${r.pages.split("–")[1]}`, r.publisher && `PB  - ${r.publisher}`, r.doi && `DO  - ${r.doi}`, "ER  - "].filter(Boolean).join("\r\n")).join("\r\n");
+  if (ext === "json") body = JSON.stringify(L.map((r, i) => ({ id: key(r), type: { article: "article-journal", book: "book", chapter: "chapter", conference: "paper-conference" }[r.type], title: r.title, author: r.authors, issued: { "date-parts": [[+r.year || undefined]] }, "container-title": r.journal || undefined, volume: r.volume || undefined, issue: r.issue || undefined, page: r.pages || undefined, publisher: r.publisher || undefined, DOI: r.doi || undefined })), null, 1);
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([body], { type: "text/plain" })); a.download = `references.${ext === "json" ? "csl.json" : ext}`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000); });
+$("#go").onclick = () => { SELF = false; go(); }; $("#clear").onclick = () => { $("#refsIn").value = ""; REFS = []; renderRefs(); render(); say(""); $("#refsIn").focus(); };
+$("#refsIn").addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) go(); });
+const q = new URLSearchParams(location.search).get("q"); if (q) { $("#refsIn").value = q; go(); } // cite.html?q=… opens with a title or DOI
+render(); window.__cite = { STYLES, fromCrossref, get REFS() { return REFS; } };
+</script>
+</body>
+</html>
