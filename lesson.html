@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>/* one-time move of settings and drafts saved under the old name (Booth) */try{for(let i=localStorage.length;i--;){const k=localStorage.key(i);if(k&&/^booth/.test(k)){const n=k.replace(/^booth/,"littlelightlit");if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Little Light Lit Lessons: interactive video lessons with questions</title>
+<meta name="description" content="Add questions, polls and notes to any video. Students answer as it plays, and you see the results. Free, with no student accounts.">
+<link rel="icon" href="assets/logo.png" type="image/png">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/littlelightlit.css">
+<style>
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr)}
+.work{display:grid;grid-template-columns:1fr var(--side);min-height:0}
+.stage{position:relative;min-height:0;overflow:auto;background:var(--stage);padding:16px;display:grid;gap:12px;align-content:start}
+.vid{position:relative;background:#000;border-radius:12px;overflow:hidden;aspect-ratio:16/9;max-height:58vh;width:100%;margin:0 auto}
+.vid video,.vid iframe,.vid>div{position:absolute;inset:0;width:100%;height:100%;border:0}
+.tl{position:relative;height:46px;background:var(--panel);border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.tl i{position:absolute;top:0;bottom:0;width:2px;background:var(--accent)}
+.tl b{position:absolute;top:8px;width:22px;height:28px;margin-left:-11px;border-radius:6px;background:var(--ink);color:var(--panel);font-size:.72rem;display:grid;place-items:center;font-weight:800}
+.tl b{cursor:grab;touch-action:none;user-select:none;border:2px solid transparent}.tl b.drag{cursor:grabbing;transform:scale(1.15);z-index:3}
+.tl b[data-type=mc]{background:#2B6CB0}.tl b[data-type=open]{background:#2F855A}.tl b[data-type=poll]{background:#6B46C1}.tl b[data-type=note]{background:#718096}.tl b[data-type=branch]{background:#C05621}.tl b[data-type=jump]{background:#0E7490}
+.tl b[aria-current=true]{border-color:var(--accent);box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--accent)}
+.legend{display:flex;gap:.8rem;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:.3rem;vertical-align:-1px}
+.nudge{display:flex;gap:.3rem;flex-wrap:wrap}.nudge .btn{min-height:34px;padding:0 .6rem;font-size:.85rem}
+.warn{color:#C05621;font-weight:800}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.tbtn{display:inline-flex}
+.qlist{display:grid;gap:.35rem}
+.qi{display:grid;grid-template-columns:auto 1fr auto;gap:.5rem;align-items:center;padding:.45rem .6rem;border:1px solid var(--line);border-radius:10px;background:var(--panel);text-align:left;font-weight:600;font-size:.88rem}
+.qi[aria-current=true]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--panel))}
+.qi small{color:var(--muted);font-weight:600}
+.tag{font-size:.7rem;font-weight:800;padding:.15rem .4rem;border-radius:6px;background:var(--soft)}
+.chrow{display:grid;grid-template-columns:auto 1fr auto;gap:.4rem;align-items:center;margin-bottom:.35rem}
+.chrow input[type=text]{min-width:0}
+.tabs{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--soft);margin-bottom:.6rem}
+.tabs button{flex:1;height:34px;border:0;border-radius:8px;background:transparent;font-weight:700;color:var(--muted)}
+.tabs button[aria-selected=true]{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.res{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1rem;display:grid;gap:.8rem}
+.res table{border-collapse:collapse;width:100%;font-size:.88rem}.res th,.res td{text-align:left;padding:.4rem .5rem;border-bottom:1px solid var(--line)}
+.bars{display:grid;gap:.3rem}.bars div{display:grid;grid-template-columns:minmax(90px,1fr) 3fr auto;gap:.5rem;align-items:center;font-size:.85rem}
+.bars span.b{height:12px;border-radius:6px;background:var(--soft);overflow:hidden}.bars span.b i{display:block;height:100%;background:var(--accent)}
+.empty-wrap{position:absolute;inset:0;display:grid;place-items:center;background:var(--stage);z-index:2;padding:1rem;overflow:auto}
+.preview{position:fixed;inset:0;z-index:60;background:rgba(10,12,14,.7);display:grid;place-items:center;padding:2vh 2vw}
+.preview>div{width:min(1100px,96vw);height:min(760px,94vh);background:#fff;border-radius:14px;overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+.preview header{display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border-bottom:1px solid var(--line);background:var(--panel)}
+.preview iframe{width:100%;height:100%;border:0}
+@media (max-width:720px){.work{grid-template-columns:1fr}.side{border-left:0;border-top:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<a class="skip" href="#pane">Skip to tools</a>
+<div class="app">
+  <header class="top">
+    <a class="brand" href="./" aria-label="Little Light Lit home"><img src="assets/logo.png" alt="" width="28" height="28"><span>Little Light Lit</span></a>
+    <nav class="modes" aria-label="Studios"><a href="./">Photo</a><a href="./#batch" class="m-hide">Many photos</a><a href="photobooth.html">Photo booth</a><a href="design.html">Design</a><a href="video.html">Video</a><a href="audio.html">Audio</a><a href="animate.html">Animate</a><a href="lesson.html" aria-current="page">Lessons</a><a href="course.html">Course</a><a href="motion.html">Motion</a><a href="present.html">Present</a><a href="360.html">360°</a><a href="3d.html">3D</a></nav>
+    <span class="spacer"></span>
+    <button class="ibtn" id="undo" disabled aria-label="Undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button class="ibtn" id="redo" disabled aria-label="Redo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+    <button class="ibtn" id="saveBtn" title="Save the lesson so you can edit it later"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg><span class="t">Save</span></button>
+    <button class="ibtn" id="openBtn" title="Open a saved lesson"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h6l2 2h10v10H3z"/></svg><span class="t">Open</span></button>
+    <button class="ibtn" id="previewBtn" title="Try the lesson as a student"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="t">Preview</span></button>
+    <button class="btn primary" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="t">Share lesson</span></button>
+  </header>
+  <div class="work">
+    <main class="stage" id="stage">
+      <div class="vid" id="vid"></div>
+      <div class="row"><button class="btn" id="playBtn">Play</button><span id="tNow" style="font-weight:700;font-variant-numeric:tabular-nums">0:00</span><span class="hint" style="margin:0">Pause where you want something to happen, then add it.</span></div>
+      <div class="tl" id="tl" role="group" aria-label="Lesson timeline: click to jump, drag a marker to move it"><i id="tlHead"></i></div>
+      <div class="legend" id="legend"><span><i style="background:#2B6CB0"></i>Multiple choice</span><span><i style="background:#2F855A"></i>Open</span><span><i style="background:#6B46C1"></i>Poll</span><span><i style="background:#718096"></i>Note</span><span><i style="background:#C05621"></i>Choice that jumps</span><span><i style="background:#0E7490"></i>Jump point</span><span>Drag a marker to move it</span></div>
+      <div class="row"><button class="btn primary" data-addq="mc">+ Multiple choice</button><button class="btn" data-addq="open">+ Open question</button><button class="btn" data-addq="poll">+ Poll</button><button class="btn" data-addq="note">+ Pop-up note</button><button class="btn" data-addq="branch">+ Choice that jumps</button><button class="btn" data-addq="jump" title="Jumps silently to another time or clip, for example at the end of a scene">+ Jump point</button></div>
+      <div id="results" hidden></div>
+      <div class="empty-wrap" id="empty"><div class="empty" style="max-width:640px">
+        <h1>Turn any video into a lesson</h1>
+        <p>Add questions, polls and notes at the right moments. The video pauses for each one, students answer, and you see who understood what. No student accounts, and answers stay with you and your students.</p>
+        <div class="row" style="justify-content:center"><button class="btn primary" id="pickVideo">Use a video file</button><button class="btn" id="useYT">Use a YouTube video</button></div>
+        <div class="row" style="justify-content:center" id="draftRow" hidden><button class="btn primary" id="openDraft">Carry on with your last lesson</button><button class="btn" id="discardDraft" title="Remove the saved draft from this browser">Discard draft</button></div>
+        <div class="row" style="justify-content:center"><button class="btn" id="openResults">See class results</button><button class="btn" id="openLesson">Open a saved lesson</button></div>
+        <p class="note">A video file makes a lesson that works offline. A YouTube lesson is a tiny file, but students need internet.</p>
+      </div></div>
+    </main>
+    <aside class="side"><section class="pane" id="pane"></section></aside>
+  </div>
+</div>
+<input type="file" id="vidIn" accept="video/*" multiple hidden><input type="file" id="capIn" accept=".vtt,.srt,text/vtt" hidden><input type="file" id="projIn" accept=".json" hidden><input type="file" id="resIn" accept=".json,.txt" multiple hidden>
+<dialog id="exportDlg"><div class="dlg" style="max-width:560px"><h2>Share the lesson with students</h2>
+  <div class="group"><button class="btn primary block" data-ex="student">Student lesson file: share it, email it or put it on a website</button><p class="note">Students hand in with a file, a code, email or your Google Sheet.</p></div>
+  <div class="group"><button class="btn block" data-ex="scorm">SCORM package: for Moodle, Canvas, Blackboard and offline boxes</button><p class="note">Scores and answers go straight into the platform’s gradebook, including on offline Moodle devices such as Beekee.</p></div>
+  <div class="group"><button class="btn block" id="sls" data-ex="sls">Singapore Student Learning Space (SLS) package</button><p class="note" id="slsNote"></p></div>
+  <details class="sec"><summary>Embed it on a website</summary><div class="group"><p class="note">Put the student lesson file online (your school website, GitHub Pages or Netlify Drop all work), then paste its address here for embed code.</p><div class="field"><label for="embedUrl">Lesson web address</label><input type="url" id="embedUrl" placeholder="https://…/lesson.html"></div><button class="btn" data-ex="embedURL">Copy embed code</button><p class="note">For YouTube lessons on Google Sites, you can paste the whole lesson instead:</p><button class="btn" data-ex="embedHTML">Copy the lesson as embed code</button></div></details>
+  <div style="display:flex;justify-content:flex-end;margin-top:.6rem"><button class="btn" id="exClose">Close</button></div></div></dialog>
+<div class="toast" id="toast" role="status"></div>
+<script src="assets/littlelightlit-ux.js"></script>
+<script src="assets/compact.js" data-app="littlelightlit"></script>
+<script src="assets/nav.js"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)], uid = () => Math.random().toString(36).slice(2, 9);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+function toast(m, ms = 3000) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), ms); }
+function download(blob, name) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000); }
+const COUNTER = { on: true, ns: "littlelightlit" };
+const noCount = () => { try { return localStorage.getItem("littlelightlit-nocount") === "1"; } catch { return false; } };
+const count = k => { if (noCount()) return; if (!COUNTER.on || !/^https?:$/.test(location.protocol) || navigator.doNotTrack === "1" || navigator.globalPrivacyControl) return; fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER.ns}/${k}`).catch(() => {}); };
+try { if (!sessionStorage.getItem("littlelightlit-lesson-visit")) { sessionStorage.setItem("littlelightlit-lesson-visit", "1"); count("lesson_visits"); } } catch {}
+
+/* ---------- Lesson model ---------- */
+let L = null, sel = null, P = null, tab = "lesson", cur = null;
+const CF = new Map(); // clip id -> { file, url, captions }
+const newLesson = () => ({ id: uid() + uid(), title: "Untitled lesson", intro: "", items: [], noSkip: true, skip: "rewind", maxSpeed: 2, freeAfter: true, retries: false, showAnswers: true, rewatch: true, askName: true, askClass: false, handIn: "Download your answers and hand them in, or copy the code and paste it where your teacher asked.", sheet: "", email: "", lang: "en", shuffle: false, pass: 60, yt: "", videoName: "" });
+let hist = [], fut = [], typing = null;
+function commit() { if (!L) return; hist.push(JSON.stringify(L)); if (hist.length > 80) hist.shift(); fut = []; syncHist(); draft(); }
+function syncHist() { $("#undo").disabled = !hist.length; $("#redo").disabled = !fut.length; }
+function restoreState(st) { L = JSON.parse(st); if (!L.yt) { if (!L.clips.find(c => c.id === cur)) cur = L.clips[0]?.id || null; if (cur && CF.get(cur) && $("#v")?.getAttribute("src") !== CF.get(cur).url) return showClip(cur); } if (sel && !q()) sel = null; renderAll(); draft(); }
+function undo() { if (!hist.length) return; fut.push(JSON.stringify(L)); restoreState(hist.pop()); syncHist(); toast("Undone"); }
+function redo() { if (!fut.length) return; hist.push(JSON.stringify(L)); restoreState(fut.pop()); syncHist(); toast("Redone"); }
+let draftT = null, draftAt = 0;
+function saveDraftNow() { draftAt = Date.now(); try { if (L && (L.items.length || L.clips?.length || L.yt)) localStorage.setItem("littlelightlit-lesson-draft", JSON.stringify({ savedAt: draftAt, lesson: L })); } catch (e) { console.warn("Couldn’t save a draft", e); } }
+function draft() { clearTimeout(draftT); if (Date.now() - draftAt > 1500) saveDraftNow(); draftT = setTimeout(saveDraftNow, 400); }
+addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveDraftNow(); }); addEventListener("pagehide", saveDraftNow); addEventListener("beforeunload", saveDraftNow);
+// a jump point loops if it lands just before itself (it would hit itself again); forward jumps and deliberate jumps further back are fine
+const timeBad = (to, at, from) => to === "__time" && (!(at >= 0) || (from != null && at > from - 1.5 && at <= from + .3));
+const incomplete = x => x.type === "jump" ? timeBad(x.to, x.at, x.t) : x.type === "branch" && x.choices.some(c => timeBad(c.to, c.at)) ? true : x.type === "mc" ? !x.prompt.trim() || x.choices.some(c => !c.text.trim()) || !x.choices.some(c => c.ok) : x.type === "branch" || x.type === "poll" ? !x.prompt.trim() || x.choices.some(c => !c.text.trim()) : x.type === "open" ? !x.prompt.trim() : !x.prompt.trim() && !x.text.trim();
+const q = () => L?.items.find(x => x.id === sel) || null;
+const skipMode = () => L.skip || (L.noSkip === false ? "allow" : "rewind");
+const destLabel = (to, at) => to === "__end" ? "the end" : to === "__time" ? (at >= 0 ? fmt(at) : "a time (not set)") : to ? esc(clipName(to)) : "carry on";
+const itemLabel = x => x.type === "jump" ? `Jump → ${destLabel(x.to, x.at)}` : (x.prompt || x.text || "(no question yet)");
+const destOptions = (to, extraAttr) => `<option value="">Carry on</option><option value="__time" ${to === "__time" ? "selected" : ""}>Jump to a time in this clip</option>${(L.clips || []).filter(cl => cl.id !== cur).map(cl => `<option value="${cl.id}" ${to === cl.id ? "selected" : ""}>Go to: ${esc(cl.name)}</option>`).join("")}<option value="__end" ${to === "__end" ? "selected" : ""}>End the lesson</option>`;
+const sorted = () => [...L.items].sort((a, b) => a.t - b.t);
+const clipOf = it => it.clip || L.clips?.[0]?.id;
+const inClip = () => sorted().filter(it => L.yt || clipOf(it) === cur);
+const clipName = id => L.clips?.find(c => c.id === id)?.name || "";
+const hasVideo = () => !!L && (!!L.yt || !!L.clips?.length);
+
+/* ---------- Video: a file or YouTube ---------- */
+function addClipFiles(files) {
+  if (L) commit(); if (!L) L = newLesson(); L.yt = ""; L.clips ||= []; let first = null;
+  for (const f of files) { if (!f.type.startsWith("video/")) continue; const id = uid(); CF.set(id, { file: f, url: URL.createObjectURL(f), captions: null }); L.clips.push({ id, name: f.name.replace(/\.[^.]+$/, "").slice(0, 60), end: "next", file: f.name }); first ||= id; if (L.title === "Untitled lesson") L.title = f.name.replace(/\.[^.]+$/, ""); }
+  if (first) { showClip(cur && files.length && L.clips.length > files.length ? cur : first); begin(); }
+}
+function showClip(id) {
+  const c = CF.get(id); if (!c) return; cur = id; P?.pause?.();
+  $("#vid").innerHTML = `<video id="v" src="${c.url}" playsinline controls></video>`; const v = $("#v");
+  P = { time: () => v.currentTime, dur: () => v.duration || 0, seek: t => (v.currentTime = t), play: () => v.play(), pause: () => v.pause(), paused: () => v.paused };
+  v.addEventListener("loadedmetadata", () => { const cl = L.clips.find(x => x.id === id); if (cl) cl.dur = v.duration; renderAll(); }); renderAll();
+}
+const useFile = f => addClipFiles([f]);
+function ytId(u) { const m = String(u).match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/); return m ? m[1] : /^[\w-]{11}$/.test(u) ? u : null; }
+let ytReady = null;
+function useYT(id) {
+  if (!L) L = newLesson(); L.yt = id; L.clips = []; cur = null; $("#vid").innerHTML = `<div id="yt"></div>`;
+  ytReady ||= new Promise(r => { window.onYouTubeIframeAPIReady = r; const s = document.createElement("script"); s.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(s); });
+  ytReady.then(() => { const p = new YT.Player("yt", { videoId: id, host: "https://www.youtube-nocookie.com", playerVars: { rel: 0, playsinline: 1 }, events: { onReady: () => { P = { time: () => p.getCurrentTime() || 0, dur: () => p.getDuration() || 0, seek: t => p.seekTo(t, true), play: () => p.playVideo(), pause: () => p.pauseVideo(), paused: () => p.getPlayerState() !== 1 }; renderAll(); } } }); });
+  begin();
+}
+function begin() { $("#empty").hidden = true; tab = "lesson"; renderAll(); }
+$("#pickVideo").onclick = () => $("#vidIn").click();
+$("#vidIn").onchange = () => { const fs = [...$("#vidIn").files]; $("#vidIn").value = ""; if (fs.length) addClipFiles(fs); };
+$("#useYT").onclick = () => { const u = prompt("Paste the YouTube link"); if (!u) return; const id = ytId(u.trim()); if (!id) return toast("That doesn’t look like a YouTube link."); useYT(id); };
+$("#playBtn").onclick = () => { if (!P) return; P.paused() ? P.play() : P.pause(); };
+setInterval(() => { if (!P) return; const t = P.time(), d = P.dur(); $("#tNow").textContent = `${fmt(t)}${d ? " / " + fmt(d) : ""}`; $("#tlHead").style.left = d ? `${t / d * 100}%` : "0"; $("#playBtn").textContent = P.paused() ? "Play" : "Pause"; }, 250);
+$("#tl").addEventListener("click", e => { if (!P || e.target.closest("b")) return; const r = $("#tl").getBoundingClientRect(); P.seek((e.clientX - r.left) / r.width * P.dur()); });
+let mdrag = null;
+$("#tl").addEventListener("pointerdown", e => { const b = e.target.closest("b"); if (!b || !P) return; e.preventDefault(); mdrag = { b, id: b.dataset.q, x0: e.clientX, moved: false, lastSeek: 0 }; b.setPointerCapture(e.pointerId); });
+$("#tl").addEventListener("pointermove", e => {
+  if (!mdrag) return; if (!mdrag.moved && Math.abs(e.clientX - mdrag.x0) < 4) return;
+  const it = L.items.find(x => x.id === mdrag.id); if (!it) return; if (!mdrag.moved) { commit(); mdrag.moved = true; mdrag.b.classList.add("drag"); P.pause(); }
+  const r = $("#tl").getBoundingClientRect(), d = P.dur(); it.t = Math.round(Math.max(0, Math.min(d - .1, (e.clientX - r.left) / r.width * d)) * 10) / 10;
+  mdrag.b.style.left = `${it.t / d * 100}%`; mdrag.b.title = fmt(it.t); $("#qT") && sel === it.id && ($("#qT").value = it.t);
+  const now = performance.now(); if (now - mdrag.lastSeek > 120) { P.seek(it.t); mdrag.lastSeek = now; }
+});
+$("#tl").addEventListener("pointerup", () => { if (!mdrag) return; const it = L.items.find(x => x.id === mdrag.id); const moved = mdrag.moved; mdrag = null; sel = it?.id || null; if (it) { P.seek(it.t); P.pause(); } renderAll(); if (moved && it) toast(`Moved to ${fmt(it.t)}${it.t % 1 ? " (" + it.t.toFixed(1) + " s)" : ""}. Undo with Ctrl+Z.`); });
+function renderTimeline() { const d = P?.dur() || 0; $("#tl").querySelectorAll("b").forEach(b => b.remove()); if (!d) return; inClip().forEach((it, i) => { const b = document.createElement("b"); b.dataset.q = it.id; b.dataset.type = it.type; b.textContent = incomplete(it) ? "!" : it.type === "jump" ? "↷" : i + 1; b.style.left = `${it.t / d * 100}%`; b.title = `${fmt(it.t)} ${it.prompt || it.text || ""}`; b.setAttribute("aria-current", it.id === sel); $("#tl").appendChild(b); }); }
+
+/* ---------- Adding and editing questions ---------- */
+$$("[data-addq]").forEach(b => b.onclick = () => {
+  if (!P) return toast("Add a video first."); P.pause(); commit(); const type = b.dataset.addq, t = Math.round(P.time() * 10) / 10;
+  const it = { id: uid(), type, t, prompt: "", required: true }; if (!L.yt) it.clip = cur;
+  if (type === "branch") { const others = (L.clips || []).filter(c => c.id !== cur); Object.assign(it, { prompt: "What should happen next?", choices: [{ text: "", to: others[0]?.id || "__time", at: others[0] ? undefined : null, ok: false }, { text: "", to: others[1]?.id || others[0]?.id || "__time", at: others[1] || others[0] ? undefined : null, ok: false }] }); }
+  if (type === "jump") Object.assign(it, { to: "__time", at: null });
+  if (type === "mc") Object.assign(it, { prompt: "", choices: [{ text: "", ok: true }, { text: "", ok: false }, { text: "", ok: false }], fbOk: "", fbNo: "" });
+  if (type === "poll") Object.assign(it, { choices: [{ text: "Yes" }, { text: "No" }, { text: "Not sure" }] });
+  if (type === "note") Object.assign(it, { prompt: "", text: "", link: "" });
+  L.items.push(it); sel = it.id; tab = "lesson"; renderAll(); setTimeout(() => $("#qPrompt")?.focus(), 30);
+});
+const chk = (id, label, on) => `<label class="check"><input type="checkbox" id="${id}" ${on ? "checked" : ""}> ${label}</label>`;
+function renderPane() {
+  const pane = $("#pane"); if (!L) { pane.innerHTML = `<h2>Lessons</h2><p class="hint">Choose a video to start, or open class results.</p>`; return; }
+  const it = q(); let h = `<div class="tabs" role="tablist"><button role="tab" data-tab="lesson" aria-selected="${tab === "lesson"}">Lesson</button><button role="tab" data-tab="results" aria-selected="${tab === "results"}">Results</button></div>`;
+  if (tab === "results") h += `<p class="hint">Add the answers files your students handed in, or paste their answer codes.</p><button class="btn primary" id="addRes">Add answers files</button><div class="field"><label for="codes">Or paste answer codes, one per line</label><textarea id="codes" rows="4" placeholder="BL1.…"></textarea></div><button class="btn" id="addCodes">Add codes</button>${R.length ? `<button class="btn" id="csv">Download results as a spreadsheet (CSV)</button><button class="btn danger" id="clearRes">Clear results</button>` : ""}<p class="note">Results stay in this browser tab and aren’t uploaded anywhere.</p>`;
+  else if (!it) h += clipsPane() + `<h2>Lesson settings</h2>
+    <div class="field"><label for="lTitle">Title</label><input type="text" id="lTitle" value="${esc(L.title)}"></div>
+    <div class="field"><label for="lIntro">Instructions for students (optional)</label><textarea id="lIntro" rows="2">${esc(L.intro)}</textarea></div>
+    <span class="lbl">Skipping</span><div class="chips" role="group" aria-label="Skipping">${[["allow", "Allow skipping"], ["rewind", "Rewind only"], ["locked", "Watch straight through"]].map(([v, n]) => `<button class="chip" data-skip="${v}" aria-pressed="${skipMode() === v}">${n}</button>`).join("")}</div>
+    <p class="note">${{ allow: "Students can move anywhere in the video.", rewind: "Students can go back, but not past what they have watched.", locked: "No skipping or rewinding. Your own jumps and choices still work." }[skipMode()]}</p>
+    ${skipMode() !== "allow" ? `<span class="lbl">Fastest playback speed</span><div class="chips" role="group" aria-label="Fastest playback speed">${[[1, "1×"], [1.5, "1.5×"], [2, "2×"], [0, "Any"]].map(([v, n]) => `<button class="chip" data-speed="${v}" aria-pressed="${(L.maxSpeed ?? 2) === v}">${n}</button>`).join("")}</div>${chk("lFree", "Let students move freely after they finish", L.freeAfter !== false)}` : ""}${chk("lRewatch", "Offer “watch that part again”", L.rewatch)}${chk("lRetries", "Allow up to 3 tries on multiple choice", L.retries)}${chk("lShow", "Show the correct answer after each question", L.showAnswers)}${chk("lName", "Ask for the student’s name at the start", L.askName)}${chk("lClass", "Also ask for their class", L.askClass)}${chk("lShuffle", "Shuffle the answer order for each student", L.shuffle)}
+    <div class="row2"><div class="field"><label for="lLang">Language for students</label><select id="lLang">${[["en", "English"], ["ms", "Bahasa Melayu"], ["zh", "中文"], ["ta", "தமிழ்"], ["id", "Bahasa Indonesia"], ["vi", "Tiếng Việt"]].map(([v, n]) => `<option value="${v}" ${L.lang === v ? "selected" : ""}>${n}</option>`).join("")}</select></div><div class="field"><label for="lPass">Pass mark for SCORM (%)</label><input type="number" id="lPass" min="0" max="100" value="${L.pass ?? 60}"></div></div>
+    ${!L.yt && cur ? `<label class="check"><input type="checkbox" id="qVR" ${L.clips.find(c => c.id === cur)?.vr ? "checked" : ""}> “${esc(clipName(cur))}” is a 360° video</label><p class="note">Students drag to look around. Use a 2:1 (equirectangular) 360° file, such as one exported from Insta360 or Ricoh Theta apps. YouTube 360° videos work without this setting.</p>` : ""}
+    ${!L.yt && cur ? `<div class="field"><label>Captions for “${esc(clipName(cur))}” (optional)</label><button class="btn" id="capBtn">${CF.get(cur)?.captions ? "Change captions file" : "Add captions (.vtt or .srt)"}</button></div>` : ""}
+    <div class="field"><label for="lEmail">Your email, for students to email their answers (optional)</label><input type="email" id="lEmail" placeholder="teacher@school.edu" value="${esc(L.email || "")}"></div>
+    <div class="field"><label for="lHand">How students hand in (shown at the end)</label><textarea id="lHand" rows="2">${esc(L.handIn)}</textarea></div>
+    <details class="sec"><summary>Collect answers automatically (optional)</summary><div class="group"><p class="note">Answers can arrive straight in your own Google Sheet. In a new sheet, open Extensions, then Apps Script, paste this code, choose Deploy, New deployment, Web app, with access for Anyone, and paste the web app address below.</p><textarea rows="6" readonly id="gsCode" style="font-family:ui-monospace,monospace;font-size:.75rem">${esc(GS)}</textarea><button class="btn" id="copyGs">Copy the code</button><div class="field"><label for="lSheet">Web app address</label><input type="url" id="lSheet" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(L.sheet)}"></div><p class="note">Tell students their name and answers go to your sheet. Students can still download their answers as a backup.</p></div></details>
+    <p class="note">Shortcuts: Space play or pause · ← → skip 5 s · Alt + ← → move the selected item by 0.1 s · Delete removes it · Ctrl+Z undo.</p>
+    ${L.items.length ? `<span class="lbl">In this lesson</span><div class="qlist">${sorted().map((x, i) => `<button class="qi" data-pick="${x.id}"><span class="tag">${i + 1}</span><span>${incomplete(x) ? `<span class="warn" title="Not finished yet">⚠ </span>` : ""}${esc(itemLabel(x)).slice(0, 60)}</span><small>${!L.yt && L.clips.length > 1 ? esc(clipName(clipOf(x))).slice(0, 14) + " · " : ""}${fmt(x.t)}</small></button>`).join("")}</div>` : `<p class="note">No questions yet. Play the video, pause, then use the buttons under the timeline.</p>`}`;
+  else {
+    const kind = { mc: "Multiple choice", open: "Open question", poll: "Poll", note: "Pop-up note", branch: "Choice that jumps", jump: "Jump point" }[it.type];
+    h += `<h2>${kind}</h2><div class="field"><label for="qT">Appears at (seconds), or drag its marker on the timeline</label><input type="number" id="qT" min="0" step="0.1" value="${it.t}"></div>
+      <div class="nudge" role="group" aria-label="Move this item"><button class="btn" data-nudge="-1">−1 s</button><button class="btn" data-nudge="-0.1">−0.1 s</button><button class="btn" data-nudge="0.1">+0.1 s</button><button class="btn" data-nudge="1">+1 s</button><button class="btn" id="qNow">Use current time</button><button class="btn" id="qPlay">Play from here</button></div>
+      ${!L.yt && L.clips.length > 1 ? `<div class="field"><label for="qClip">In clip</label><select id="qClip">${L.clips.map(c => `<option value="${c.id}" ${clipOf(it) === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select></div>` : ""}
+      ${incomplete(it) ? `<p class="note warn">⚠ Not finished yet: ${it.type === "mc" ? "add the question, fill in every answer and tick at least one correct one." : it.type === "note" ? "add a heading or some text." : "add the question and fill in every option."}</p>` : ""}
+      <div class="field"><label for="qPrompt">${it.type === "note" ? "Heading" : "Question"}</label><textarea id="qPrompt" rows="2">${esc(it.prompt)}</textarea></div>`;
+    if (it.type === "note") h += `<div class="field"><label for="qText">Text</label><textarea id="qText" rows="4">${esc(it.text)}</textarea></div><div class="field"><label for="qLink">Link (optional)</label><input type="url" id="qLink" value="${esc(it.link)}"></div><div class="field"><label for="qAuto">Close by itself after (seconds, 0 = students close it)</label><input type="number" id="qAuto" min="0" max="60" step="1" value="${it.auto || 0}"></div><p class="note">Students can always close a note with ✕, by clicking outside it, or with Esc.</p>`;
+    if (it.type === "branch") h += `<span class="lbl">Options: each one jumps to a clip</span>${it.choices.map((c, i) => `<div class="field" style="border:1px solid var(--line);border-radius:10px;padding:.5rem"><div class="chrow" style="grid-template-columns:1fr auto"><input type="text" data-ch="${i}" value="${esc(c.text)}" placeholder="Option ${i + 1}, for example: Help the stranger"><button class="ibtn" data-delch="${i}" aria-label="Remove option ${i + 1}">✕</button></div><div class="row2"><select data-to="${i}" aria-label="Where option ${i + 1} goes">${destOptions(c.to)}</select><label class="check"><input type="checkbox" data-ok="${i}" ${c.ok ? "checked" : ""}> Best choice</label></div>${c.to === "__time" ? `<div class="row2"><input type="number" min="0" step="0.1" data-at="${i}" value="${c.at ?? ""}" placeholder="Seconds" aria-label="Time to jump to for option ${i + 1}"><button class="btn" data-atnow="${i}">Use current time</button></div>${timeBad(c.to, c.at) ? `<p class="note warn">Set the time to jump to: play to that moment, then press “Use current time”.</p>` : ""}` : ""}</div>`).join("")}${it.choices.length < 6 ? `<button class="btn" id="addCh">Add an option</button>` : ""}<p class="note">Tick “best choice” on any option to score this decision. “Jump to a time” suits one video stitched from several scenes.</p>`;
+    if (it.type === "jump") h += `<p class="hint">When the video reaches this point, it jumps straight away, with no question. Use it at the end of a scene, for example to skip from the end of one path to the shared ending.</p><div class="field"><label for="qTo">Jump to</label><select id="qTo">${destOptions(it.to)}</select></div>${it.to === "__time" ? `<div class="row2"><input type="number" id="qAt" min="0" step="0.1" value="${it.at ?? ""}" placeholder="Seconds" aria-label="Time to jump to"><button class="btn" id="qAtNow">Use current time</button></div><p class="note">Play or drag the video to the moment to jump to, then press “Use current time”.</p>${timeBad(it.to, it.at, it.t) ? `<p class="note warn">${it.at >= 0 ? "That lands just before this jump point, so it would loop. Choose a time after it, or at least 1.5 seconds before it." : "Set the time to jump to."}</p>` : ""}` : ""}`;
+    if (it.type === "mc" || it.type === "poll") h += `<span class="lbl">${it.type === "mc" ? "Answers: tick every correct one" : "Options"}</span>${it.choices.map((c, i) => `<div class="chrow">${it.type === "mc" ? `<input type="checkbox" data-ok="${i}" ${c.ok ? "checked" : ""} aria-label="Answer ${i + 1} is correct">` : `<span class="tag">${i + 1}</span>`}<input type="text" data-ch="${i}" value="${esc(c.text)}" placeholder="Answer ${i + 1}"><button class="ibtn" data-delch="${i}" aria-label="Remove answer ${i + 1}">✕</button></div>`).join("")}${it.choices.length < 6 ? `<button class="btn" id="addCh">Add an answer</button>` : ""}`;
+    if (it.type === "mc") h += `<div class="field"><label for="qOk">Feedback when right (optional)</label><input type="text" id="qOk" value="${esc(it.fbOk)}"></div><div class="field"><label for="qNo">Feedback when wrong (optional)</label><input type="text" id="qNo" value="${esc(it.fbNo)}" placeholder="For example: Watch the part about…"></div>`;
+    if (it.type === "open") h += chk("qReq", "Students must write something", it.required !== false);
+    h += `<div class="row3"><button class="btn" id="qDup">Duplicate</button><button class="btn danger" id="qDel">Delete</button><button class="btn primary" id="qDone">Done</button></div>`;
+  }
+  pane.innerHTML = h; renderTimeline(); renderStory(); renderLeo();
+}
+$("#pane").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return; const it = q();
+  if (b.dataset.tab) { tab = b.dataset.tab; sel = null; return renderAll(); }
+  if (b.dataset.pick) { sel = b.dataset.pick; P?.seek(q().t); P?.pause(); return renderAll(); }
+  if (b.dataset.clip) { sel = null; showClip(b.dataset.clip); return; }
+  if (b.dataset.atnow != null && it && P) { commit(); it.choices[+b.dataset.atnow].at = Math.round(P.time() * 10) / 10; return renderAll(); }
+  if (b.id === "qAtNow" && it && P) { commit(); it.at = Math.round(P.time() * 10) / 10; return renderAll(); }
+  if (b.dataset.skip) { commit(); L.skip = b.dataset.skip; L.noSkip = L.skip !== "allow"; return renderPane(); }
+  if (b.dataset.speed != null) { commit(); L.maxSpeed = +b.dataset.speed; return renderPane(); }
+  if (b.dataset.nudge && it) { commit(); it.t = Math.max(0, Math.round((it.t + +b.dataset.nudge) * 10) / 10); P?.seek(it.t); return renderAll(); }
+  if (b.dataset.delclip) { commit(); const id = b.dataset.delclip; L.items = L.items.filter(x => clipOf(x) !== id); L.clips = L.clips.filter(c => c.id !== id); L.clips.forEach(c => { if (c.end === id) c.end = "next"; }); L.items.forEach(x => x.choices?.forEach(c => { if (c.to === id) c.to = ""; })); toast("Clip removed. Undo with Ctrl+Z."); if (cur === id) { if (L.clips[0]) showClip(L.clips[0].id); else { cur = null; P = null; $("#vid").innerHTML = ""; } } return renderAll(); }
+  if (b.dataset.cup) { commit(); const i = L.clips.findIndex(c => c.id === b.dataset.cup); if (i > 0) [L.clips[i - 1], L.clips[i]] = [L.clips[i], L.clips[i - 1]]; return renderAll(); }
+  if (b.dataset.delch != null && it) { if (it.choices.length <= 2) return toast("Keep at least two answers."); commit(); it.choices.splice(+b.dataset.delch, 1); return renderPane(); }
+  const act = { qPlay: () => { P.seek(Math.max(0, it.t - 2)); P.play(); }, addCh: () => { commit(); it.choices.push({ text: "", ok: false, to: "" }); renderPane(); }, addClips: () => $("#vidIn").click(), copyPrompts: async () => { try { await navigator.clipboard.writeText([...document.querySelectorAll(".lprompt")].map(x => x.value).join("\n\n")); toast("Prompts copied"); } catch { toast("Couldn’t copy. Select the text instead."); } }, qNow: () => { commit(); it.t = Math.round(P.time() * 10) / 10; renderAll(); }, qDel: () => { commit(); L.items = L.items.filter(x => x !== it); sel = null; renderAll(); toast("Deleted. Undo with Ctrl+Z."); }, qDup: () => { commit(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.t += 2; L.items.push(c); sel = c.id; renderAll(); }, qDone: () => { sel = null; renderAll(); },
+    capBtn: () => $("#capIn").click(),
+    copyGs: async () => { try { await navigator.clipboard.writeText(GS); toast("Code copied"); } catch { $("#gsCode").select(); } }, addRes: () => $("#resIn").click(), addCodes: () => { addCodes($("#codes").value); }, csv: csvOut, clearRes: () => { R.length = 0; renderAll(); } };
+  act[b.id]?.();
+});
+$("#pane").addEventListener("input", e => {
+  const el = e.target, it = q(), v = el.value, on = el.checked;
+  if (!/^(codes|embedUrl)$/.test(el.id)) { if (!typing) commit(); clearTimeout(typing); typing = setTimeout(() => { typing = null; draft(); if (q()) { renderTimeline(); const w = document.querySelector(".note.warn"); if (!!w !== incomplete(q())) renderPane(); } }, 700); }
+  if (el.dataset.ch != null) { it.choices[+el.dataset.ch].text = v; return; } if (el.dataset.ok != null) { it.choices[+el.dataset.ok].ok = on; return; } if (el.dataset.to != null) { const c = it.choices[+el.dataset.to]; c.to = v; if (v === "__time" && !(c.at >= 0)) c.at = null; renderPane(); return; } if (el.dataset.at != null) { it.choices[+el.dataset.at].at = v === "" ? null : Math.max(0, +v); return; }
+  if (el.dataset.clipname) { const c = L.clips.find(x => x.id === el.dataset.clipname); c.name = v; return; } if (el.dataset.clipend) { L.clips.find(x => x.id === el.dataset.clipend).end = v; renderStory(); return; }
+  if (el.dataset.story) { L.story ||= {}; L.story[el.dataset.story] = v; updateLeo(); return; } if (el.dataset.scene) { L.clips.find(x => x.id === el.dataset.scene).scene = v; updateLeo(); return; }
+  ({ lTitle: () => L.title = v, lIntro: () => L.intro = v, lFree: () => L.freeAfter = on, lRewatch: () => L.rewatch = on, lRetries: () => L.retries = on, lShow: () => L.showAnswers = on, lName: () => L.askName = on, lClass: () => L.askClass = on, lHand: () => L.handIn = v, lSheet: () => L.sheet = v.trim(), lShuffle: () => L.shuffle = on, lLang: () => L.lang = v, lPass: () => L.pass = Math.max(0, Math.min(100, +v || 0)), lEmail: () => L.email = v.trim(),
+    qT: () => { it.t = Math.max(0, +v || 0); renderTimeline(); }, qClip: () => { it.clip = v; showClip(v); }, qAuto: () => it.auto = Math.max(0, +v || 0), qTo: () => { it.to = v; if (v === "__time" && !(it.at >= 0)) it.at = null; renderAll(); }, qAt: () => { it.at = v === "" ? null : Math.max(0, +v); }, qVR: () => { const c = L.clips.find(x => x.id === cur); if (c) c.vr = on; renderAll(); }, qPrompt: () => { it.prompt = v; renderTimeline(); }, qText: () => it.text = v, qLink: () => it.link = v, qOk: () => it.fbOk = v, qNo: () => it.fbNo = v, qReq: () => it.required = on })[el.id]?.();
+});
+function renderAll() { renderPane(); renderResults(); syncHist(); }
+$("#undo").onclick = undo; $("#redo").onclick = redo;
+addEventListener("keydown", e => {
+  const typingIn = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName), mod = e.ctrlKey || e.metaKey;
+  if (document.querySelector(".preview")) { if (e.key === "Escape") document.querySelector(".preview")?.remove(); return; }
+  if (document.querySelector("dialog[open]")) return;
+  if (mod && e.key.toLowerCase() === "z" && !typingIn) { e.preventDefault(); return e.shiftKey ? redo() : undo(); }
+  if (mod && e.key.toLowerCase() === "y" && !typingIn) { e.preventDefault(); return redo(); }
+  if (typingIn || !L || tab !== "lesson") return;
+  if (e.key === " ") { e.preventDefault(); P && (P.paused() ? P.play() : P.pause()); }
+  else if (e.key === "ArrowLeft" || e.key === "ArrowRight") { if (!P) return; e.preventDefault(); const it = q(), dir = e.key === "ArrowLeft" ? -1 : 1; if (it && e.altKey) { commit(); it.t = Math.max(0, Math.round((it.t + dir * .1) * 10) / 10); P.seek(it.t); return renderAll(); } P.seek(Math.max(0, P.time() + dir * (e.shiftKey ? 1 : 5))); }
+  else if ((e.key === "Delete" || e.key === "Backspace") && q()) { e.preventDefault(); commit(); const id = sel; L.items = L.items.filter(x => x.id !== id); sel = null; renderAll(); toast("Deleted. Undo with Ctrl+Z."); }
+  else if (e.key === "Escape" && sel) { sel = null; renderAll(); }
+});
+function clipsPane() {
+  if (L.yt || !L.clips?.length) return "";
+  if (L.clips.length === 1) return `<div class="field" style="border:1px dashed var(--line);border-radius:12px;padding:.7rem"><p class="note" style="margin:0 0 .5rem"><b>Make it a choose-your-own-adventure:</b> add more clips, then use “Choice that jumps” to let students decide what happens next.</p><button class="btn" id="addClips">Add more clips</button></div>`;
+  const ends = c => `<select data-clipend="${c.id}" aria-label="When ${esc(c.name)} ends"><option value="next" ${c.end === "next" ? "selected" : ""}>Then: next clip</option><option value="end" ${c.end === "end" ? "selected" : ""}>Then: end the lesson</option>${L.clips.filter(x => x.id !== c.id).map(x => `<option value="${x.id}" ${c.end === x.id ? "selected" : ""}>Then: go to ${esc(x.name)}</option>`).join("")}</select>`;
+  return `<details class="sec" open data-sec="clips"><summary>Clips and story (${L.clips.length})</summary><div class="group">
+    <p class="note">Each clip is a scene. Add a “Choice that jumps” to let students decide where the story goes, and choose what happens when each clip ends.</p>
+    <div class="qlist">${L.clips.map((c, i) => `<div class="qi" style="grid-template-columns:auto 1fr auto" aria-current="${c.id === cur}"><button class="tag" data-clip="${c.id}" title="Edit this clip" style="border:0">${i + 1}</button><div style="display:grid;gap:.3rem"><input type="text" data-clipname="${c.id}" value="${esc(c.name)}" aria-label="Clip ${i + 1} name">${c.vr ? `<span class="tag" style="justify-self:start">360°</span>` : ""}${ends(c)}</div><div style="display:grid;gap:.2rem">${i ? `<button class="ibtn" data-cup="${c.id}" aria-label="Move up">↑</button>` : ""}<button class="ibtn" data-delclip="${c.id}" aria-label="Remove clip">✕</button></div></div>`).join("")}</div>
+    <button class="btn" id="addClips">Add clips</button>
+    <div id="story"></div>
+  </div></details>
+  <details class="sec" data-sec="leo"><summary>Make outcome clips with Leonardo.ai</summary><div class="group" id="leo"></div></details>`;
+}
+function storyIssues() {
+  const ids = L.clips.map(c => c.id), reach = new Set([ids[0]]), queue = [ids[0]];
+  const outs = id => { const c = L.clips.find(x => x.id === id), o = []; L.items.filter(x => x.type === "branch" && clipOf(x) === id).forEach(b => b.choices.forEach(ch => { if (ch.to && ch.to !== "__end" && ch.to !== "__time") o.push(ch.to); })); L.items.filter(x => x.type === "jump" && clipOf(x) === id && x.to && x.to !== "__end" && x.to !== "__time").forEach(x => o.push(x.to)); if (c.end === "next") { const i = ids.indexOf(id); if (ids[i + 1]) o.push(ids[i + 1]); } else if (c.end !== "end") o.push(c.end); return o; };
+  while (queue.length) { const id = queue.shift(); for (const n of outs(id)) if (!reach.has(n) && ids.includes(n)) { reach.add(n); queue.push(n); } }
+  return { unreachable: L.clips.filter(c => !reach.has(c.id)), outs };
+}
+function renderStory() {
+  const box = $("#story"); if (!box || !L.clips?.length) return; const { unreachable, outs } = storyIssues();
+  box.innerHTML = `<span class="lbl">Story map</span><div style="display:grid;gap:.25rem;font-size:.85rem">${L.clips.map((c, i) => { const br = L.items.filter(x => (x.type === "branch" || x.type === "jump") && clipOf(x) === c.id).sort((a, b) => a.t - b.t); const lines = br.flatMap(b => b.type === "jump" ? [`<span style="color:#0E7490">at ${fmt(b.t)}, jump → ${destLabel(b.to, b.at)}</span>`] : b.choices.map(ch => `at ${fmt(b.t)}: “${esc(ch.text || "option")}” → ${destLabel(ch.to, ch.at)}`)); const after = c.end === "end" ? "the end" : c.end === "next" ? (L.clips[i + 1] ? esc(L.clips[i + 1].name) : "the end") : esc(clipName(c.end)); return `<div><b>${i + 1}. ${esc(c.name)}</b>${lines.length ? `<br>&nbsp;&nbsp;${lines.join("<br>&nbsp;&nbsp;")}` : ""}<br>&nbsp;&nbsp;<span style="color:var(--muted)">when it ends → ${after}</span></div>`; }).join("")}</div>${unreachable.length ? `<p class="note" style="color:var(--danger,#C2362B)"><b>No path leads to:</b> ${unreachable.map(c => esc(c.name)).join(", ")}. Add a choice that jumps there, or remove it.</p>` : `<p class="note">Every clip can be reached.</p>`}`;
+}
+function renderLeo() {
+  const box = $("#leo"); if (!box) return; const st = L.story ||= { character: "", setting: "", style: "Cinematic, soft natural light, consistent character design" };
+  const prompt = leoPrompt;
+  box.innerHTML = "";
+  void 0; return renderLeoInner(box, st, prompt);
+}
+function leoPrompt(c) { const st = L.story || {}; return [st.style, st.setting && `Setting: ${st.setting}`, st.character && `Main character: ${st.character} (same face, hair and clothes in every scene)`, `Scene: ${c.scene || c.name}`, "Smooth camera movement, 16:9, about 5 seconds, no text on screen"].filter(Boolean).join(". ") + "."; }
+function updateLeo() { document.querySelectorAll(".lprompt").forEach(t => { const c = L.clips.find(x => x.id === t.dataset.for); if (c) t.value = leoPrompt(c); }); }
+function renderLeoInner(box, st, prompt) {
+  box.innerHTML = `<p class="note">Describe the character and look once, so every outcome matches. Little Light Lit writes a prompt for each clip; paste it into Leonardo.ai’s video tool, download the clip, then add it here. For the most consistent results, first make one still image of your character, then use it as the reference or starting frame for each clip.</p>
+    <div class="field"><label for="stChar">Main character</label><input type="text" id="stChar" data-story="character" value="${esc(st.character)}" placeholder="A Malay teenage girl with a navy hijab and school uniform"></div>
+    <div class="field"><label for="stSet">Setting</label><input type="text" id="stSet" data-story="setting" value="${esc(st.setting)}" placeholder="A busy hawker centre in Singapore at lunchtime"></div>
+    <div class="field"><label for="stStyle">Visual style</label><input type="text" id="stStyle" data-story="style" value="${esc(st.style)}"></div>
+    ${L.clips.map(c => `<div class="field"><label>What happens in “${esc(c.name)}”</label><input type="text" data-scene="${c.id}" value="${esc(c.scene || "")}" placeholder="She notices a classmate eating alone and walks over"><textarea class="lprompt" data-for="${c.id}" rows="3" readonly>${esc(prompt(c))}</textarea></div>`).join("")}
+    <div class="row2"><button class="btn" id="copyPrompts">Copy all prompts</button><a class="btn" href="https://app.leonardo.ai" target="_blank" rel="noopener">Open Leonardo.ai</a></div>
+    <p class="note">Check Leonardo’s current terms for your plan before using clips in teaching or published materials, and avoid real people’s faces or students’ images.</p>`;
+}
+
+/* ---------- Preview and export ---------- */
+const GS = `var EMAIL = ""; // optional: your email address, to get each submission by email too
+
+function doPost(e) {
+  var d = JSON.parse(e.postData.contents);
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  if (sh.getLastRow() === 0) sh.appendRow(["Received", "Lesson", "Student", "Class", "Score", "Out of", "Watched %", "Answers"]);
+  sh.appendRow([new Date(), d.lesson.title, d.student.name, d.student.cls, d.score.correct, d.score.gradable, d.watched,
+    d.answers.map(function (a) { return a.prompt + ": " + (a.answer === null ? "(skipped)" : [].concat(a.answer).join(", ")) + (a.correct === null ? "" : a.correct ? " ✓" : " ✗"); }).join("\\n")]);
+  if (EMAIL) MailApp.sendEmail(EMAIL, d.lesson.title + ": " + d.student.name + " (" + d.score.correct + "/" + d.score.gradable + ")",
+    d.answers.map(function (a) { return a.prompt + "\n   " + (a.answer === null ? "(skipped)" : [].concat(a.answer).join(", ")); }).join("\n"));
+  return ContentService.createTextOutput("ok");
+}`;
+const PLAYER_CSS = `[hidden]{display:none!important}*{box-sizing:border-box}.vr{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none;outline:none}.vr:active{cursor:grabbing}.vrtip{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:.5rem;align-items:center;background:rgba(10,12,16,.72);color:#fff;border-radius:999px;padding:.3rem .35rem .3rem .85rem;font-size:.85rem;font-weight:600;z-index:2}.vrtip button{background:rgba(255,255,255,.18);color:#fff;padding:.3rem .7rem;font-size:.8rem}.vrtip.used span{display:none}.vrtip.used{padding-left:.35rem}#media>.vrtip{inset:auto auto 12px 50%;width:auto;height:auto}.replay{border-top:1px solid #E2E5EA;padding-top:.8rem;margin-top:.8rem}.card{position:relative}.x{position:absolute;top:.45rem;right:.45rem;background:transparent;color:#5A646E;padding:.25rem .55rem;font-size:1.05rem;border-radius:8px}.x:hover{background:#EDF0F3}
+.auto{height:4px;background:#EDF0F3;border-radius:3px;margin-top:.8rem;overflow:hidden}.auto i{display:block;height:100%;background:#2B6CB0;animation:drain linear forwards}@keyframes drain{from{width:100%}to{width:0}}
+.flash{position:absolute;left:50%;bottom:1rem;transform:translateX(-50%);background:rgba(20,24,28,.86);color:#fff;padding:.45rem .9rem;border-radius:999px;font-weight:700;font-size:.9rem;z-index:5}
+@media (prefers-reduced-motion:reduce){.auto i{animation:none;width:0}}html,body{margin:0;min-height:100%;background:#F4F5F7;color:#1B1F24;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.8rem 1.2rem;background:#fff;border-bottom:1px solid #E2E5EA}header h1{font-size:1.1rem;margin:0}#score{font-weight:700;color:#1E7B4C}
+main{max-width:1000px;margin:0 auto;padding:1rem}.stage{position:relative;background:#000;border-radius:14px;overflow:hidden;aspect-ratio:16/9}
+#media,#media video,#media iframe,#media>div{position:absolute;inset:0;width:100%;height:100%;border:0}
+.card-wrap{position:absolute;inset:0;background:rgba(10,12,16,.55);display:grid;place-items:center;padding:1rem;overflow:auto}
+.card{background:#fff;border-radius:14px;padding:1.2rem 1.3rem;width:min(560px,100%);max-height:100%;overflow:auto;box-shadow:0 20px 50px -20px rgba(0,0,0,.5)}
+.card h2{margin:.1rem 0 .8rem;font-size:1.2rem}.kind{margin:0;color:#5A646E;font-size:.8rem;font-weight:700;text-transform:none}
+.choices{display:grid;gap:.45rem}.choice{display:flex;gap:.6rem;align-items:center;padding:.6rem .75rem;border:2px solid #E2E5EA;border-radius:10px;cursor:pointer}
+.choice:has(input:checked){border-color:#2B6CB0;background:#EBF4FF}.choice.right,.choice.right:has(input:checked){border-color:#1E7B4C;background:#E6F6EC}.choice.wrong,.choice.wrong:has(input:checked){border-color:#C2362B;background:#FDECEA}
+textarea,input:not([type=radio]):not([type=checkbox]){width:100%;font:inherit;padding:.6rem .7rem;border:2px solid #E2E5EA;border-radius:10px}
+.field{display:grid;gap:.3rem;margin:.6rem 0;font-weight:600}.actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem}.actions.wrap{flex-wrap:wrap;justify-content:flex-start}
+button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:.65rem 1rem;background:#2B6CB0;color:#fff;cursor:pointer}button.ghost{background:#EDF0F3;color:#1B1F24}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #F6C744;outline-offset:2px}
+.fb{min-height:1.2em;margin:.7rem 0 0}.ok{color:#1E7B4C}.no{color:#C2362B}.small,.hint{color:#5A646E;font-size:.88rem}.note{white-space:normal}
+.bar{display:flex;align-items:center;gap:.7rem;margin-top:.7rem}.bar button{width:46px;height:46px;padding:0;border-radius:50%}.track{position:relative;flex:1;height:10px;background:#DDE1E6;border-radius:6px;cursor:pointer}
+.track i{position:absolute;left:0;top:0;bottom:0;background:#2B6CB0;border-radius:6px}.track b{position:absolute;top:-4px;width:6px;height:18px;margin-left:-3px;background:#F6C744;border-radius:3px}#time{font-variant-numeric:tabular-nums;font-weight:600;min-width:9ch}
+@media (max-height:600px){header{padding:.35rem .8rem}header h1{font-size:.95rem}main{padding:.4rem}.hint{display:none}.bar{margin-top:.35rem}.bar button{width:36px;height:36px}.card{padding:.8rem .9rem}.card h2{font-size:1rem;margin-bottom:.5rem}.choice{padding:.4rem .6rem}}
+.stage{max-height:calc(100vh - 120px);margin:0 auto;width:min(100%,calc((100vh - 120px) * 16 / 9))}@media (max-height:600px){.stage{max-height:calc(100vh - 80px);width:min(100%,calc((100vh - 80px) * 16 / 9))}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}`;
+let playerJS = null;
+async function playerCode() { return playerJS ||= await (await fetch("assets/lesson-player.js")).text(); }
+function lessonData() { const d = JSON.parse(JSON.stringify(L)); delete d.videoName; delete d.story; d.items = sorted().map(x => ({ ...x, clip: L.yt ? undefined : clipOf(x) })); (d.clips || []).forEach(c => { delete c.file; delete c.scene; }); return d; }
+const clipMap = mode => { const m = {}; (L.clips || []).forEach((c, i) => { const f = CF.get(c.id).file; m[c.id] = mode === "blob" ? CF.get(c.id).url : `clip-${i + 1}${(f.name.match(/\.\w+$/) || [".mp4"])[0].toLowerCase()}`; }); return m; };
+const addClipsToZip = (zip, map) => (L.clips || []).forEach(c => zip.file(map[c.id], CF.get(c.id).file));
+const totalSize = () => (L.clips || []).reduce((n, c) => n + (CF.get(c.id)?.file.size || 0), 0);
+async function lessonHTML(videoSrc, opts = {}) {
+  const js = await playerCode(), safe = o => JSON.stringify(o).replace(/</g, "\\u003c");
+  const caps = {}; (L.clips || []).forEach(c => { const cap = CF.get(c.id)?.captions; if (cap) caps[c.id] = cap; });
+  const vars = `window.LESSON=${safe(lessonData())};${videoSrc ? `window.LESSON_VIDEOS=${safe(videoSrc)};` : ""}window.LESSON_MODE=${safe(opts.mode || "standalone")};${Object.keys(caps).length ? `window.LESSON_CAPTIONS=${safe(caps)};` : ""}${opts.preview ? "window.LESSON_PREVIEW=true;" : ""}`;
+  return `<!doctype html><html lang="${esc(L.lang || "en")}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(L.title)}</title><style>${PLAYER_CSS}</style>${opts.head || ""}</head><body><script>${vars}<\/script><script>${js.replace(/<\/script/gi, "<\\/script")}<\/script></body></html>`;
+}
+function checkReady() { if (!hasVideo()) { toast("Add a video first."); return false; } if (!L.yt && L.clips.some(c => !CF.get(c.id))) { toast("Some clips are missing their video files. Open the lesson again and choose them."); return false; }
+  const badJ = L.items.find(x => (x.type === "jump" || x.type === "branch") && incomplete(x) && (x.type === "jump" || x.choices.some(c => timeBad(c.to, c.at)))); if (badJ) { sel = badJ.id; cur = clipOf(badJ); if (!L.yt) showClip(cur); else renderAll(); toast("Finish this jump: set the time it goes to.", 4000); return false; }
+  const badB = L.items.find(x => x.type === "branch" && (x.choices.length < 2 || x.choices.some(c => !c.text.trim()))); if (badB) { sel = badB.id; cur = clipOf(badB); showClip(cur); toast("Finish this choice: every option needs words.", 4000); return false; } if (!L.items.length) { toast("Add at least one question or note first."); return false; } const bad = L.items.find(x => x.type === "mc" && (!x.prompt.trim() || x.choices.some(c => !c.text.trim()) || !x.choices.some(c => c.ok))); if (bad) { sel = bad.id; renderAll(); toast("Finish this question: it needs words, answers and at least one correct answer.", 4000); return false; } return true; }
+$("#previewBtn").onclick = async () => {
+  if (!checkReady()) return; P?.pause();
+  const html = await lessonHTML(L.yt ? null : clipMap("blob"), { preview: true }), w = document.createElement("div"); w.className = "preview";
+  w.innerHTML = `<div><header><strong>Student preview</strong><button class="btn" id="closePv">Close preview</button></header><iframe title="Student preview" allow="autoplay; fullscreen"></iframe></div>`; document.body.appendChild(w);
+  w.querySelector("iframe").srcdoc = html; $("#closePv").onclick = () => w.remove(); w.addEventListener("click", e => { if (e.target === w) w.remove(); });
+};
+let JSZipReady = null;
+const loadZip = () => JSZipReady ||= new Promise((r, j) => { const s = document.createElement("script"); s.src = "vendor/jszip/jszip.min.js"; s.onload = r; s.onerror = j; document.head.appendChild(s); });
+const slug = s => (s || "lesson").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "lesson";
+$("#exportBtn").onclick = () => { if (!checkReady()) return; $("#sls").disabled = !!L.yt; $('[data-ex="embedHTML"]').disabled = !L.yt; $("#slsNote").textContent = L.yt ? "SLS needs everything inside the package, so use a video file rather than YouTube for SLS." : "Upload in SLS: Question, Free-Response, then Integrated Scorable Response. Set the maximum marks to " + L.items.filter(x => x.type === "mc" || (x.type === "branch" && x.choices.some(c => c.ok))).length + "."; $("#exportDlg").showModal(); };
+$("#exClose").onclick = () => $("#exportDlg").close();
+
+$("#exportDlg").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-ex]"); if (!b) return; const kind = b.dataset.ex;
+  try {
+    if (kind === "student") {
+      if (L.yt) { download(new Blob([await lessonHTML(null)], { type: "text/html" }), `${slug(L.title)}.html`); toast("Lesson saved: send students this one file, or put it on a website.", 5000); }
+      else { toast("Packing the lesson with its videos…"); await loadZip(); const zip = new JSZip(), map = clipMap(), folder = zip.folder(slug(L.title)); folder.file("lesson.html", await lessonHTML(map)); addClipsToZip(folder, map); folder.file("READ ME FIRST.txt", `Open lesson.html in any web browser to start the lesson.\nKeep lesson.html and the clip files together in the same folder.\n`); download(await zip.generateAsync({ type: "blob", compression: "STORE" }), `${slug(L.title)}.zip`); toast("Lesson saved: students unzip it and open lesson.html.", 6000); }
+    }
+    if (kind === "scorm") {
+      toast("Building the SCORM package…"); await loadZip(); const zip = new JSZip(), map = L.yt ? null : clipMap();
+      zip.file("index.html", await lessonHTML(map, { mode: "scorm" })); if (map) addClipsToZip(zip, map); zip.file("imsmanifest.xml", manifest(map ? Object.values(map) : []));
+      download(await zip.generateAsync({ type: "blob", compression: "STORE" }), `${slug(L.title)}-scorm.zip`); toast("SCORM package saved. Upload it to Moodle, Canvas, Blackboard or any SCORM 1.2 platform as a SCORM activity.", 6500);
+    }
+    if (kind === "sls") {
+      if (L.yt) return toast("For SLS, use a video file: SLS packages can’t load YouTube."); if (totalSize() > 480 * 1024 * 1024) return toast("SLS allows up to 500 MB. Compress the clips in Little Light Lit Video first.", 5000);
+      toast("Building the SLS package…"); await loadZip(); const zip = new JSZip(), map = clipMap(), xapi = await (await fetch("vendor/xapi/xapiwrapper.min.js")).text();
+      zip.file("index.html", await lessonHTML(map, { mode: "sls", head: `<script src="xapiwrapper.min.js"><\/script>` })); zip.file("xapiwrapper.min.js", xapi); addClipsToZip(zip, map);
+      download(await zip.generateAsync({ type: "blob", compression: "STORE" }), `${slug(L.title)}-sls.zip`); toast("SLS package saved. Upload it as an Integrated Scorable Response question.", 6500);
+    }
+    if (kind === "embedHTML") { const html = await lessonHTML(null); try { await navigator.clipboard.writeText(html); toast("Copied. In Google Sites, choose Embed, then Embed code, and paste.", 5000); } catch { toast("Couldn’t copy. Download the student lesson instead."); } }
+    if (kind === "embedURL") { const u = $("#embedUrl").value.trim(); if (!/^https?:\/\//.test(u)) return toast("Paste the web address where you put the lesson first."); const code = `<iframe src="${u.replace(/"/g, "&quot;")}" title="${esc(L.title)}" style="width:100%;aspect-ratio:16/11;border:0" allow="autoplay; fullscreen" allowfullscreen></iframe>`; try { await navigator.clipboard.writeText(code); toast("Embed code copied. Paste it into your website, blog or learning platform.", 5000); } catch { prompt("Copy this embed code:", code); } }
+    if (["student", "scorm", "sls"].includes(kind)) $("#exportDlg").close();
+    count("lesson_exports_" + kind);
+  } catch (err) { console.error(err); toast("Something went wrong building that file."); }
+});
+$("#capIn").onchange = async () => { const f = $("#capIn").files[0]; $("#capIn").value = ""; if (!f) return; let txt = await f.text(); if (!/^WEBVTT/.test(txt.trim())) txt = "WEBVTT\n\n" + txt.replace(/\r/g, "").replace(/(\d\d:\d\d:\d\d),(\d\d\d)/g, "$1.$2"); const c = CF.get(cur); if (c) c.captions = txt; renderPane(); toast(`Captions added to “${clipName(cur)}”`); };
+function manifest(files) {
+  const x = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])), id = "littlelightlit-" + L.id;
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="${id}" version="1.0" xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2" xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd http://www.imsglobal.org/xsd/imsmd_rootv1p2p1 imsmd_rootv1p2p1.xsd http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd">
+  <metadata><schema>ADL SCORM</schema><schemaversion>1.2</schemaversion></metadata>
+  <organizations default="org1"><organization identifier="org1"><title>${x(L.title)}</title>
+    <item identifier="item1" identifierref="res1" isvisible="true"><title>${x(L.title)}</title><adlcp:masteryscore>${L.pass ?? 60}</adlcp:masteryscore></item>
+  </organization></organizations>
+  <resources><resource identifier="res1" type="webcontent" adlcp:scormtype="sco" href="index.html"><file href="index.html"/>${files.map(f => `<file href="${f}"/>`).join("")}</resource></resources>
+</manifest>`;
+}
+$("#saveBtn").onclick = () => { if (!L) return; download(new Blob([JSON.stringify({ kind: "littlelightlit-lesson", v: 1, lesson: L })], { type: "application/json" }), `${slug(L.title)}-booth-lesson.json`); toast(L.yt ? "Lesson saved." : "Lesson saved. When you open it again, Little Light Lit will ask for the same clip files."); };
+$("#openBtn").onclick = $("#openLesson").onclick = () => $("#projIn").click();
+$("#projIn").onchange = async () => {
+  const f = $("#projIn").files[0]; $("#projIn").value = ""; if (!f) return;
+  try { const d = JSON.parse(await f.text()); if (d.kind !== "littlelightlit-lesson") throw 0; openLesson(d.lesson); }
+  catch { toast("That isn’t a Little Light Lit lesson file."); }
+};
+function openLesson(lesson) { L = lesson; sel = null; hist = []; fut = []; syncHist();
+    if (L.yt) useYT(L.yt); else {
+      if (!L.clips?.length && L.videoName) L.clips = [{ id: uid(), name: L.videoName.replace(/\.[^.]+$/, ""), end: "end", file: L.videoName }];
+      const keep = L; toast(`Choose the video files for this lesson: ${keep.clips.map(c => c.file).join(", ")}`, 7000);
+      $("#empty").hidden = true; tab = "lesson"; P = null; cur = null; $("#vid").innerHTML = `<div style="position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:.7rem;color:#fff;text-align:center;padding:1rem"><p style="margin:0">Choose the video files for this lesson:<br><small>${esc(keep.clips.map(c => c.file).join(", "))}</small></p><button class="btn primary" id="relink">Choose files</button></div>`; $("#relink").onclick = () => $("#vidIn").click(); renderAll();
+      $("#vidIn").onchange = () => { const fs = [...$("#vidIn").files]; $("#vidIn").value = ""; $("#vidIn").onchange = () => { const x = [...$("#vidIn").files]; $("#vidIn").value = ""; if (x.length) addClipFiles(x); };
+        L = keep; keep.clips.forEach((c, i) => { const f = fs.find(x => x.name === c.file) || fs[i]; if (f) CF.set(c.id, { file: f, url: URL.createObjectURL(f), captions: null }); });
+        const missing = keep.clips.filter(c => !CF.get(c.id)); if (missing.length) toast(`Still missing: ${missing.map(c => c.file).join(", ")}`, 6000); if (keep.clips[0] && CF.get(keep.clips[0].id)) { showClip(keep.clips[0].id); begin(); } };
+      $("#vidIn").click(); }
+}
+try { const dr = JSON.parse(localStorage.getItem("littlelightlit-lesson-draft") || "null"); if (dr?.lesson) { $("#draftRow").hidden = false; $("#openDraft").textContent = `Carry on with “${dr.lesson.title}”`; $("#openDraft").onclick = () => openLesson(dr.lesson);
+  $("#discardDraft").onclick = () => { if (!confirm(`Discard the draft “${dr.lesson.title}”? It will be removed from this browser. Save the lesson file first if you want to keep it.`)) return; try { localStorage.removeItem("littlelightlit-lesson-draft"); } catch {} $("#draftRow").hidden = true; toast("Draft discarded"); }; } } catch {}
+
+/* ---------- Results dashboard ---------- */
+const R = [];
+$("#openResults").onclick = () => { if (!L) L = newLesson(); $("#empty").hidden = true; tab = "results"; $("#vid").hidden = true; renderAll(); };
+$("#resIn").onchange = async () => { const files = [...$("#resIn").files]; $("#resIn").value = ""; let n = 0; for (const f of files) { try { n += addResponse(JSON.parse(await f.text())); } catch { try { n += addCodes(await f.text(), true); } catch {} } } toast(`Added ${n} response${n === 1 ? "" : "s"}`); renderAll(); };
+function decode(code) { const b = code.trim().replace(/^BL1\./, "").replace(/-/g, "+").replace(/_/g, "/"); return JSON.parse(decodeURIComponent(escape(atob(b + "===".slice((b.length + 3) % 4))))); }
+function addCodes(text, quiet) { let n = 0; for (const line of String(text).split(/\s+/)) if (line.startsWith("BL1.")) { try { n += addResponse(decode(line)); } catch {} } if (!quiet) { toast(n ? `Added ${n} response${n === 1 ? "" : "s"}` : "No answer codes found. They start with BL1."); $("#codes") && ($("#codes").value = ""); renderAll(); } return n; }
+function sum(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
+function addResponse(r) {
+  if (r?.kind !== "littlelightlit-lesson-response" && r?.kind !== "booth-lesson-response") return 0; // also accept answers from lessons made before the rename
+  r._edited = r.check !== sum(JSON.stringify([r.lesson.id, r.student, r.score, r.answers]) + r.lesson.id);
+  const key = `${r.student.name}|${r.finishedAt}`; if (R.some(x => `${x.student.name}|${x.finishedAt}` === key)) return 0; R.push(r); return 1;
+}
+function renderResults() {
+  const box = $("#results"); box.hidden = tab !== "results"; $("#vid").hidden = tab === "results"; $("#tl").hidden = tab === "results"; $$(".stage>.row").forEach(r => r.hidden = tab === "results"); if (tab !== "results") return;
+  if (!R.length) { box.innerHTML = `<div class="res"><h2 style="margin:0">Class results</h2><p class="note">Add your students’ answers files or codes from the panel on the right. You’ll see each student’s score and how the class did on every question.</p></div>`; return; }
+  const lessons = [...new Set(R.map(r => r.lesson.title))], avg = Math.round(R.reduce((s, r) => s + (r.score.gradable ? r.score.correct / r.score.gradable : 0), 0) / R.length * 100), watched = Math.round(R.reduce((s, r) => s + r.watched, 0) / R.length);
+  const qs = new Map(); R.forEach(r => r.answers.forEach(a => { if (!qs.has(a.id)) qs.set(a.id, { ...a, list: [] }); qs.get(a.id).list.push({ name: r.student.name, a }); }));
+  const per = [...qs.values()].sort((a, b) => a.t - b.t).map((x, i) => {
+    let body = ""; const n = x.list.length;
+    if (x.type === "mc") { const right = x.list.filter(l => l.a.correct).length, pct = Math.round(right / n * 100), counts = {}; x.list.forEach(l => [].concat(l.a.answer || ["(skipped)"]).forEach(v => counts[v] = (counts[v] || 0) + 1)); body = `<p class="note"><b>${pct}%</b> answered correctly (${right} of ${n})${pct < 60 ? ". <b>Worth revisiting.</b>" : ""}</p><div class="bars">${Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div><span>${esc(k)}</span><span class="b"><i style="width:${v / n * 100}%"></i></span><span>${v}</span></div>`).join("")}</div>`; }
+    else if (x.type === "branch") { const counts = {}; x.list.forEach(l => [].concat(l.a.answer || ["(not reached)"]).forEach(v => counts[v] = (counts[v] || 0) + 1)); const graded = x.list.some(l => l.a.correct !== null); body = `${graded ? `<p class="note"><b>${Math.round(x.list.filter(l => l.a.correct).length / n * 100)}%</b> made the best choice.</p>` : ""}<div class="bars">${Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div><span>${esc(k)}</span><span class="b"><i style="width:${v / n * 100}%"></i></span><span>${v}</span></div>`).join("")}</div>`; }
+    else if (x.type === "poll") { const counts = {}; x.list.forEach(l => [].concat(l.a.answer || ["(skipped)"]).forEach(v => counts[v] = (counts[v] || 0) + 1)); body = `<div class="bars">${Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div><span>${esc(k)}</span><span class="b"><i style="width:${v / n * 100}%"></i></span><span>${v}</span></div>`).join("")}</div>`; }
+    else if (x.type === "open") body = `<div style="display:grid;gap:.35rem">${x.list.map(l => `<p class="note" style="margin:0"><b>${esc(l.name)}:</b> ${esc(l.a.answer ?? "(skipped)")}</p>`).join("")}</div>`;
+    else return "";
+    return `<details class="sec" open><summary>${i + 1}. ${esc(x.prompt).slice(0, 90)} <small style="color:var(--muted)">${fmt(x.t)}</small></summary><div class="group">${body}</div></details>`;
+  }).join("");
+  box.innerHTML = `<div class="res"><h2 style="margin:0">Class results${lessons.length === 1 ? `: ${esc(lessons[0])}` : ""}</h2>${lessons.length > 1 ? `<p class="note"><b>These answers come from ${lessons.length} different lessons.</b> Clear them and add one lesson at a time for clearer results.</p>` : ""}
+    <div class="row"><span class="tag">${R.length} student${R.length === 1 ? "" : "s"}</span><span class="tag">Average score ${avg}%</span><span class="tag">Average watched ${watched}%</span></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Student</th><th>Class</th><th>Score</th><th>Watched</th><th>Finished</th><th></th></tr></thead><tbody>${R.map(r => `<tr><td>${esc(r.student.name)}</td><td>${esc(r.student.cls || "")}</td><td>${r.score.correct} / ${r.score.gradable}</td><td>${r.watched}%</td><td>${new Date(r.finishedAt).toLocaleString()}</td><td>${r._edited ? `<span class="tag" title="This file was changed after the student finished">Edited?</span>` : ""}</td></tr>`).join("")}</tbody></table></div>
+    ${R.some(r => r.ending) ? (() => { const c = {}; R.forEach(r => { if (r.ending) c[r.ending] = (c[r.ending] || 0) + 1; }); return `<h3 style="margin:.4rem 0 0">Endings reached</h3><div class="bars">${Object.entries(c).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div><span>${esc(k)}</span><span class="b"><i style="width:${v / R.length * 100}%"></i></span><span>${v}</span></div>`).join("")}</div>`; })() : ""}
+    <h3 style="margin:.4rem 0 0">Question by question</h3>${per}</div>`;
+}
+function csvOut() {
+  const qs = [...new Map(R.flatMap(r => r.answers.map(a => [a.id, a]))).values()].sort((a, b) => a.t - b.t), cell = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const rows = [["Student", "Class", "Lesson", "Score", "Out of", "Watched %", "Finished", "Possibly edited", "Ending", "Path", ...qs.map((x, i) => `Q${i + 1} ${x.prompt}`)]];
+  R.forEach(r => rows.push([r.student.name, r.student.cls, r.lesson.title, r.score.correct, r.score.gradable, r.watched, r.finishedAt, r._edited ? "yes" : "", r.ending || "", (r.path || []).join(" → "), ...qs.map(x => { const a = r.answers.find(y => y.id === x.id); return a ? [].concat(a.answer ?? "(skipped)").join("; ") + (a.correct === null ? "" : a.correct ? " (right)" : " (wrong)") : ""; })]));
+  download(new Blob(["\ufeff" + rows.map(r => r.map(cell).join(",")).join("\r\n")], { type: "text/csv" }), `${slug(R[0].lesson.title)}-results.csv`);
+}
+window.LightLitDrop = { accept: f => f.type.startsWith("video/") || /\.json$/i.test(f.name), acceptType: t => !t || t.startsWith("video/") || t === "application/json", label: () => "Drop a video to make a lesson, or answers files to see results", hint: "Video files, or the .json answers files students hand in.", reject: "Videos or answers files only.",
+  open: async files => { const v = files.find(f => f.type.startsWith("video/")); if (v) return useFile(v); let n = 0; for (const f of files) { try { n += addResponse(JSON.parse(await f.text())); } catch {} } if (!L) L = newLesson(); $("#empty").hidden = true; tab = "results"; toast(`Added ${n} response${n === 1 ? "" : "s"}`); renderAll(); }, onReject: () => toast("Drop a video, or students’ answers files.") };
+renderPane();
+</script>
+</body>
+</html>

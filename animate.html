@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>/* one-time move of settings and drafts saved under the old name (Booth) */try{for(let i=localStorage.length;i--;){const k=localStorage.key(i);if(k&&/^booth/.test(k)){const n=k.replace(/^booth/,"littlelightlit");if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Little Light Lit Animate: free whiteboard and cartoon explainer videos</title>
+<meta name="description" content="Make whiteboard drawing videos and cartoon explainers with characters you design. Free, and nothing leaves your device.">
+<link rel="icon" href="assets/logo.png" type="image/png">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/littlelightlit.css">
+<style>
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.work{display:grid;grid-template-columns:1fr var(--side);min-height:0}
+.stage{position:relative;min-height:0;background:var(--stage);display:grid;grid-template-rows:minmax(0,1fr) auto;overflow:hidden}
+.screen{position:relative;min-height:0;display:grid;place-items:center;padding:16px}
+#cv{position:absolute;inset:16px;margin:auto;max-width:calc(100% - 32px);max-height:calc(100% - 32px);background:#fff;box-shadow:0 12px 40px -18px rgba(0,0,0,.5);border-radius:4px;touch-action:none}
+.transport{display:flex;align-items:center;justify-content:center;gap:.6rem;padding:.5rem .8rem;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.transport input[type=range]{width:min(420px,40vw)}
+.play{width:46px;height:46px;border-radius:50%;border:0;background:var(--accent);color:var(--on-accent);display:grid;place-items:center}
+.play svg{width:22px;height:22px}
+.time{font-weight:700;min-width:10ch;text-align:center}
+.scenes{border-top:1px solid var(--line);background:var(--panel);display:flex;gap:.6rem;padding:.6rem .8rem;overflow-x:auto;align-items:stretch}
+.scard{flex:none;width:150px;border:2px solid var(--line);border-radius:12px;background:var(--panel);padding:0;text-align:left;overflow:hidden;position:relative}
+.scard[aria-current=true]{border-color:var(--accent)}
+.scard canvas{display:block;width:100%;aspect-ratio:16/9;background:#fff}
+.scard span{display:flex;justify-content:space-between;padding:.3rem .5rem;font-size:.8rem;font-weight:700}
+.scard span small{color:var(--muted);font-weight:600}
+.addscene{flex:none;width:110px;border:2px dashed var(--line);border-radius:12px;background:transparent;font-weight:700;color:var(--muted)}
+.addscene:hover{border-color:var(--accent);color:var(--accent)}
+.sec{border-top:1px solid var(--line);padding-top:.8rem}
+.sec>summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between}
+.sec>summary::after{content:"+";color:var(--muted)}.sec[open]>summary::after{content:"−"}
+.sec .group{margin-top:.6rem}
+.swatches{display:flex;flex-wrap:wrap;gap:.35rem}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid var(--line)}
+.sw[aria-pressed=true]{outline:3px solid var(--guide);outline-offset:2px}
+.items{display:grid;gap:.3rem}
+.item{display:grid;grid-template-columns:1fr auto;gap:.4rem;align-items:center;padding:.45rem .6rem;border:1px solid var(--line);border-radius:10px;background:var(--panel);text-align:left;font-weight:600;font-size:.9rem}
+.item[aria-current=true]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--panel))}
+.item small{color:var(--muted);font-weight:600}
+.addrow{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem}
+.addrow .btn{flex-direction:column;gap:.15rem;min-height:62px;font-size:.82rem;padding:.3rem}
+.addrow svg{width:22px;height:22px}
+.propgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:.35rem}
+.propgrid button{aspect-ratio:1;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:4px}
+.propgrid button[aria-pressed=true]{border-color:var(--accent);outline:2px solid var(--accent)}
+.propgrid canvas{width:100%;height:100%;display:block}
+.empty-wrap{position:absolute;inset:0;display:grid;place-items:center;background:var(--stage);z-index:2}
+.busy{position:fixed;inset:0;background:rgba(10,12,14,.55);display:grid;place-items:center;z-index:50}
+.busy>div{background:var(--panel);border-radius:16px;padding:1.3rem;width:min(420px,92vw);display:grid;gap:.8rem}
+.mychars{display:flex;flex-wrap:wrap;gap:.35rem}
+@media (max-width:720px){.work{grid-template-columns:1fr;grid-template-rows:minmax(300px,50vh) auto}.side{border-left:0;border-top:1px solid var(--line)}}
+.manage{margin-top:.5rem}.manage summary{cursor:pointer;font-weight:600;font-size:.88rem}.manage .row3{display:flex;gap:.4rem;align-items:center;margin-top:.4rem}.manage .mc-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style>
+</head>
+<body>
+<a class="skip" href="#pane">Skip to tools</a>
+<div class="app">
+  <header class="top">
+    <a class="brand" href="./" aria-label="Little Light Lit home"><img src="assets/logo.png" alt="" width="28" height="28"><span>Little Light Lit</span></a>
+    <nav class="modes" aria-label="Studios"><a href="./">Photo</a><a href="./#batch" class="m-hide">Many photos</a><a href="photobooth.html">Photo booth</a><a href="design.html">Design</a><a href="video.html">Video</a><a href="audio.html">Audio</a><a href="animate.html" aria-current="page">Animate</a><a href="lesson.html">Lessons</a><a href="course.html">Course</a><a href="motion.html">Motion</a><a href="present.html">Present</a><a href="360.html">360°</a><a href="3d.html">3D</a></nav>
+    <span class="spacer"></span>
+    <button class="ibtn" id="undo" disabled aria-label="Undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button class="ibtn" id="redo" disabled aria-label="Redo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+    <button class="ibtn" id="saveBtn" title="Save your project as a file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h8V4M8 20v-6h8v6"/></svg><span class="t">Save</span></button>
+    <button class="ibtn" id="openBtn" title="Open a saved project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h6l2 2h8v10H4z"/></svg><span class="t">Open</span></button>
+    <button class="btn primary" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="t">Export video</span></button>
+  </header>
+
+  <div class="work">
+    <main class="stage">
+      <div class="screen"><canvas id="cv" width="1280" height="720" aria-label="Animation preview"></canvas></div>
+      <div class="transport">
+        <button class="play" id="playBtn" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        <label class="check" style="font-size:.88rem"><input type="checkbox" id="playAll" checked> Play all scenes</label>
+        <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Position in scene">
+        <span class="time" id="time">0.0 s</span>
+      </div>
+      <div class="empty-wrap" id="empty">
+        <div class="empty">
+          <h1>Make a drawing or cartoon explainer</h1>
+          <p>Whiteboard animations where a hand draws your story, or cartoon scenes with characters you design. Add a voiceover or music, then export a video. Everything stays on your device.</p>
+          <div class="row"><button class="btn primary" id="startWb">Start a whiteboard video</button><button class="btn" id="startToon">Start a cartoon video</button></div>
+          <div class="row"><button class="btn" id="example">See an example</button></div>
+        </div>
+      </div>
+    </main>
+    <aside class="side" id="side"><section class="pane" id="pane"><h2>Animate</h2><p class="hint">Choose how to start. You can mix whiteboard and cartoon scenes in one video.</p><p class="note">Includes a people builder for your own characters, 30 props, 9 backgrounds, a drawing hand, music and voiceover, and video export.</p></section></aside>
+  </div>
+  <div class="scenes" id="scenes" role="group" aria-label="Scenes"></div>
+</div>
+<input type="file" id="imgIn" accept="image/*" hidden>
+<input type="file" id="svgIn" accept=".svg,image/svg+xml" hidden>
+<input type="file" id="handIn" accept="image/*" hidden>
+<input type="file" id="audIn" accept="audio/*,video/*" hidden>
+<input type="file" id="projIn" accept=".json,application/json" hidden>
+<div class="toast" id="toast" role="status"></div>
+<div class="busy" id="busy" hidden><div role="dialog" aria-live="polite" aria-label="Exporting"><strong id="busyMsg">Exporting…</strong><div class="progress"><i id="busyBar"></i></div><p class="note">Your animation plays through once while it records. Keep this tab open.</p><button class="btn" id="cancelExport">Cancel</button></div></div>
+<script src="assets/littlelightlit-ux.js"></script>
+<script src="assets/compact.js" data-app="littlelightlit"></script>
+<script src="assets/nav.js"></script>
+<script src="assets/animate-art.js"></script>
+<script src="assets/animate-strokes.js"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)], A = window.LightLitArt;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), uid = () => Math.random().toString(36).slice(2, 9), esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const ease = { out: p => 1 - (1 - p) ** 3, back: p => { const c = 1.7; return 1 + (c + 1) * (p - 1) ** 3 + c * (p - 1) ** 2; } };
+function toast(m, ms = 2800) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), ms); }
+function download(blob, name) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000); }
+
+/* ---------- Anonymous counts, as in the other studios ---------- */
+const COUNTER = { on: true, ns: "littlelightlit" };
+const noCount = () => { try { return localStorage.getItem("littlelightlit-nocount") === "1"; } catch { return false; } };
+const count = k => { if (noCount()) return; if (!COUNTER.on || !/^https?:$/.test(location.protocol) || navigator.doNotTrack === "1" || navigator.globalPrivacyControl) return; fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER.ns}/${k}`).catch(() => {}); };
+try { if (!sessionStorage.getItem("littlelightlit-animate-visit")) { sessionStorage.setItem("littlelightlit-animate-visit", "1"); count("animate_visits"); } } catch {}
+
+/* ---------- Project model ---------- */
+const SIZESQ = { fhd: { "16:9": [1920, 1080], "9:16": [1080, 1920], "1:1": [1080, 1080] }, hd: { "16:9": [1280, 720], "9:16": [720, 1280], "1:1": [720, 720] } };
+const ANIMS = [["draw", "Hand draws it"], ["fade", "Fade in"], ["pop", "Pop in"], ["slide", "Slide in"], ["rise", "Rise up"], ["walk", "Walk in"], ["type", "Type out"], ["none", "Just appear"]];
+const FONTS = { Handwritten: "Caveat", Marker: "Patrick Hand", Clean: "Schibsted Grotesk" };
+// single-line pen fonts: the hand writes these stroke by stroke
+const PEN = { "Pen: casual": "Casual", "Pen: script": "Script", "Pen: print": "Print" };
+const isPen = it => it.type === "text" && !!PEN[it.font];
+const HANDS = [["marker", "Marker"], ["pen", "Pen"], ["chalk", "Chalk"], ["custom", "My own hand"], ["none", "No hand"]];
+const TRANS = [["cut", "Cut"], ["fade", "Fade"], ["wipe", "Wipe"]];
+let P = null, cur = 0, sel = null, hist = [], fut = [], T = 0, playing = false, exporting = null;
+const images = new Map();   // id -> { img, sketch }
+const audio = { music: null, voice: null }; // { url, name, el }
+const newScene = style => ({ id: uid(), style, bg: style === "whiteboard" ? "whiteboard" : "park", color: "#FFFFFF", dur: 6, trans: "fade", items: [] });
+const newProject = style => ({ v: 1, aspect: "16:9", quality: "fhd", hand: true, handStyle: "marker", handSkin: 1, scenes: [newScene(style)], musicVol: 35, voiceVol: 100, myChars: loadMyChars() });
+const scene = () => P.scenes[cur];
+const item = () => sel ? scene().items.find(i => i.id === sel) : null;
+const snap = () => JSON.stringify({ ...P, myChars: undefined });
+function commit() { hist.push(snap()); if (hist.length > 60) hist.shift(); fut = []; syncHist(); }
+function restore(s) { const my = P.myChars; P = JSON.parse(s); P.myChars = my; cur = Math.min(cur, P.scenes.length - 1); if (!item()) sel = null; renderAll(); }
+function undo() { if (!hist.length) return; fut.push(snap()); restore(hist.pop()); syncHist(); }
+function redo() { if (!fut.length) return; hist.push(snap()); restore(fut.pop()); syncHist(); }
+function syncHist() { $("#undo").disabled = !hist.length; $("#redo").disabled = !fut.length; }
+function loadMyChars() { try { return JSON.parse(localStorage.getItem("littlelightlit-animate-characters") || "[]"); } catch { return []; } }
+function saveMyChars() { try { localStorage.setItem("littlelightlit-animate-characters", JSON.stringify(P.myChars)); } catch {} }
+
+/* ---------- Rendering ---------- */
+const cv = $("#cv"), cx = cv.getContext("2d");
+const scratchA = document.createElement("canvas"), scratchB = document.createElement("canvas"), sa = scratchA.getContext("2d"), sb = scratchB.getContext("2d");
+function sizeCanvas() { const [w, h] = SIZESQ[P.quality || "fhd"][P.aspect]; for (const c of [cv, scratchA, scratchB]) { if (c.width !== w || c.height !== h) { c.width = w; c.height = h; } } }
+const unit = () => Math.min(cv.width, cv.height) / 720;
+/* ---------- Pen paths for each item (cached) ---------- */
+const strokeCache = new Map();
+function strokesFor(it) {
+  const u = unit(), s = (it.scale || 1) * u, BS = window.LightLitStrokes; if (!BS) return null;
+  if (it.type === "char") { const key = "c" + JSON.stringify([it.look, it.pose, it.expr]); let S = strokeCache.get(key); if (!S) { S = BS.record(r => A.character(r, it.look, { pose: it.pose, expr: it.expr, mode: "line", t: 0 })); strokeCache.set(key, S); } return { S, kx: s * (it.flip ? -1 : 1), ky: s, lw: 5.2 * s }; }
+  if (it.type === "prop") { const key = "p" + it.prop; let S = strokeCache.get(key); if (!S) { S = BS.record(r => A.prop(r, it.prop, null, "line")); strokeCache.set(key, S); } return { S, kx: s, ky: s, lw: 5.2 * s }; }
+  if (isPen(it)) { const fs = (it.size || 64) * s, key = "t" + JSON.stringify([it.text, it.font, Math.round(fs), it.align || "center"]); let S = strokeCache.get(key); if (!S) { S = BS.text(it.text, PEN[it.font], fs, it.align || "center"); if (!S) { BS.loadFont(PEN[it.font]).then(() => draw()); return null; } strokeCache.set(key, S); } return { S, kx: 1, ky: 1, lw: Math.max(2, fs * .065), pen: true }; }
+  if (it.type === "svg") { const im = images.get(it.mid); if (!im?.strokes) return null; const k = 420 * s / im.strokes.box.w; return { S: im.strokes, kx: k, ky: k, lw: Math.max(1.6, 2.4 * u) }; }
+  if (strokeCache.size > 300) strokeCache.clear(); return null;
+}
+function itemBox(it, W, H) {
+  const u = unit(), s = (it.scale || 1) * u;
+  if (it.type === "char") return { x: A.CHAR_BOX.x * s, y: A.CHAR_BOX.y * s, w: A.CHAR_BOX.w * s, h: A.CHAR_BOX.h * s };
+  if (it.type === "prop") return { x: A.PROP_BOX.x * s, y: A.PROP_BOX.y * s, w: A.PROP_BOX.w * s, h: A.PROP_BOX.h * s };
+  if (it.type === "image") { const im = images.get(it.mid)?.img; const w = 360 * s, h = im ? w * im.naturalHeight / im.naturalWidth : w * .66; return { x: -w / 2, y: -h / 2, w, h }; }
+  if (it.type === "svg") { const st = images.get(it.mid)?.strokes; const w = 420 * s, h = st ? w * st.box.h / st.box.w : w; return { x: -w / 2, y: -h / 2, w, h }; }
+  if (isPen(it)) { const st = strokesFor(it); if (st) return { ...st.S.box, fs: (it.size || 64) * s }; }
+  const lines = String(it.text || " ").split("\n"), fs = (it.size || 64) * u * (it.scale || 1); sa.font = `700 ${fs}px "${FONTS[it.font] || "Caveat"}", sans-serif`;
+  const w = Math.max(...lines.map(l => sa.measureText(l).width), fs), h = lines.length * fs * 1.15; return { x: -w / 2, y: -h / 2, w, h, fs, lines };
+}
+// draw one item in its own coordinates (origin at its position), mode "color" or "line"
+function paintItem(c, it, mode, t, local, sc = scene()) {
+  const u = unit(), s = (it.scale || 1) * u;
+  c.save();
+  if (it.type === "char") { c.scale(s * (it.flip ? -1 : 1), s); A.character(c, it.look, { pose: it.pose, expr: it.expr, talking: it.talk && local >= 0 && local < (it.talkFor || 3), t: local, mode }); }
+  else if (it.type === "prop") { c.scale(s, s); A.prop(c, it.prop, it.color || null, mode); }
+  else if (it.type === "svg") { const im = images.get(it.mid), b = itemBox(it); if (mode === "line") { const st = strokesFor(it); if (st) { c.scale(st.kx, st.ky); c.lineWidth = st.lw / st.kx; c.lineCap = c.lineJoin = "round"; c.strokeStyle = A.isDark(sc.bg) ? "#F4F1E8" : A.INK; window.LightLitStrokes.drawUpTo(c, st.S, Infinity); } } else if (im?.img) c.drawImage(im.img, b.x, b.y, b.w, b.h); }
+  else if (isPen(it)) { const st = strokesFor(it); if (st) { c.lineWidth = st.lw; c.lineCap = c.lineJoin = "round"; c.strokeStyle = it.color || (A.isDark(sc.bg) ? "#F4F1E8" : A.INK); window.LightLitStrokes.drawUpTo(c, st.S, Infinity); } }
+  else if (it.type === "image") { const im = images.get(it.mid); const b = itemBox(it); if (im) c.drawImage(mode === "line" && im.sketch ? im.sketch : im.img, b.x, b.y, b.w, b.h); else { c.fillStyle = "#CBD5E0"; c.fillRect(b.x, b.y, b.w, b.h); } }
+  else if (it.type === "text") {
+    const b = itemBox(it), dark = A.isDark(sc.bg); c.font = `700 ${b.fs}px "${FONTS[it.font] || "Caveat"}", sans-serif`; c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillStyle = it.color || (dark ? "#FFFFFF" : A.INK);
+    let lines = b.lines; if (it.anim === "type" && it._typeChars != null) { let n = it._typeChars; lines = lines.map(l => { const part = l.slice(0, Math.max(0, n)); n -= l.length; return part; }); }
+    lines.forEach((l, i) => c.fillText(l, 0, b.y + b.fs * 1.15 * (i + .5)));
+  }
+  c.restore();
+}
+function serpentine(b, rows) { const pts = []; for (let r = 0; r < rows; r++) { const y = b.y + (r + .5) * b.h / rows; pts.push(r % 2 ? [b.x + b.w, y] : [b.x, y], r % 2 ? [b.x, y] : [b.x + b.w, y]); } return pts; }
+function pointAt(pts, len) { let left = len; for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], d = Math.hypot(x1 - x0, y1 - y0); if (left <= d) return { i, x: x0 + (x1 - x0) * left / d, y: y0 + (y1 - y0) * left / d }; left -= d; } return { i: pts.length, x: pts.at(-1)[0], y: pts.at(-1)[1] }; }
+function drawItem(c, sc, it, t, opts = {}) {
+  const W = cv.width, H = cv.height, local = t - (it.start || 0); if (local < 0 && !opts.ghost) return null;
+  const dur = Math.max(.1, it.animDur || 2), p = clamp(local / dur, 0, 1), anim = it.anim || "draw", wb = sc.style === "whiteboard";
+  let x = it.x * W, y = it.y * H, alpha = 1, sc2 = 1;
+  if (anim === "fade") alpha = ease.out(p);
+  if (anim === "pop") sc2 = p < 1 ? Math.max(.01, ease.back(p)) : 1;
+  if (anim === "slide") x += (1 - ease.out(p)) * -W * .6;
+  if (anim === "rise") { y += (1 - ease.out(p)) * H * .5; alpha = Math.min(1, p * 2); }
+  if (anim === "walk") x += (1 - p) * (it.x < .5 ? -W * .55 : W * .55);
+  const bob = it.type === "char" ? (anim === "walk" && p < 1 ? Math.abs(Math.sin(local * 9)) * -10 * unit() : Math.sin(local * 2.2) * 1.5 * unit()) : 0;
+  if (it.type === "text" && anim === "type") { const total = String(it.text).replace(/\n/g, "").length; it._typeChars = Math.floor(total * p); } else it._typeChars = null;
+  const ghost = opts.ghost && local < 0;
+  if (anim === "draw" && p < 1 && !ghost) {
+    const st = strokesFor(it);
+    if (st) {
+      // the pen follows each real line in order; then colour fades in (pen text stays as ink)
+      const split = st.pen ? 1 : .8, lineP = Math.min(1, p / split), dark = A.isDark(sc.bg);
+      c.save(); c.translate(x, y + bob); c.scale(st.kx, st.ky); c.lineWidth = st.lw / Math.abs(st.kx); c.lineCap = c.lineJoin = "round"; c.strokeStyle = st.pen ? (it.color || (dark ? "#F4F1E8" : A.INK)) : (dark ? "#F4F1E8" : A.INK);
+      const tip = window.LightLitStrokes.drawUpTo(c, st.S, lineP * st.S.len); c.restore();
+      if (!st.pen && p > split) { c.save(); c.globalAlpha = (p - split) / (1 - split); c.translate(x, y + bob); paintItem(c, it, "color", t, local, sc); c.restore(); }
+      return lineP < 1 && tip ? { x: x + tip[0] * st.kx, y: y + bob + tip[1] * st.ky } : null;
+    }
+    // photos: reveal with a drawing hand: line art first (whiteboard), then colour fades in
+    const b = itemBox(it); b.x += x; b.y += y + bob; const rows = Math.max(3, Math.ceil(b.h / Math.max(26 * unit(), b.h / 14)));
+    const pts = serpentine(b, rows), L = rows * b.w + (rows - 1) * (b.h / rows), lineP = wb ? Math.min(1, p / .78) : p, at = pointAt(pts, lineP * L);
+    sa.setTransform(1, 0, 0, 1, 0, 0); sa.clearRect(0, 0, W, H); sa.save(); sa.translate(x, y + bob); paintItem(sa, it, wb ? "line" : "color", t, local, sc); sa.restore();
+    sb.setTransform(1, 0, 0, 1, 0, 0); sb.clearRect(0, 0, W, H); sb.globalCompositeOperation = "source-over"; sb.lineCap = sb.lineJoin = "round"; sb.lineWidth = b.h / rows * 1.7; sb.strokeStyle = "#000";
+    sb.beginPath(); sb.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < at.i; i++) sb.lineTo(pts[i][0], pts[i][1]); sb.lineTo(at.x, at.y); sb.stroke();
+    sb.globalCompositeOperation = "source-in"; sb.drawImage(scratchA, 0, 0); sb.globalCompositeOperation = "source-over";
+    c.drawImage(scratchB, 0, 0);
+    if (wb && p > .78) { c.save(); c.globalAlpha = (p - .78) / .22; c.translate(x, y + bob); paintItem(c, it, "color", t, local, sc); c.restore(); }
+    return lineP < 1 && P.hand ? { x: at.x, y: at.y } : null;
+  }
+  c.save(); c.globalAlpha = ghost ? .25 : alpha; c.translate(x, y + bob); if (sc2 !== 1) c.scale(sc2, sc2); paintItem(c, it, "color", t, local, sc); c.restore();
+  return null;
+}
+function drawScene(c, sc, t, opts = {}) {
+  const W = cv.width, H = cv.height;
+  A.background(c, sc.bg, W, H, sc.color);
+  let pen = null;
+  for (const it of sc.items) { const h = drawItem(c, sc, it, t, opts); if (h) pen = h; }
+  if (pen) drawHand(c, pen.x, pen.y);
+}
+let handImg = null;
+function drawHand(c, x, y) {
+  const style = P.hand === false ? "none" : (P.handStyle || "marker"); if (style === "none") return;
+  c.save(); c.translate(x, y);
+  if (style === "custom" && P.customHand?.src) { if (!handImg || handImg.src !== P.customHand.src) { handImg = new Image(); handImg.src = P.customHand.src; handImg.onload = () => draw(); } if (handImg.complete && handImg.naturalWidth) { const h = unit() * 520 * (P.customHand.size || 1), w = h * handImg.naturalWidth / handImg.naturalHeight; c.drawImage(handImg, -w * P.customHand.tx, -h * P.customHand.ty, w, h); } }
+  else { const k = unit() * 1.05; c.scale(k, k); A.hand(c, A.SKIN[P.handSkin ?? 1], style); }
+  c.restore();
+}
+const transCanvas = document.createElement("canvas");
+const sceneStart = i => P.scenes.slice(0, i).reduce((s, x) => s + x.dur, 0);
+const totalDur = () => P.scenes.reduce((s, x) => s + x.dur, 0);
+function renderFrame(globalT) {
+  // find scene at global time, with transitions
+  let acc = 0, i = 0; for (; i < P.scenes.length - 1; i++) { if (globalT < acc + P.scenes[i].dur) break; acc += P.scenes[i].dur; }
+  const sc = P.scenes[i], t = globalT - acc;
+  drawScene(cx, sc, t);
+  const next = P.scenes[i + 1], TD = .5;
+  if (next && t > sc.dur - TD && (next.trans || "fade") !== "cut") {
+    const k = (t - (sc.dur - TD)) / TD; const tmp = transCanvas; if (tmp.width !== cv.width || tmp.height !== cv.height) { tmp.width = cv.width; tmp.height = cv.height; } const tc = tmp.getContext("2d"); drawScene(tc, next, 0);
+    cx.save(); if (next.trans === "wipe") { cx.beginPath(); cx.rect(0, 0, cv.width * k, cv.height); cx.clip(); } else cx.globalAlpha = k; cx.drawImage(tmp, 0, 0); cx.restore();
+  }
+  return i;
+}
+function draw() {
+  if (!P) return;
+  if (playing && $("#playAll").checked) { renderFrame(T); }
+  else { drawScene(cx, scene(), T, { ghost: !playing }); if (!playing) drawSelection(); }
+}
+function drawSelection() {
+  const it = item(); if (!it) return; const b = itemBox(it); const x = it.x * cv.width + b.x, y = it.y * cv.height + b.y;
+  cx.save(); cx.setLineDash([8, 6]); cx.lineWidth = 2; cx.strokeStyle = "#0F9DB0"; cx.strokeRect(x - 6, y - 6, b.w + 12, b.h + 12); cx.restore();
+}
+
+/* ---------- Playback ---------- */
+let raf = 0, t0 = 0;
+function setPlay(on) {
+  playing = on; $("#playBtn").innerHTML = on ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>' : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+  $("#playBtn").setAttribute("aria-label", on ? "Pause" : "Play");
+  if (on) {
+    const all = $("#playAll").checked; if (all && T >= totalDur() - .05) T = 0; if (!all && T >= scene().dur - .05) T = 0;
+    t0 = performance.now() - T * 1000; startAudio(all ? T : sceneStart(cur) + T); raf = requestAnimationFrame(loop);
+  } else { cancelAnimationFrame(raf); stopAudio(); draw(); }
+}
+function loop(now) {
+  T = (now - t0) / 1000; const all = $("#playAll").checked, end = all ? totalDur() : scene().dur;
+  if (T >= end) { T = end; draw(); updateTime(); if (exporting) return finishExport(); setPlay(false); return; }
+  if (all) { const i = renderFrame(T); if (i !== cur && !exporting) { cur = i; sel = null; renderScenes(); renderPane(); } } else draw();
+  updateTime(); if (exporting) $("#busyBar").style.width = `${T / end * 100}%`;
+  raf = requestAnimationFrame(loop);
+}
+function updateTime() { const all = playing && $("#playAll").checked, end = all ? totalDur() : scene().dur; $("#time").textContent = `${T.toFixed(1)} s / ${end.toFixed(1)} s`; $("#scrub").value = Math.round(clamp(T / end, 0, 1) * 1000); }
+$("#playBtn").onclick = () => setPlay(!playing);
+$("#scrub").oninput = e => { if (playing) setPlay(false); T = e.target.value / 1000 * scene().dur; draw(); updateTime(); };
+
+/* ---------- Audio (music and voiceover) ---------- */
+let AC = null, dest = null;
+function ensureAC() { if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); dest = AC.createMediaStreamDestination(); } return AC; }
+function hookAudio(a) { ensureAC(); if (!a.node) { a.node = AC.createMediaElementSource(a.el); a.gain = AC.createGain(); a.node.connect(a.gain); a.gain.connect(AC.destination); a.gain.connect(dest); } }
+function startAudio(at) { for (const k of ["music", "voice"]) { const a = audio[k]; if (!a) continue; hookAudio(a); a.gain.gain.value = (k === "music" ? P.musicVol : P.voiceVol) / 100; try { a.el.currentTime = Math.min(at, (a.el.duration || 1e9) - .05); a.el.play(); } catch {} } AC?.resume(); }
+function stopAudio() { for (const a of Object.values(audio)) a?.el.pause(); }
+function setAudio(kind, file) { if (audio[kind]) { audio[kind].el.pause(); } const url = URL.createObjectURL(file), el = new Audio(url); el.preload = "auto"; el.crossOrigin = "anonymous"; audio[kind] = { url, el, name: file.name }; renderPane(); toast(kind === "music" ? "Music added" : "Voiceover added"); }
+
+/* ---------- Adding items ---------- */
+function addItem(it) {
+  commit(); const sc = scene(), last = sc.items.reduce((m, i) => Math.max(m, (i.start || 0) + (i.animDur || 2)), 0);
+  Object.assign(it, { id: uid(), start: +(Math.min(last, Math.max(0, sc.dur - 1))).toFixed(1) });
+  sc.items.push(it); if (it.start + it.animDur > sc.dur) sc.dur = Math.ceil(it.start + it.animDur + 1);
+  sel = it.id; T = it.start + it.animDur; renderAll();
+}
+const defAnim = () => (scene().style === "whiteboard" ? "draw" : "pop");
+const addText = () => addItem({ type: "text", text: "Your message here", font: scene().style === "whiteboard" ? "Pen: casual" : "Clean", size: 64, x: .5, y: .2, scale: 1, anim: defAnim(), animDur: 2 });
+const addChar = look => addItem({ type: "char", look: { ...A.DEFAULT_LOOK, ...(look || {}) }, pose: "wave", expr: "happy", talk: false, talkFor: 3, x: .3, y: .92, scale: 1.1, flip: false, anim: scene().style === "whiteboard" ? "draw" : "walk", animDur: scene().style === "whiteboard" ? 3 : 1.5 });
+const addProp = name => addItem({ type: "prop", prop: name || "lightbulb", color: null, x: .7, y: .55, scale: 1, anim: defAnim(), animDur: 2 });
+$("#imgIn").onchange = async () => { const f = $("#imgIn").files[0]; if (!f) return; await addImageFile(f); $("#imgIn").value = ""; };
+async function addImageFile(f) {
+  const url = URL.createObjectURL(f), img = new Image(); img.src = url; await img.decode().catch(() => {});
+  if (!img.naturalWidth) return toast("That image couldn’t be opened.");
+  const mid = uid(); images.set(mid, { img, sketch: sketchOf(img), url, data: await toDataURL(f) });
+  addItem({ type: "image", mid, x: .5, y: .5, scale: 1, anim: defAnim(), animDur: 2.5 });
+}
+const toDataURL = f => new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); });
+// Turn a photo into line art (edge detection) for the whiteboard drawing pass
+function sketchOf(img) {
+  const w = Math.min(640, img.naturalWidth), h = Math.round(w * img.naturalHeight / img.naturalWidth), c = document.createElement("canvas"); c.width = w; c.height = h;
+  const x = c.getContext("2d"); x.drawImage(img, 0, 0, w, h); const d = x.getImageData(0, 0, w, h), g = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) g[i] = d.data[i * 4] * .3 + d.data[i * 4 + 1] * .59 + d.data[i * 4 + 2] * .11;
+  const o = x.createImageData(w, h);
+  for (let yy = 1; yy < h - 1; yy++) for (let xx = 1; xx < w - 1; xx++) {
+    const i = yy * w + xx, gx = -g[i - w - 1] - 2 * g[i - 1] - g[i + w - 1] + g[i - w + 1] + 2 * g[i + 1] + g[i + w + 1], gy = -g[i - w - 1] - 2 * g[i - w] - g[i - w + 1] + g[i + w - 1] + 2 * g[i + w] + g[i + w + 1];
+    const m = Math.min(255, Math.hypot(gx, gy) * 1.4); o.data[i * 4] = o.data[i * 4 + 1] = o.data[i * 4 + 2] = 27; o.data[i * 4 + 3] = m > 60 ? Math.min(255, m * 1.4) : 0;
+  }
+  x.putImageData(o, 0, 0); return c;
+}
+
+$("#handIn").onchange = async () => { const f = $("#handIn").files[0]; $("#handIn").value = ""; if (!f) return; const src = await toDataURL(f); commit(); P.customHand = { src, tx: .12, ty: .08, size: 1, ...(P.customHand ? { tx: P.customHand.tx, ty: P.customHand.ty, size: P.customHand.size } : {}) }; P.customHand.src = src; P.handStyle = "custom"; P.hand = true; renderPane(); toast("Hand added. Play a drawing to check the pen tip lines up."); };
+$("#svgIn").onchange = async () => { const f = $("#svgIn").files[0]; $("#svgIn").value = ""; if (f) await addSvgFile(f); };
+async function svgEntry(text) {
+  const S = window.LightLitStrokes.traceSVG(text); if (!S || !S.polys.length) return null;
+  const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(S.svg), img = new Image(); img.src = url; await img.decode().catch(() => {});
+  return { img, strokes: S, data: url };
+}
+async function addSvgFile(f) {
+  const e = await svgEntry(await f.text()); if (!e) return toast("That SVG has no drawable lines. Try another illustration.");
+  const mid = uid(); images.set(mid, e); const secs = clamp(Math.round(e.strokes.polys.length / 25 + 2.5), 3, 12);
+  addItem({ type: "svg", mid, x: .5, y: .5, scale: 1, anim: "draw", animDur: secs }); toast(`Traced ${e.strokes.polys.length} lines. The hand will draw them in order.`);
+}
+
+/* ---------- Canvas interaction: select and drag ---------- */
+function hit(px, py) { const its = scene().items; for (let k = its.length - 1; k >= 0; k--) { const it = its[k]; if ((it.start || 0) > T + .01) continue; const b = itemBox(it), x = it.x * cv.width + b.x, y = it.y * cv.height + b.y; if (px >= x && px <= x + b.w && py >= y && py <= y + b.h) return it; } return null; }
+let drag = null;
+cv.addEventListener("pointerdown", e => {
+  if (playing) setPlay(false); const r = cv.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * cv.width, py = (e.clientY - r.top) / r.height * cv.height;
+  const it = hit(px, py); sel = it ? it.id : null; renderPane(); draw();
+  if (it) { commit(); drag = { it, dx: px - it.x * cv.width, dy: py - it.y * cv.height }; cv.setPointerCapture(e.pointerId); }
+});
+cv.addEventListener("pointermove", e => { if (!drag) return; const r = cv.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * cv.width, py = (e.clientY - r.top) / r.height * cv.height; drag.it.x = clamp((px - drag.dx) / cv.width, -.2, 1.2); drag.it.y = clamp((py - drag.dy) / cv.height, -.2, 1.3); draw(); });
+cv.addEventListener("pointerup", () => { if (drag) { drag = null; renderScenes(); } });
+cv.addEventListener("wheel", e => { const it = item(); if (!it) return; e.preventDefault(); it.scale = clamp((it.scale || 1) * (e.deltaY < 0 ? 1.06 : 1 / 1.06), .2, 4); draw(); renderPaneSoft(); }, { passive: false });
+
+/* ---------- Side panel ---------- */
+const chip = (k, v, curv, label) => `<button class="chip" data-${k}="${v}" aria-pressed="${String(curv) === String(v)}">${label}</button>`;
+const slider = (id, label, v, min, max, step, unitTxt = "") => `<div class="slider"><label for="${id}">${label}</label><output>${v}${unitTxt}</output><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${v}" data-unit="${unitTxt}"></div>`;
+const swatches = (k, list, curv) => `<div class="swatches">${list.map((c, i) => `<button class="sw" style="background:${c}" data-${k}="${i}" aria-pressed="${curv === i}" aria-label="Colour ${i + 1}"></button>`).join("")}</div>`;
+const label = it => it.type === "text" ? `“${String(it.text).slice(0, 22)}”` : it.type === "char" ? "Character" : it.type === "prop" ? (A.PROPS[it.prop]?.[0] || "Prop") : it.type === "svg" ? "Illustration" : "Photo";
+const openSecs = new Set(["look", "face", "anim"]);
+const sec = (k, title, body) => `<details class="sec" data-sec="${k}" ${openSecs.has(k) ? "open" : ""}><summary>${title}</summary><div class="group">${body}</div></details>`;
+function timing(it) { return `<div class="row2"><div class="field"><label for="iStart">Starts at (s)</label><input type="number" id="iStart" min="0" step="0.1" value="${(it.start || 0).toFixed(1)}"></div><div class="field"><label for="iDur">Animation length (s)</label><input type="number" id="iDur" min="0.2" step="0.1" value="${(it.animDur || 2).toFixed(1)}"></div></div>`; }
+function renderPane() {
+  const pane = $("#pane"), sc = scene(), it = item(); let h = "";
+  if (!it) {
+    h = `<h2>Scene ${cur + 1}</h2><p class="hint">Add things to draw or animate, then press play.</p>
+      <div class="addrow"><button class="btn" data-add="text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg>Text</button><button class="btn" data-add="char"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg>Character</button><button class="btn" data-add="prop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0-3 11v3h6v-3a6 6 0 0 0-3-11zM9 21h6"/></svg>Prop</button><button class="btn" data-add="image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>Photo</button></div>
+      <button class="btn" data-add="svg" style="width:100%;margin-top:.4rem">Import an illustration (SVG): the hand draws its real lines</button>
+      <p class="note">Free illustration sets you can use: Open Peeps (hand-drawn people, free for any use), Humaaans and unDraw. Download as SVG, then import.</p>
+      ${P.myChars.length ? `<div class="group"><span class="lbl">My characters</span><div class="mychars">${P.myChars.map((c, i) => `<button class="chip" data-mychar="${i}" title="Add ${esc(c.name)} to this scene">${esc(c.name)}</button>`).join("")}</div>
+        <details class="manage"><summary>Manage my characters</summary>${P.myChars.map((c, i) => `<div class="row3"><span class="mc-name">${esc(c.name)}</span><button class="btn" data-myren="${i}" aria-label="Rename ${esc(c.name)}">Rename</button><button class="btn danger" data-mydel="${i}" aria-label="Delete ${esc(c.name)}">Delete</button></div>`).join("")}<p class="note">Saved in this browser only.</p></details></div>` : ""}
+      ${sc.items.length ? `<div class="group"><span class="lbl">In this scene, in drawing order</span><div class="items">${sc.items.map(i => `<button class="item" data-pick="${i.id}"><span>${esc(label(i))}</span><small>${(i.start || 0).toFixed(1)} s</small></button>`).join("")}</div></div>` : ""}
+      ${sec("style", "Scene style", `<div class="chips">${chip("style", "whiteboard", sc.style, "Whiteboard drawing")}${chip("style", "cartoon", sc.style, "Cartoon")}</div><p class="note">Whiteboard scenes are sketched in line by a hand, then coloured in. Cartoon scenes animate in full colour.</p>`)}
+      ${sec("bg", "Background", `<div class="chips">${A.BGS.map(([v, l]) => chip("bg", v, sc.bg, l)).join("")}</div>${sc.bg === "plain" ? `<div class="field"><label for="sColor">Colour</label><input type="color" id="sColor" value="${sc.color}"></div>` : ""}`)}
+      ${sec("timing", "Length and transition", `${slider("sDur", "Scene length", sc.dur, 2, 30, .5, " s")}<span class="lbl">Into the next scene</span><div class="chips">${TRANS.map(([v, l]) => chip("trans", v, P.scenes[cur + 1]?.trans || "fade", l)).join("")}</div>`)}
+      ${sec("sound", "Music and voiceover", `<div class="row2"><button class="btn" data-act="music">${audio.music ? "Change music" : "Add music"}</button><button class="btn" data-act="voice">${audio.voice ? "Change voiceover" : "Add voiceover"}</button></div>${audio.music ? slider("mVol", `Music: ${esc(audio.music.name).slice(0, 24)}`, P.musicVol, 0, 100, 1, "%") : ""}${audio.voice ? slider("vVol", `Voice: ${esc(audio.voice.name).slice(0, 24)}`, P.voiceVol, 0, 150, 1, "%") : ""}<p class="note">Sound plays from the start of the whole video. Record a voiceover in Little Light Lit Audio, then add it here.</p>`)}
+      ${sec("video", "Video settings", `<span class="lbl">Shape</span><div class="chips">${chip("aspect", "16:9", P.aspect, "Landscape 16:9")}${chip("aspect", "9:16", P.aspect, "Vertical 9:16")}${chip("aspect", "1:1", P.aspect, "Square")}</div><span class="lbl">Quality</span><div class="chips">${chip("quality", "fhd", P.quality || "fhd", "Full HD 1080p")}${chip("quality", "hd", P.quality || "fhd", "HD 720p, smaller")}</div>
+        <span class="lbl">Drawing hand</span><div class="chips">${HANDS.map(([v, l]) => chip("handstyle", v, P.hand === false ? "none" : (P.handStyle || "marker"), l)).join("")}</div>
+        ${(P.handStyle || "marker") === "custom" ? `<button class="btn" data-act="handUp">${P.customHand ? "Change hand photo" : "Upload a hand photo"}</button><p class="note">Use a PNG with a transparent background, holding a pen. Then line the pen tip up with the dot.</p>${P.customHand ? slider("htx", "Pen tip across", Math.round(P.customHand.tx * 100), 0, 100, 1, "%") + slider("hty", "Pen tip down", Math.round(P.customHand.ty * 100), 0, 100, 1, "%") + slider("hsz", "Hand size", P.customHand.size || 1, .4, 2.5, .05, "×") : ""}` : P.handStyle !== "none" ? `<span class="lbl">Skin tone</span>${swatches("handskin", A.SKIN, P.handSkin ?? 1)}` : ""}`)}
+      <div class="row3"><button class="btn" data-act="dupScene">Duplicate scene</button><button class="btn" data-act="moveScene">Move later</button><button class="btn danger" data-act="delScene">Delete scene</button></div>`;
+  } else if (it.type === "char") {
+    const L = it.look;
+    h = `<h2>Character</h2><p class="hint">Build anyone: pick each part, then a pose and an expression.</p>
+      ${sec("look", "People builder", `<span class="lbl">Skin tone</span>${swatches("skin", A.SKIN, L.skin)}<span class="lbl">Hair</span><div class="chips">${A.HAIR.map(([v, l]) => chip("hair", v, L.hair, l)).join("")}</div><span class="lbl">${L.hair === "hijab" ? "Hijab colour" : "Hair colour"}</span>${swatches("hairc", L.hair === "hijab" ? A.OUTFIT : A.HAIRC, L.hairColor)}<span class="lbl">Top</span><div class="chips">${A.TOPS.map(([v, l]) => chip("top", v, L.top, l)).join("")}</div>${swatches("topc", A.OUTFIT, L.topColor)}${L.top !== "dress" ? `<span class="lbl">Bottom</span><div class="chips">${A.BOTTOMS.map(([v, l]) => chip("bottom", v, L.bottom, l)).join("")}</div>${swatches("botc", A.OUTFIT, L.bottomColor)}` : ""}<span class="lbl">Glasses</span><div class="chips">${A.GLASSES.map(([v, l]) => chip("glasses", v, L.glasses, l)).join("")}</div><span class="lbl">Facial hair</span><div class="chips">${A.BEARD.map(([v, l]) => chip("beard", v, L.beard, l)).join("")}</div>`)}
+      ${sec("face", "Pose and expression", `<span class="lbl">Pose</span><div class="chips">${A.POSE.map(([v, l]) => chip("pose", v, it.pose, l)).join("")}</div><span class="lbl">Expression</span><div class="chips">${A.EXPR.map(([v, l]) => chip("expr", v, it.expr, l)).join("")}</div><label class="check"><input type="checkbox" id="talk" ${it.talk ? "checked" : ""}> Talking mouth</label>${it.talk ? slider("talkFor", "Talks for", it.talkFor || 3, .5, 20, .5, " s") : ""}`)}
+      ${common(it)}
+      <div class="row2"><button class="btn" data-act="saveChar">Save to my characters</button><button class="btn" data-act="flip">Face the other way</button></div>`;
+  } else if (it.type === "prop") {
+    h = `<h2>Prop</h2><div class="propgrid">${Object.entries(A.PROPS).map(([k, v]) => `<button data-prop="${k}" aria-pressed="${it.prop === k}" title="${v[0]}" aria-label="${v[0]}"><canvas width="120" height="120" data-thumb="${k}"></canvas></button>`).join("")}</div>
+      <div class="field"><label for="pColor">Main colour</label><input type="color" id="pColor" value="${it.color || "#F6C744"}"></div>${common(it)}`;
+  } else if (it.type === "text") {
+    h = `<h2>Text</h2><div class="field"><label for="tText">Words</label><textarea id="tText" rows="3">${esc(it.text)}</textarea></div>
+      <span class="lbl">Written by the hand, stroke by stroke</span><div class="chips">${Object.keys(PEN).map(f => chip("font", f, it.font, f.replace("Pen: ", "Pen, "))).join("")}</div><span class="lbl">Filled lettering (revealed)</span><div class="chips">${Object.keys(FONTS).map(f => chip("font", f, it.font, f)).join("")}</div>
+      ${slider("tSize", "Size", it.size || 64, 20, 160, 2)}<div class="field"><label for="tColor">Colour</label><input type="color" id="tColor" value="${it.color || "#1B1F24"}"></div>${common(it)}`;
+  } else if (it.type === "svg") {
+    h = `<h2>Illustration</h2><p class="hint">The hand traces every line of the drawing in order, then the colours fade in.</p>${common(it)}`;
+  } else {
+    h = `<h2>Photo</h2><p class="hint">In whiteboard scenes, the hand sketches the outlines first, then the picture fades in.</p>${common(it)}`;
+  }
+  pane.innerHTML = h;
+  pane.querySelectorAll("details").forEach(d => d.addEventListener("toggle", () => d.open ? openSecs.add(d.dataset.sec) : openSecs.delete(d.dataset.sec)));
+  pane.querySelectorAll("canvas[data-thumb]").forEach(c => { const x = c.getContext("2d"); x.translate(60, 60); x.scale(.48, .48); A.prop(x, c.dataset.thumb); });
+}
+function common(it) {
+  return `${sec("anim", "Animation", `<div class="chips">${ANIMS.filter(([v]) => v !== "type" || it.type === "text").filter(([v]) => v !== "walk" || it.type === "char").map(([v, l]) => chip("anim", v, it.anim, l)).join("")}</div>${timing(it)}`)}
+    ${slider("iScale", "Size", (+(it.scale || 1)).toFixed(2), .2, 4, .05, "×")}
+    <div class="row3"><button class="btn" data-act="up">Bring forward</button><button class="btn" data-act="dup">Duplicate</button><button class="btn danger" data-act="del">Delete</button></div>
+    <button class="btn" data-act="done">Done</button>`;
+}
+function renderPaneSoft() { const s = $("#iScale"); if (s && item()) { s.value = item().scale; s.previousElementSibling.textContent = `${(+item().scale).toFixed(2)}×`; } }
+$("#pane").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return; const it = item(), sc = scene(), d = b.dataset;
+  if (d.add) { if (d.add === "text") addText(); if (d.add === "char") addChar(); if (d.add === "prop") addProp(); if (d.add === "image") $("#imgIn").click(); if (d.add === "svg") $("#svgIn").click(); return; }
+  if (d.mychar != null) return addChar(P.myChars[+d.mychar].look);
+  if (d.myren != null) { const c = P.myChars[+d.myren]; const n = prompt("Rename this character", c.name); if (!n || !n.trim()) return; c.name = n.trim().slice(0, 30); saveMyChars(); renderAll(); return toast("Renamed"); }
+  if (d.mydel != null) { const i = +d.mydel, c = P.myChars[i]; if (!confirm(`Delete “${c.name}” from My characters? Copies already placed in scenes stay.`)) return; P.myChars.splice(i, 1); saveMyChars(); renderAll(); return toast(`${c.name} deleted`); }
+  if (d.pick) { sel = d.pick; const p = item(); T = (p.start || 0) + (p.animDur || 2); renderPane(); draw(); updateTime(); return; }
+  const set = fn => { commit(); fn(); renderPane(); draw(); renderScenes(); };
+  if (d.style) return set(() => { sc.style = d.style; if (d.style === "whiteboard" && !["whiteboard", "chalkboard", "paper", "plain"].includes(sc.bg)) sc.bg = "whiteboard"; if (d.style === "cartoon" && sc.bg === "whiteboard") sc.bg = "park"; });
+  if (d.bg) return set(() => { sc.bg = d.bg; });
+  if (d.trans) { if (!P.scenes[cur + 1]) return toast("Add another scene first."); return set(() => { P.scenes[cur + 1].trans = d.trans; }); }
+  if (d.aspect) return set(() => { P.aspect = d.aspect; sizeCanvas(); });
+  if (d.handskin != null) return set(() => { P.handSkin = +d.handskin; });
+  if (d.handstyle) return set(() => { P.handStyle = d.handstyle; P.hand = d.handstyle !== "none"; if (d.handstyle === "custom" && !P.customHand) setTimeout(() => $("#handIn").click(), 50); });
+  if (d.quality) return set(() => { P.quality = d.quality; sizeCanvas(); strokeCache.clear(); });
+  if (it && it.type === "char") {
+    const L = it.look;
+    if (d.skin != null) return set(() => { L.skin = +d.skin; }); if (d.hair) return set(() => { L.hair = d.hair; }); if (d.hairc != null) return set(() => { L.hairColor = +d.hairc; });
+    if (d.top) return set(() => { L.top = d.top; }); if (d.topc != null) return set(() => { L.topColor = +d.topc; }); if (d.bottom) return set(() => { L.bottom = d.bottom; }); if (d.botc != null) return set(() => { L.bottomColor = +d.botc; });
+    if (d.glasses) return set(() => { L.glasses = d.glasses; }); if (d.beard) return set(() => { L.beard = d.beard; }); if (d.pose) return set(() => { it.pose = d.pose; }); if (d.expr) return set(() => { it.expr = d.expr; });
+  }
+  if (d.prop && it) return set(() => { it.prop = d.prop; });
+  if (d.font && it) return set(() => { it.font = d.font; });
+  if (d.anim && it) return set(() => { it.anim = d.anim; T = it.start || 0; setPlayScene(); });
+  const acts = {
+    music: () => { $("#audIn").dataset.kind = "music"; $("#audIn").click(); }, voice: () => { $("#audIn").dataset.kind = "voice"; $("#audIn").click(); },
+    dupScene: () => set(() => { const c = JSON.parse(JSON.stringify(sc)); c.id = uid(); c.items.forEach(i => i.id = uid()); P.scenes.splice(cur + 1, 0, c); cur++; }),
+    moveScene: () => { if (cur >= P.scenes.length - 1) return toast("This is already the last scene."); set(() => { const [s] = P.scenes.splice(cur, 1); P.scenes.splice(cur + 1, 0, s); cur++; }); },
+    delScene: () => { if (P.scenes.length < 2) return toast("A video needs at least one scene."); set(() => { P.scenes.splice(cur, 1); cur = Math.max(0, cur - 1); sel = null; }); },
+    up: () => set(() => { const i = sc.items.indexOf(it); if (i < sc.items.length - 1) { sc.items.splice(i, 1); sc.items.splice(i + 1, 0, it); } }),
+    dup: () => { const c = JSON.parse(JSON.stringify(it)); c.x = Math.min(1, c.x + .06); delete c.id; addItem(c); },
+    del: () => set(() => { sc.items = sc.items.filter(i => i !== it); sel = null; }),
+    done: () => { sel = null; renderPane(); draw(); },
+    flip: () => set(() => { it.flip = !it.flip; }),
+    handUp: () => $("#handIn").click(),
+    saveChar: () => { const name = prompt("Name this character", `Character ${P.myChars.length + 1}`); if (!name) return; P.myChars.push({ name: name.slice(0, 30), look: JSON.parse(JSON.stringify(it.look)) }); saveMyChars(); toast(`${name} saved. Add them from any scene.`); },
+  };
+  acts[d.act]?.();
+});
+function setPlayScene() { $("#playAll").checked = false; }
+$("#pane").addEventListener("input", e => {
+  const el = e.target, it = item(), sc = scene(), o = el.closest(".slider")?.querySelector("output"); if (o) o.textContent = `${el.value}${el.dataset.unit || ""}`;
+  if (!input.pending) { commit(); input.pending = true; } clearTimeout(input.t); input.t = setTimeout(() => { input.pending = false; renderScenes(); }, 400);
+  const v = el.type === "range" || el.type === "number" ? +el.value : el.value;
+  ({ sDur: () => sc.dur = v, sColor: () => sc.color = v, mVol: () => { P.musicVol = v; if (audio.music?.gain) audio.music.gain.gain.value = v / 100; }, vVol: () => { P.voiceVol = v; if (audio.voice?.gain) audio.voice.gain.gain.value = v / 100; },
+    htx: () => P.customHand.tx = v / 100, hty: () => P.customHand.ty = v / 100, hsz: () => P.customHand.size = v,
+    hand: () => P.hand = el.checked, iScale: () => it.scale = v, iStart: () => it.start = Math.max(0, v), iDur: () => it.animDur = Math.max(.2, v), talk: () => { it.talk = el.checked; renderPane(); }, talkFor: () => it.talkFor = v,
+    tText: () => it.text = v, tSize: () => it.size = v, tColor: () => it.color = v, pColor: () => it.color = v })[el.id]?.();
+  if (it && (el.id === "iStart" || el.id === "iDur") && it.start + it.animDur > sc.dur) sc.dur = Math.ceil(it.start + it.animDur + .5);
+  draw();
+});
+const input = {};
+$("#audIn").onchange = () => { const f = $("#audIn").files[0]; if (f) setAudio($("#audIn").dataset.kind, f); $("#audIn").value = ""; };
+
+/* ---------- Scene strip ---------- */
+function renderScenes() {
+  const box = $("#scenes"); box.innerHTML = P.scenes.map((s, i) => `<button class="scard" data-scene="${i}" aria-current="${i === cur}" aria-label="Scene ${i + 1}"><canvas width="320" height="180"></canvas><span>Scene ${i + 1}<small>${s.dur} s</small></span></button>`).join("") + `<button class="addscene" id="addScene">+ Scene</button>`;
+  box.querySelectorAll(".scard").forEach(b => { const i = +b.dataset.scene, c = b.querySelector("canvas"), x = c.getContext("2d"); const k = 320 / cv.width; x.scale(k, 180 / cv.height); drawScene(x, P.scenes[i], P.scenes[i].dur); b.onclick = () => { if (playing) setPlay(false); cur = i; sel = null; T = P.scenes[i].dur; renderAll(); }; });
+  $("#addScene").onclick = () => { commit(); P.scenes.splice(cur + 1, 0, newScene(scene().style)); cur++; sel = null; T = 0; renderAll(); };
+}
+function renderAll() { sizeCanvas(); renderPane(); renderScenes(); draw(); updateTime(); }
+
+/* ---------- Start, example and projects ---------- */
+function start(style, example) {
+  P = newProject(style); hist = []; fut = []; syncHist(); cur = 0; sel = null; T = 0; $("#empty").hidden = true;
+  if (example) buildExample(); else if (style === "whiteboard") { scene().items.push({ id: uid(), type: "text", text: "Your big idea", font: "Pen: casual", size: 72, x: .5, y: .45, scale: 1, anim: "draw", animDur: 2.5, start: .3 }); }
+  T = scene().dur; renderAll(); if (example) { T = 0; $("#playAll").checked = true; setPlay(true); }
+}
+function buildExample() {
+  const aisha = { skin: 2, hair: "hijab", hairColor: 0, top: "blazer", topColor: 4, bottom: "skirt", bottomColor: 5, glasses: "none", beard: "none" };
+  const ben = { skin: 4, hair: "curly", hairColor: 0, top: "collared", topColor: 2, bottom: "trousers", bottomColor: 5, glasses: "round", beard: "stubble" };
+  P.scenes = [
+    { id: uid(), style: "whiteboard", bg: "whiteboard", color: "#fff", dur: 7, trans: "fade", items: [
+      { id: uid(), type: "char", look: aisha, pose: "wave", expr: "happy", talk: true, talkFor: 3, x: .28, y: .93, scale: 1.15, anim: "draw", animDur: 3, start: 0 },
+      { id: uid(), type: "text", text: "Meet Aisha.\nShe runs a small charity.", font: "Pen: casual", size: 62, x: .67, y: .34, scale: 1, anim: "draw", animDur: 2.5, start: 3.2 }] },
+    { id: uid(), style: "whiteboard", bg: "whiteboard", color: "#fff", dur: 7, trans: "fade", items: [
+      { id: uid(), type: "prop", prop: "lightbulb", x: .3, y: .45, scale: 1.25, anim: "draw", animDur: 2.4, start: 0 },
+      { id: uid(), type: "prop", prop: "chart", x: .72, y: .52, scale: 1, anim: "draw", animDur: 2.2, start: 2.6 },
+      { id: uid(), type: "text", text: "She wants to show her impact", font: "Pen: script", size: 58, x: .5, y: .88, scale: 1, anim: "draw", animDur: 2, start: 4.8 }] },
+    { id: uid(), style: "cartoon", bg: "office", color: "#fff", dur: 7, trans: "wipe", items: [
+      { id: uid(), type: "char", look: aisha, pose: "point", expr: "happy", x: .3, y: .95, scale: 1.1, anim: "walk", animDur: 1.4, start: 0, talk: true, talkFor: 2.5 },
+      { id: uid(), type: "char", look: ben, pose: "cheer", expr: "surprised", x: .72, y: .95, scale: 1.1, flip: true, anim: "pop", animDur: .8, start: 1.6 },
+      { id: uid(), type: "prop", prop: "trophy", x: .52, y: .3, scale: .8, anim: "pop", animDur: .8, start: 2.6 },
+      { id: uid(), type: "text", text: "Made with Little Light Lit Animate", font: "Clean", size: 46, x: .5, y: .1, scale: 1, color: "#1B1F24", anim: "rise", animDur: 1, start: 3.6 }] },
+  ];
+}
+$("#startWb").onclick = () => start("whiteboard"); $("#startToon").onclick = () => start("cartoon"); $("#example").onclick = () => start("whiteboard", true);
+$("#saveBtn").onclick = () => { if (!P) return; const data = { ...JSON.parse(snap()), images: Object.fromEntries([...images].map(([k, v]) => [k, v.data])) }; download(new Blob([JSON.stringify(data)], { type: "application/json" }), "littlelightlit-animation.json"); toast("Project saved. Open it again any time."); };
+$("#openBtn").onclick = () => $("#projIn").click();
+$("#projIn").onchange = async () => {
+  const f = $("#projIn").files[0]; if (!f) return; $("#projIn").value = "";
+  try { const d = JSON.parse(await f.text()); for (const [k, url] of Object.entries(d.images || {})) { if (url.startsWith("data:image/svg+xml")) { const e = await svgEntry(decodeURIComponent(url.slice(url.indexOf(",") + 1))); if (e) images.set(k, e); continue; } const img = new Image(); img.src = url; await img.decode(); images.set(k, { img, sketch: sketchOf(img), data: url }); } delete d.images; d.myChars = loadMyChars(); P = d; cur = 0; sel = null; T = 0; hist = []; fut = []; syncHist(); $("#empty").hidden = true; renderAll(); toast("Project opened"); }
+  catch { toast("That file isn’t a Little Light Lit Animate project."); }
+};
+
+/* ---------- Export ---------- */
+let rec = null, chunks = [];
+function pickMime() { return ["video/mp4;codecs=avc1.42E01F,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm"].find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || ""; }
+$("#exportBtn").onclick = async () => {
+  if (!P) return toast("Start a project first.");
+  if (!window.MediaRecorder || !cv.captureStream) return toast("This browser can’t record video. Try Chrome or Edge.");
+  if (playing) setPlay(false); sel = null; renderPane();
+  const stream = cv.captureStream(30); ensureAC(); if (audio.music || audio.voice) { ["music", "voice"].forEach(k => audio[k] && hookAudio(audio[k])); dest.stream.getAudioTracks().forEach(tr => stream.addTrack(tr)); }
+  const mime = pickMime(); chunks = []; rec = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: (P.quality || "fhd") === "fhd" ? 1e7 : 6e6 } : undefined);
+  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  rec.onstop = () => { const type = (rec.mimeType || "video/webm").split(";")[0]; if (exporting === "done") { download(new Blob(chunks, { type }), `littlelightlit-animation.${type.includes("mp4") ? "mp4" : "webm"}`); toast("Video saved"); count("animate_exports"); } exporting = null; $("#busy").hidden = true; };
+  $("#busy").hidden = false; $("#busyBar").style.width = "0"; exporting = "rec"; $("#playAll").checked = true; T = 0; cur = 0; await document.fonts?.ready; rec.start(250); setPlay(true);
+};
+function finishExport() { exporting = "done"; setPlay(false); setTimeout(() => rec?.state !== "inactive" && rec.stop(), 300); }
+$("#cancelExport").onclick = () => { exporting = "cancel"; setPlay(false); rec?.state !== "inactive" && rec.stop(); };
+
+/* ---------- Keyboard, undo, drop ---------- */
+$("#undo").onclick = undo; $("#redo").onclick = redo;
+addEventListener("keydown", e => {
+  if (!P || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return; const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+  else if (e.key === " ") { e.preventDefault(); setPlay(!playing); }
+  else if ((e.key === "Delete" || e.key === "Backspace") && item()) { e.preventDefault(); commit(); scene().items = scene().items.filter(i => i !== item()); sel = null; renderAll(); }
+  else if (e.key === "Escape" && sel) { sel = null; renderPane(); draw(); }
+});
+window.LightLitDrop = {
+  accept: f => f.type.startsWith("image/") || f.type.startsWith("audio/"), acceptType: t => /^(image|audio)\//.test(t),
+  label: () => "Drop pictures to draw, or music to add", hint: "Images become drawable items. Audio becomes the music track.", reject: "Images and audio only.",
+  open: async files => { if (!P) start("whiteboard"); for (const f of files) { if (f.type === "image/svg+xml" || /\.svg$/i.test(f.name)) await addSvgFile(f); else if (f.type.startsWith("image/")) await addImageFile(f); else setAudio("music", f); } },
+  onReject: () => toast("Drop an image or an audio file."),
+};
+addEventListener("resize", () => P && draw());
+document.fonts?.ready.then(() => P && renderAll());
+Promise.all((window.LightLitStrokes?.FONTS || []).map(f => window.LightLitStrokes.loadFont(f))).then(() => { strokeCache.clear(); if (P) renderAll(); }).catch(() => {});
+</script>
+</body>
+</html>
