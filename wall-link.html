@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>If Leaves Weave Wall</title>
+<meta name="description" content="Add a post to a wall, or see a shared wall. Nothing is stored online.">
+<link rel="icon" href="logo.png" type="image/png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="studio/studio.css">
+</head>
+<body class="wl">
+<header class="wl-top"><a class="brand" href="home.html"><img src="logo.png" alt="" width="26" height="26"><span>If Leaves Weave <small>Wall</small></span></a>
+  <button class="ghost" id="themeBtn" type="button">Theme</button></header>
+<main class="wl-main" id="main" tabindex="-1"><p class="muted">Opening…</p></main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="studio/js/core.js"></script>
+<script src="studio/js/wallcode.js"></script>
+<script>
+(async () => {
+  const C = WallCode, main = document.getElementById("main");
+  addEventListener("hashchange", () => location.reload());          // a second link pasted into the same tab opens that one
+  try { const th = localStorage.getItem("ifleavesweave-theme"); if (th) document.documentElement.dataset.theme = th; } catch {}
+  document.getElementById("themeBtn").onclick = () => { const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"), nx = cur === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = nx; try { localStorage.setItem("ifleavesweave-theme", nx); } catch {} };
+  const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
+  const problem = (title, text) => { main.innerHTML = ""; main.append(h("h1", {}, title), h("p", {}, text), h("p", {}, h("a", { class: "btn", href: "wall.html" }, "Make a wall of your own"))); };
+  const m = /^#([cv])=([zj][A-Za-z0-9_-]+)$/.exec(location.hash);
+  if (!m) return problem("This link is not complete", "Part of the link is missing. Ask the person who shared it to send it again, in full.");
+  let data; try { data = await C.unpack(m[2]); } catch { return problem("This link could not be read", "It may have been cut short when it was copied. Ask the person who shared it to send it again."); }
+
+  /* ---------- write a post, and get a code to send ---------- */
+  function contribute(inv, into) {
+    const f = h("form", { class: "wl-form", novalidate: "" }); let image = "", color = "";
+    const sel = h("select", { id: "wl-sec" }, ...inv.sections.map(s => h("option", { value: s.id }, s.name)));
+    const title = h("input", { id: "wl-title", type: "text", maxlength: "120" }), body = h("textarea", { id: "wl-body", rows: "5", maxlength: "2000" });
+    const link = h("input", { id: "wl-link", type: "url", maxlength: "500", placeholder: "https://" }), who = h("input", { id: "wl-who", type: "text", maxlength: "60", placeholder: "Leave empty to post anonymously", autocomplete: "given-name" });
+    const pic = h("input", { id: "wl-pic", type: "file", accept: "image/*" }), prev = h("div", { class: "wprev" });
+    pic.onchange = async () => { try { image = await C.shrinkImage(pic.files[0], 480, 0.6); prev.innerHTML = ""; prev.append(h("img", { src: image, alt: "Picture preview" })); } catch (e) { toast(e.message || "That picture could not be used."); } };
+    const sw = h("div", { class: "swatches", role: "radiogroup", "aria-label": "Colour" });
+    const paint = () => sw.querySelectorAll("button").forEach(b => b.setAttribute("aria-checked", String(b.dataset.c === color)));
+    ["", ...C.COLOURS].forEach(c => sw.append(h("button", { type: "button", role: "radio", "data-c": c, style: c ? `background:${c}` : null, "aria-label": c ? `Colour ${c}` : "No colour", onclick: () => { color = c; paint(); } }, c ? "" : "—"))); paint();
+    const field = (id, label, el) => h("div", { class: "field" }, h("label", { for: id }, label), el);
+    const msg = h("p", { class: "msg", role: "alert" });
+    f.append(inv.sections.length > 1 ? field("wl-sec", "Section", sel) : "", field("wl-title", "Title", title), field("wl-body", "Message", body), field("wl-link", "Link (optional)", link),
+      inv.images ? field("wl-pic", "Picture (optional)", pic) : "", inv.images ? prev : "", field("wl-who", "Your name (optional)", who), h("div", { class: "field" }, h("span", {}, "Colour"), sw),
+      msg, h("button", { class: "btn primary", type: "submit" }, "Make my post code"));
+    f.onsubmit = async e => {
+      e.preventDefault(); msg.textContent = "";
+      if (!title.value.trim() && !body.value.trim() && !image && !link.value.trim()) { msg.textContent = "Write a title or a message first."; return title.focus(); }
+      if (link.value.trim() && !C.url(link.value)) { msg.textContent = "The link must start with http:// or https://"; return link.focus(); }
+      const post = C.cleanPost({ id: C.newId() + C.newId(), section: sel.value || inv.sections[0]?.id, title: title.value, body: body.value, link: link.value, image, color, author: who.value, created: Date.now() });
+      const code = await C.postCode({ k: inv.key, p: post });
+      const out = h("section", { class: "wl-code", "aria-live": "polite" });
+      const ta = h("textarea", { readonly: "", rows: "4", "aria-label": "Your post code" }, code);
+      const mail = `mailto:?subject=${encodeURIComponent("My post for " + inv.title)}&body=${encodeURIComponent("Here is my post code. Paste it into Add from codes:\n\n" + code)}`;
+      out.append(h("h2", {}, "Your post code"), h("p", {}, "Nothing has been sent. Send this code to the person who shared the link, by email or chat. They add it to the wall."), ta,
+        h("div", { class: "row" }, h("button", { class: "btn primary", type: "button", onclick: async () => { try { await navigator.clipboard.writeText(code); toast("Code copied"); } catch { ta.select(); toast("Select the code and copy it"); } } }, "Copy code"),
+          h("a", { class: "btn", href: mail }, "Email it"),
+          h("button", { class: "btn", type: "button", onclick: () => download(new Blob([code], { type: "text/plain" }), fileSafe("post for " + inv.title) + ".ilwpost.txt") }, "Save as a file")),
+        code.length > 6000 ? h("p", { class: "muted small" }, "This code is long because of the picture. Saving it as a file and sending the file may be easier.") : "",
+        h("button", { class: "btn ghost", type: "button", onclick: () => { out.remove(); f.reset(); image = ""; color = ""; paint(); prev.innerHTML = ""; f.hidden = false; title.focus(); } }, "Write another post"));
+      f.hidden = true; into.append(out); ta.focus(); ta.select();
+    };
+    into.append(f);
+  }
+  /* ---------- see a shared wall ---------- */
+  function postEl(w, p) {
+    const [sym] = C.REACTIONS[w.reaction] || C.REACTIONS.like;
+    const el = h("article", { class: "wpost" + (p.pinned ? " pinned" : ""), style: p.color ? `--pc:${p.color}` : null });
+    if (p.pinned || (w.layout !== "columns" && w.sections.length > 1)) el.append(h("div", { class: "wpost-top" }, p.pinned ? h("span", { class: "chip" }, "Pinned") : "",
+      w.layout !== "columns" && w.sections.length > 1 ? h("span", { class: "chip soft" }, (w.sections.find(s => s.id === p.section) || w.sections[0]).name) : ""));
+    if (p.title) el.append(h("h3", {}, p.title));
+    if (p.image) el.append(h("img", { src: p.image, alt: p.title ? `Picture: ${p.title}` : "Picture added to this post", loading: "lazy" }));
+    if (p.body) el.append(h("p", { class: "wbody" }, p.body));
+    if (p.link) el.append(h("a", { class: "wlink", href: p.link, target: "_blank", rel: "noopener noreferrer nofollow" }, "↗ " + (domain(p.link) || "Link")));
+    el.append(h("div", { class: "wpost-foot" }, h("span", { class: "who" }, p.author || "Anonymous"), w.reaction !== "none" && p.reactions ? h("span", { class: "react" }, `${sym} ${p.reactions}`) : "",
+      p.comments.length ? h("span", { class: "react" }, `💬 ${p.comments.length}`) : ""));
+    if (p.comments.length) el.append(h("details", { class: "wcomments" }, h("summary", {}, `${p.comments.length} comment${p.comments.length === 1 ? "" : "s"}`),
+      ...p.comments.map(c => h("p", {}, h("b", {}, (c.author || "Anonymous") + ": "), c.text))));
+    return el;
+  }
+  if (m[1] === "c") {
+    const inv = C.cleanInvite(data); if (!inv.key || !inv.sections.length) return problem("This link could not be read", "Ask the person who shared it to send it again.");
+    document.title = `Add a post: ${inv.title}`; main.innerHTML = "";
+    main.append(h("h1", {}, inv.title), inv.prompt ? h("p", { class: "wl-prompt" }, inv.prompt) : "",
+      h("p", { class: "muted small" }, "You will get a short code to send to the person who shared this link. Nothing you write is sent or stored anywhere until you send the code yourself."));
+    contribute(inv, main); main.focus();
+  } else {
+    const w = C.cleanWall(data); document.title = w.title + " · If Leaves Weave Wall"; main.innerHTML = "";
+    const actions = h("div", { class: "row" }, h("button", { class: "btn", type: "button", onclick: async () => {
+      if (!C.canZip) return toast("This browser cannot save a copy. Try a recent version of Chrome, Edge, Firefox or Safari.");
+      const doc = { type: "wall", title: w.title, data: { key: C.newId() + C.newId(), layout: w.layout, description: w.description, sections: w.sections, reaction: w.reaction, approve: true, allowImages: false,
+        posts: w.posts.map(p => ({ ...p, status: "approved", hidden: false, comments: p.comments.map(c => ({ ...c, created: Date.now() })) })) } };
+      location.href = await C.importLink(doc, location.href); } }, "Save my own copy"));
+    const add = h("div", {});
+    if (w.contribute && w.contribute.key) actions.prepend(h("button", { class: "btn primary", type: "button", onclick: e => { e.currentTarget.remove(); add.innerHTML = ""; add.append(h("h2", {}, "Add a post")); contribute(w.contribute, add); add.querySelector("input,textarea")?.focus(); } }, "Add a post"));
+    main.append(h("h1", {}, w.title), w.description ? h("p", { class: "wl-prompt" }, w.description) : "", actions, add,
+      h("p", { class: "muted small" }, "A copy of the wall as it was when the link was made. It is not updated, and nothing on this page is stored online."));
+    const posts = [...w.posts].sort((a, b) => (b.pinned - a.pinned) || (w.layout === "stream" ? b.created - a.created : 0));
+    if (!posts.length) main.append(h("p", { class: "wempty" }, "No posts yet."));
+    else if (w.layout === "columns") { const row = h("div", { class: "wcols" }); w.sections.forEach(s => { const col = h("section", { class: "wcol", "aria-label": s.name }, h("header", {}, h("b", {}, s.name)));
+      posts.filter(p => p.section === s.id).forEach(p => col.append(postEl(w, p))); row.append(col); }); main.append(row); }
+    else { const g = h("div", { class: w.layout === "wall" ? "wmasonry" : w.layout === "grid" ? "wgrid" : "wstream" }); posts.forEach(p => g.append(postEl(w, p))); main.append(g); }
+    main.focus();
+  }
+})();
+</script>
+</body>
+</html>

@@ -221,3 +221,58 @@ a.famcard:hover{border-color:var(--accent)}a.famcard svg{width:20px;height:20px;
 .pop.fampop{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;width:min(980px,calc(100vw - 16px));overflow:auto;padding:8px}
 .fampop .famlink{align-items:flex-start}.fampop .famlink small{display:block;color:var(--muted);font-size:.78rem}.fampop .famlink.fam-all{grid-column:1/-1;border-bottom:1px solid var(--line);margin-bottom:4px}
 @media (max-width:1000px){.pop.fampop{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:720px){.pop.fampop{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:440px){.pop.fampop{grid-template-columns:1fr}}
+
+/* ---------- Wall: posts others add to with a code ---------- */
+.wall-wrap{display:flex;flex-direction:column;height:100%;min-height:0}
+.wall-bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;padding:.6rem .9rem;border-bottom:1px solid var(--line);background:var(--panel)}
+.wall-bar .spacer{flex:1}.wall-bar .btn.attn{border-color:var(--accent);color:var(--accent);font-weight:700}
+.wall-area{flex:1;overflow:auto;padding:1rem 1.1rem 3rem}
+.wall-head h2{margin:.1rem 0 .2rem;font-size:1.35rem}.wall-head p{margin:0 0 1rem;color:var(--muted);max-width:70ch}
+.wpost{--pc:var(--panel);background:var(--pc);color:#1E2A2F;border:1px solid var(--line);border-radius:12px;padding:.7rem .8rem .55rem;box-shadow:0 1px 2px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:.35rem;break-inside:avoid;margin:0 0 .8rem;position:relative}
+.wpost:not([style]){color:var(--ink)}
+.wpost h3{margin:0;font-size:1rem;line-height:1.3}.wpost .wbody{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.45;font-size:.95rem}
+.wpost img{max-width:100%;border-radius:8px;display:block}
+.wpost .wlink{font-size:.88rem;color:var(--accent);overflow-wrap:anywhere}
+.wpost.pinned{border-width:2px;border-color:var(--accent)}.wpost.hidden-post{opacity:.55}
+.wpost-top{display:flex;gap:.35rem;align-items:center;flex-wrap:wrap;min-height:1.2rem}.wpost-top .wmenu{margin-left:auto}
+.wpost .chip{font-size:.72rem;padding:.08rem .45rem}.wpost .chip.soft{opacity:.85}
+.wpost-foot{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;font-size:.82rem;margin-top:.15rem}
+.wpost-foot .who{opacity:.75;margin-right:auto}
+.wpost .react{background:transparent;border:1px solid rgba(0,0,0,.12);border-radius:99px;padding:.1rem .55rem;font:inherit;cursor:pointer;color:inherit}
+.wpost .react:hover{background:rgba(0,0,0,.05)}.wpost span.react{cursor:default}
+.wcomments{border-top:1px dashed rgba(0,0,0,.15);padding-top:.4rem;font-size:.88rem}.wcomments p{margin:.2rem 0}.wcomments .row{gap:.4rem}.wcomments input{flex:1;min-width:0}
+.wmasonry{column-width:260px;column-gap:.8rem}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.8rem;align-items:start}.wgrid .wpost{margin:0}
+.lay-grid .wgrid .wbody{display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+.wstream{max-width:640px;margin:0 auto}
+.wcols{display:flex;gap:.8rem;align-items:flex-start;overflow-x:auto;padding-bottom:.6rem}
+.wcol{flex:0 0 270px;background:var(--soft);border-radius:12px;padding:.6rem;min-height:120px}.wcol.over{outline:2px dashed var(--accent)}
+.wcol>header{display:flex;justify-content:space-between;align-items:center;margin:.1rem .2rem .6rem}.wcol .addhere{width:100%;justify-content:center}
+.wpost.dragging{opacity:.4}
+.wtray{border:2px solid var(--accent);border-radius:14px;padding:.7rem;margin:0 0 1.2rem;background:var(--accent-soft)}.wtray>.row{justify-content:space-between;margin-bottom:.6rem}
+.wempty{padding:2rem 1rem;text-align:center;color:var(--muted)}
+.wform{display:flex;flex-direction:column;gap:.2rem}.wprev img{max-width:220px;border-radius:8px;display:block;margin:.3rem 0}
+.swatches{display:flex;gap:.4rem;flex-wrap:wrap}
+.swatches button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);cursor:pointer;background:var(--panel);color:var(--muted);font:inherit}
+.swatches button[aria-checked=true]{outline:3px solid var(--accent);outline-offset:2px}
+.wsecs .row{gap:.3rem;margin-bottom:.35rem}.wsecs input{flex:1;min-width:0}
+.wpresent{position:fixed;inset:0;z-index:999;background:rgba(14,20,26,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;padding:2rem}
+.wp-card{--pc:#fff;background:var(--pc);color:#1E2A2F;border-radius:18px;padding:2rem 2.4rem;max-width:min(900px,92vw);max-height:76vh;overflow:auto;font-size:1.35rem;line-height:1.5}
+.wp-card h2{margin:0 0 .6rem;font-size:2rem}.wp-card img{max-width:100%;max-height:44vh;border-radius:12px;display:block;margin:.6rem 0}
+.wp-nav{display:flex;gap:.8rem;align-items:center;color:#fff}.wp-nav .btn{background:#fff;color:#1E2A2F}
+/* the public page (wall-link.html) */
+body.wl{background:var(--ground);color:var(--ink);margin:0;min-height:100vh}
+.wl-top{display:flex;justify-content:space-between;align-items:center;padding:.7rem max(1rem,calc((100% - 1100px)/2 + 1rem));border-bottom:1px solid var(--line);background:var(--panel)}
+.wl-top .brand{display:flex;gap:.5rem;align-items:center;color:inherit;text-decoration:none;font-weight:700}
+.wl-main{max-width:1100px;margin:0 auto;padding:1.2rem 1rem 3rem}.wl-main:focus{outline:none}
+.wl-main h1{margin:.2rem 0 .3rem}.wl-prompt{font-size:1.05rem;max-width:70ch}
+.wl-form{max-width:620px;display:flex;flex-direction:column;gap:.3rem;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem;margin:.8rem 0}
+.wl-form .field>label{font-weight:600;font-size:.9rem}.wl-form input,.wl-form textarea,.wl-form select{width:100%;box-sizing:border-box}
+.wl-form .msg{color:#B3261E;margin:.2rem 0;min-height:1em}
+.wl-code{max-width:620px;background:var(--panel);border:2px solid var(--accent);border-radius:14px;padding:1rem 1.1rem;margin:.8rem 0}
+.wl-code textarea{width:100%;box-sizing:border-box;font-family:ui-monospace,Menlo,monospace;font-size:.8rem}.wl-code .row{gap:.5rem;flex-wrap:wrap;margin:.6rem 0}
+@media print{body.print-wall .rail,body.print-wall .topbar,body.print-wall .wall-bar,body.print-wall .insp,body.print-wall .wtray,body.print-wall .wmenu,body.print-wall .addhere{display:none!important}
+  body.print-wall .wall-area{overflow:visible}body.print-wall .wpost{box-shadow:none}}
+@media (max-width:620px){.wall-bar .seg{width:100%}.wcol{flex-basis:84vw}.wp-card{font-size:1.1rem;padding:1.3rem}}
+
+a.btn{text-decoration:none}

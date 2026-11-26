@@ -117,6 +117,8 @@ const App = (() => {
     ["board", "Run a sprint", "Backlog, in progress, review and done, with priorities", "sprint"],
     ["whiteboard", "Brainstorm together", "Sticky notes, shapes and arrows on an endless canvas", null],
     ["whiteboard", "Retrospective", "What went well, what to improve, and actions", "retro"],
+    ["wall", "Collect ideas from a group", "A wall people add posts to with a code, which you approve", "brainstorm"],
+    ["wall", "Exit ticket", "What pupils learned, what they're unsure about, and their questions", "exit"],
     ["mindmap", "Mind map", "Branch ideas quickly with the keyboard", null],
     ["mindmap", "Concept map for teaching", "Concepts joined by labelled relationships", "concept"],
     ["sociogram", "Classroom sociogram", "Who would pupils like to work with? See groups, stars and isolated pupils", "class"],
@@ -126,6 +128,7 @@ const App = (() => {
   const HERO = {
     board: ["Plan the work and see who’s doing what.", "One set of cards in Kanban, Table and Timeline views, with owners, due dates, priorities and checklists."],
     whiteboard: ["Think out loud on an endless canvas.", "Sticky notes, shapes, connectors, frames and a pen, for brainstorms, retrospectives and plans."],
+    wall: ["Collect posts from a group, privately.", "People add posts through a link and send you a short code: no accounts, no server, and you approve each post."],
     mindmap: ["Branch out ideas, then connect the concepts.", "Mind maps you build with the keyboard, and concept maps with linking phrases and cross-links, for teaching and thinking."],
     sociogram: ["See how a group really connects.", "Enter who chose whom and get a clear map, with accurate network measures explained in plain English."],
     genogram: ["Map a family’s structure and relationships.", "Standard genogram symbols, relationship lines and households, laid out for you, with a privacy mode for sharing."],
@@ -147,7 +150,7 @@ const App = (() => {
   }
   function contours() { let s = ""; const cols = ["var(--accent)", "var(--accent)", "var(--mari)", "var(--accent)", "var(--line)"]; for (let i = 0; i < 9; i++) { const r = 40 + i * 26, k = .18 + i * .02; s += `<path d="${blob(300, 200, r, k, i)}" fill="none" stroke="${cols[i % cols.length]}" stroke-opacity="${i === 4 ? .9 : .28}" stroke-width="${i === 4 ? 2 : 1.3}"/>`; } return s; }
   function blob(cx, cy, r, k, seed) { const pts = []; for (let a = 0; a < 12; a++) { const t = a / 12 * Math.PI * 2, rr = r * (1 + k * Math.sin(t * 3 + seed * .7) * .5 + k * Math.cos(t * 2 - seed) * .35); pts.push([cx + Math.cos(t) * rr * 1.25, cy + Math.sin(t) * rr * .85]); } let d = `M${pts[0][0]},${pts[0][1]}`; for (let i = 0; i < pts.length; i++) { const p0 = pts[i], p1 = pts[(i + 1) % pts.length], m = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2]; d += ` Q${p0[0]},${p0[1]} ${m[0]},${m[1]}`; } return d + "Z"; }
-  function tour() { dialog({ title: `How ${T.family} works`, wide: true, body: `<p>${esc(T.family)} is part of the If Leaves Weave family of free, private tools. Choose <b>New</b> to start; everything saves automatically in this browser and nothing is uploaded.</p><ul>${FAMILY.map(f => `<li><b>${f[1]}:</b> ${f[2]}.</li>`).join("")}</ul><p><b>Moving around canvases:</b> drag empty space, or hold <span class="kbd">Space</span> and drag; scroll to move; <span class="kbd">Ctrl</span> + scroll or pinch to zoom. <b>Undo</b> with <span class="kbd">Ctrl</span>+<span class="kbd">Z</span>.</p><p><b>Keeping your work:</b> <b>Back up</b> saves every document to one file; <b>Open file</b> restores it on any device. Export as images, share as If Leaves Weave files, or use <b>Send to If Leaves Weave PDF</b> to annotate, sign or redact a drawing as a PDF.</p>` }); }
+  function tour() { dialog({ title: `How ${T.family} works`, wide: true, body: `<p>${esc(T.family)} is part of the If Leaves Weave family of free, private tools. Choose <b>New</b> to start; everything saves automatically in this browser and nothing is uploaded.</p><ul>${FAMILY.map(f => `<li><b>${f[1]}:</b> ${f[2]}.</li>`).join("")}</ul>${TOOL === "wall" ? `<p><b>Collecting posts:</b> choose <b>Collect posts</b> and share the link. People write a post on it and get a short <b>post code</b>, which they send you by email or chat; nothing is sent or stored online. Choose <b>Add from codes</b> and paste them: each post waits for your approval. <b>Share</b> gives a link that shows the wall as it is now.</p>` : ""}<p><b>Moving around canvases:</b> drag empty space, or hold <span class="kbd">Space</span> and drag; scroll to move; <span class="kbd">Ctrl</span> + scroll or pinch to zoom. <b>Undo</b> with <span class="kbd">Ctrl</span>+<span class="kbd">Z</span>.</p><p><b>Keeping your work:</b> <b>Back up</b> saves every document to one file; <b>Open file</b> restores it on any device. Export as images, share as If Leaves Weave files, or use <b>Send to If Leaves Weave PDF</b> to annotate, sign or redact a drawing as a PDF.</p>` }); }
 
   /* ---------- new, import, export, theme, keyboard ---------- */
   $("#newBtn").onclick = e => { const tpls = Object.entries(Modules[TOOL].templates || {}); if (!tpls.length) return create(TOOL); popMenu(e.currentTarget, [{ label: `Blank ${T.name.toLowerCase()}`, icon: "plus", run: () => create(TOOL) }, ...tpls.map(([, tp]) => ({ label: tp.title, icon: T.icon, run: () => create(TOOL, tp) }))]); };
@@ -172,6 +175,11 @@ const App = (() => {
       const bin = atob(b64), bytes = Uint8Array.from(bin, c => c.charCodeAt(0)), text = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).text(), d = JSON.parse(text);
       const doc = d?.doc; if (!/-doc$/.test(d?.kind || "") || !doc || doc.type !== TOOL || !Modules[doc.type] || typeof doc.data !== "object") throw 0;
       if (doc.type === "board" && (!Array.isArray(doc.data.columns) || !Array.isArray(doc.data.cards) || !doc.data.columns.length)) throw 0;
+      if (doc.type === "wall") { if (!Array.isArray(doc.data.posts) || !Array.isArray(doc.data.sections) || !doc.data.sections.length) throw 0;
+        const w = WallCode.cleanWall({ t: doc.title, d: doc.data.description, l: doc.data.layout, r: doc.data.reaction, s: doc.data.sections.map(s => ({ id: s.id, n: s.name })),
+          p: doc.data.posts.map(p => ({ ...p, r: p.reactions, c: (p.comments || []).map(c => ({ a: c.author, t: c.text })) })) });     // cleaned like anything from someone else
+        doc.data = { key: uid() + uid(), layout: w.layout, description: w.description, sections: w.sections, reaction: w.reaction, approve: true, allowImages: false,
+          posts: w.posts.map(p => ({ ...p, status: "approved", hidden: false, comments: p.comments.map(c => ({ ...c, created: Date.now() })) })) }; }
       doc.id = uid(); doc.title = String(doc.title || "Imported").slice(0, 120); doc.created = doc.updated = Date.now(); docs.push(doc); await Store.put(doc); open(doc.id);
       toast(d.from === "ai-benar" ? `Action board made from the AI Benar audit: ${doc.data.cards?.length || 0} actions` : "Document opened from the link", 5000); count(`${TOOL}_imported`); return true;
     } catch { toast("That link didn’t contain a document this tool can open."); return false; }

@@ -9,6 +9,7 @@
 | **If Leaves Weave PDF** | `index.html` | Edit, sign, fill, convert, compare, redact and organise PDFs, and turn Word files into PDFs |
 | **Boards** | `boards.html` | Plan work in Kanban, Table and Timeline views |
 | **Canvas** | `canvas.html` | An endless whiteboard for brainstorms and retrospectives |
+| **Wall** | `wall.html` | A wall of posts others add to with a code, with no account or server |
 | **Maps** | `maps.html` | Mind maps and concept maps |
 | **Sociogram** | `sociogram.html` | See how a group connects, from nominations or a Google Form |
 | **Genogram** | `genogram.html` | Family maps and ecomaps for casework |
@@ -55,7 +56,7 @@ The **home page** (`home.html`) lists every tool and your recent work.
 - **Flipbook:** a self-contained page-turning HTML file, with spreads on wide screens, swipe, keys, full screen, find text, a page grid, zoom and links to a page (`…#page-12`). Page text is included for screen readers and search. **Preview first** opens it in a new tab before saving. A **website folder** option exports one image per page, a 1200 × 630 `preview.jpg` and link-preview tags. Links to `index.html#flipbook` open the tool ready to make one. Optionally, add a **Listen** button that reads the pages aloud with the reader’s own device voices (voice and speed choices, pause, and turning pages automatically); it is off unless you tick it. With it, you can add a short **spoken introduction**, heard once before the cover when someone starts listening from the first page and not shown on the pages, and optionally a **recording** of it in your own voice (record it in the browser or upload an audio file). The recording plays instead of the device voice; if it can’t play, the typed introduction is spoken. Single-file flipbooks carry the recording inside them; website folders save it as its own `intro` file.
 - **Classroom:** read the document aloud with the browser’s voices; add paper pages (lined, handwriting, squared, graph, dotted, isometric, Cornell notes, music staves or blank, in A4 or US Letter); and record voice notes saved inside the PDF as attachments.
 
-## The six document tools
+## The seven document tools
 
 ### Boards
 - **Three views of the same cards:** Kanban, Table and Timeline.
@@ -67,6 +68,23 @@ The **home page** (`home.html`) lists every tool and your recent work.
 - **Tools:** sticky notes, text, rectangles, ellipses, diamonds, frames, images, a pen, and connectors with labels, arrows, and dashed or curved lines.
 - **Arranging:** align and spread evenly; keyboard shortcuts (S, T, R, O, D, C, P, F, I, V and H).
 - **Templates:** team retrospective and SWOT analysis.
+
+### Wall
+A wall of posts, like a padlet, that other people add to **without accounts or a server**.
+- **Layouts:** Wall (tiles of different heights), Columns (one per section, drag posts between them), Stream (one column, newest first) and Grid.
+- **Posts:** a title, a message, a link, a picture and a colour, with the writer's name or anonymously. Pin, hide from shared links, move or delete.
+- **Reactions and comments:** like, star or vote, and comments under each post, for a class or meeting to respond.
+- **Collect posts:** share a contribute link. People open it, write a post and get a short **post code**, which they send you by email or
+  chat. Choose **Add from codes** and paste them, or a whole email: every code in it is found. With approval switched on (the default),
+  each post waits until you approve it. Damaged codes, duplicates and codes written for another wall are reported, not added.
+  **Stop accepting the old link** gives a new link, and refuses codes from the old one.
+- **Share:** a link that holds the wall as it is now, so anyone can see it and save their own copy. Hidden and waiting posts are left out;
+  pictures are left out if they would make the link too long. Viewers can optionally add posts too, by code.
+- **Present:** one post at a time, full screen, with the arrow keys.
+- **Templates:** brainstorm, exit ticket, KWL chart, icebreaker and resource wall. **Export:** CSV, or print and save as PDF.
+- **How it stays private:** the part of a link after "#" never reaches any server, and a post code is only sent when its writer sends it.
+  Everything arriving in a link or a code is checked and cleaned: text is shown as text, only web links are kept, and only JPEG, PNG and
+  WebP pictures are accepted.
 
 ### Maps
 - **Mind maps by keyboard:** Tab adds a child idea, Enter a sibling, the arrow keys move, Space folds and F2 edits.
@@ -94,7 +112,7 @@ The **home page** (`home.html`) lists every tool and your recent work.
 - **Describe a screen:** a starter that builds a screen from a sentence, by rules, offline (no AI).
 - **Export:** a working clickable HTML prototype, or PNG pictures of screens.
 
-## Across all seven tools
+## Across all eight tools
 - **Home and navigation:** the logo in every tool goes to the home page; each tool’s **Home** button returns to its own templates and recent work; **Tools** (in the PDF tool) and **All If Leaves Weave tools** switch directly between tools.
 - **Document actions:** every document has a **⋯** menu in the sidebar, on the home screen and in the top bar, with **Rename**, **Duplicate**, **Download as a file** and **Delete**. Deleting asks first and offers **Undo** for a few seconds. On a selected document, F2 renames it and the Delete key deletes it.
 - **Saving:** the six document tools save automatically in the browser, with undo and redo. **Back up** saves every document from all six to one file, and **Open file** restores it on any device.
@@ -126,6 +144,10 @@ The **home page** (`home.html`) lists every tool and your recent work.
 - **PDF to Word rebuilds text, headings and lists,** not exact layouts; use Exact look when appearance matters. Scanned PDFs contain no text to extract until **Read text** is used.
 - **Compressing turns pages into images,** so their text can’t be selected or searched.
 - **Automatic searches can miss details,** such as names in images: check each page before sharing a redacted document.
+- **The Wall is not live.** Posts arrive only when their writers send you their codes, and a shared link shows the wall as it was when the
+  link was made. A live wall, where posts appear as they are written, would need a server, which If Leaves Weave does not use.
+- **Wall reactions and comments are yours:** they are added on your copy, for example while presenting. Contributors send posts, not likes.
+- **Post codes and links are not secret:** anyone who has a contribute link can write a post for that wall, which is why approval is on by default.
 
 ## Third-party code
 All bundled in `vendor/` unless noted, and loaded only when needed.
