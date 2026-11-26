@@ -1,6 +1,6 @@
 # If Leaves Weave
 
-**If Leaves Weave** is a family of seven free, private tools for documents, plans and people, like separate pages woven into one book. Everything runs in your browser: there are no accounts, nothing is uploaded, and the tools work offline once loaded.
+**If Leaves Weave** is a family of free and private tools for documents, plans and people, like separate pages woven into one book. Everything runs in your browser: there are no accounts, nothing is uploaded, and the tools work offline once loaded.
 
 ## The tools at a glance
 
