@@ -133,6 +133,7 @@ const ICONS = {
   edit: IC('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>'),
   copy: IC('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>'),
   board: IC('<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/>'),
+  wall: IC('<rect x="3" y="3" width="8" height="10" rx="1.5"/><rect x="13" y="3" width="8" height="6" rx="1.5"/><rect x="3" y="15" width="8" height="6" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/>'),
   whiteboard: IC('<path d="M4 18c3-6 6-9 9-9s3 4 7 2"/><rect x="3" y="3" width="18" height="18" rx="3"/>'),
   mindmap: IC('<circle cx="12" cy="12" r="3"/><circle cx="4.5" cy="6" r="2"/><circle cx="19.5" cy="6" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="18.5" r="2"/><path d="M9.6 10.4 6.2 7.3M14.4 10.4l3.4-3.1M9.8 14 6.6 17.6M14.3 13.9l3.2 3.2"/>'),
   sociogram: IC('<circle cx="6" cy="7" r="2.3"/><circle cx="18" cy="6" r="2.3"/><circle cx="12" cy="17" r="2.3"/><circle cx="19.5" cy="16" r="1.6"/><path d="m8.2 7.2 7.5-.9M7.3 9 10.8 15M16.9 8l-3.8 7M14.3 16.7l3.6-.6"/>'),
@@ -146,6 +147,7 @@ const ICONS = {
 const TYPES = {
   board: { name: "Board", family: "If Leaves Weave Boards", page: "boards.html", blurb: "Plan work in Kanban, Table and Timeline views", icon: "board" },
   whiteboard: { name: "Whiteboard", family: "If Leaves Weave Canvas", page: "canvas.html", blurb: "Sticky notes, shapes and connectors on an endless canvas", icon: "whiteboard" },
+  wall: { name: "Wall", family: "If Leaves Weave Wall", page: "wall.html", blurb: "A wall of posts others add to with a code, with no account or server", icon: "wall" },
   mindmap: { name: "Mind and concept map", family: "If Leaves Weave Maps", page: "maps.html", blurb: "Branch ideas fast, then link concepts with labelled relationships", icon: "mindmap" },
   sociogram: { name: "Sociogram", family: "If Leaves Weave Sociogram", page: "sociogram.html", blurb: "Map who connects with whom, with accurate network measures", icon: "sociogram" },
   genogram: { name: "Genogram", family: "If Leaves Weave Genogram", page: "genogram.html", blurb: "Family structure and relationships with standard symbols", icon: "genogram" },
